@@ -8,10 +8,21 @@ from typing import List, Optional, Union, Self, Dict, TypeAlias
 from uuid import UUID
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from llama_cpp import Llama
 from pydantic import BaseModel
 
 app = FastAPI(openapi_url="/openapi.yml")
+
+origins = ["*"]
+           
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 SEMVER_PATTERN = re.compile(r"(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)")
 

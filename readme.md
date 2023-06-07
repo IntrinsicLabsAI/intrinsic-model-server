@@ -3,16 +3,20 @@
 Simple, single-file model server on top of llama.cpp enabled models.
 
 ## Quickstart
+The first time you set-up the server, you will need to install the dependencies and download a model to use. After that, you can start the server and run inference with a single command.
 
-Start the server:
+1. Confirm you have python 3.11+ installed by running `python3 --version` in your terminal. If you don't have python 3.11+ installed, you can download it [here](https://www.python.org/downloads/).
+2. Download the vicuna-7b GGML model from HuggingFace ([link](https://huggingface.co/vicuna/ggml-vicuna-7b-1.1/blob/main/ggml-vic7b-uncensored-q5_0.bin)) and record the path you downloaded it to.
+3. Clone this repo and `cd` into it.
+4. Create a virtual environment: `python3 -m venv venv`'
+
+You are now ready to start the server! To start the server, run the following commands from the top-level of the repo:
 
 ```python
 source ./venv/bin/activate
 pip install -r requirements.txt
 uvicorn modelserver.app:app
 ```
-
-Download the vicuna-7b GGML model from HuggingFace ([link](https://huggingface.co/vicuna/ggml-vicuna-7b-1.1/blob/main/ggml-vic7b-uncensored-q5_0.bin)) and record the path you downloaded it to.
 
 POST a model registration payload to the server, replacing the PATH/TO/themodel with the path from the previous step:
 

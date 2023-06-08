@@ -27,7 +27,10 @@ The first time you set-up the web application, you will need to set-up node and 
 3. Run `npm install` to install the dependencies and set up the project.
 4. Run `npm run dev` to start the web application.
 
-## Running Inference
+## Register Your Model
+There are two ways to register a model with the server. You can use APIs (via a POST request) or using the Web App. This projects provides included Swagger runnable API docs at http://localhost:8000/docs for a web-based client to run this example.
+
+### API Registration
 POST a model registration payload to the server, replacing the PATH/TO/themodel with the path from the previous step:
 
 ```shell
@@ -62,6 +65,7 @@ curl localhost:8000/v1/models
 }
 ```
 
+## Running Inference
 Now you can use the model to run inference:
 
 ```shell
@@ -81,8 +85,6 @@ curl -XPOST localhost:8000/v1/vicuna-7b/0.1.0/complete \
   "completion": "\"Ahoy, matey! I be here to renew me driver's license and register me vessel. Arrrr!\""
 }
 ```
-
-Also checkout the included Swagger runnable API docs at http://localhost:8000/docs for a web-based client to run this example!
 
 ## Development
 To generate new bindings for the Web App after adding or editing the Web Server, run `npm run generate-client` from the `frontend` directory. This will replace the bindings in the `src/api` directory.

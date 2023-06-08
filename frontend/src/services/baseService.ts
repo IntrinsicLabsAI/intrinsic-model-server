@@ -1,14 +1,26 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { GetRegisteredModelsResponse } from '../api/index.ts';
+import { GetRegisteredModelsResponse, ModelInfo } from '../api/index.ts';
 
 export const baseServiceAPI = createApi({
     reducerPath: 'baseServiceAPI',
+    tagTypes: [
+      "models",
+    ],
     baseQuery: fetchBaseQuery({ baseUrl: 'http://127.0.0.1:8000/v1/' }),
     endpoints: (builder) => ({
         getModels: builder.query<GetRegisteredModelsResponse, void>({
           query: () => `models`,
+          providesTags: ["models"]
+        }),
+        registerModel: builder.mutation<string, ModelInfo>({
+          invalidatesTags: ["models"],
+          query: (modelInfo) => ({
+            url: "http://127.0.0.1:8000/v1/models",
+            body: modelInfo,
+            method: "POST",
+          })
         }),
       }),
 });
 
-export const { useGetModelsQuery } = baseServiceAPI;
+export const { useGetModelsQuery, useRegisterModelMutation } = baseServiceAPI;

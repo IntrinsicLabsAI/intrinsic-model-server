@@ -19,7 +19,7 @@ export default function App() {
         <div className='flex flex-row h-18 p-4 items-center border-b border-slate-400'>
           <CloudIcon className="h-8 w-8 text-blue-500 pr-2" />
           <p className="text-lg font-semibold">Model Server</p>
-          <a className='ml-auto' href='http://127.0.0.1:8000/docs' rel="external" target="_blank">
+          <a aria-label="View Server API Documentatio." className='ml-auto' href='http://127.0.0.1:8000/docs' rel="noopener" target="_blank">
             <BookOpenIcon className="h-8 w-8 text-black pr-2" />
           </a>
         </div>
@@ -177,7 +177,10 @@ export default function App() {
                   </tbody>
                 </table>
               ) : (
-                <p>Loading...</p>
+                <p className=' text-lg font-mono '>
+                  Attempting to connect to your server to load information about available models.
+                  Please confirm that the model server is running and accessible from this client.
+                </p>
               )}
             </div>
           </div>

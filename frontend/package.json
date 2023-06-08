@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "lint": "eslint src --ext ts,tsx --max-warnings 0",
     "preview": "vite preview",
     "generate-client": "openapi --input http://localhost:8000/openapi.yml --output ./src/api --client axios"
   },

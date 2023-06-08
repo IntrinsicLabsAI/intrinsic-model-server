@@ -3,6 +3,8 @@
 Simple, single-file model server on top of llama.cpp enabled models.
 
 ## Quickstart
+
+### Part One: Web Server
 The first time you set-up the server, you will need to install the dependencies and download a model to use. After that, you can start the server and run inference with a single command.
 
 1. Confirm you have python 3.11+ installed by running `python3 --version` in your terminal. If you don't have python 3.11+ installed, you can download it [here](https://www.python.org/downloads/).
@@ -17,6 +19,8 @@ source ./venv/bin/activate
 pip install -r requirements.txt
 uvicorn modelserver.app:app
 ```
+### Part Two: Web Application
+The first time you set-up the web application, you will need to set-up node and install the dependencies. After setup, the Web Application will be ready to use with the Web Server.
 
 POST a model registration payload to the server, replacing the PATH/TO/themodel with the path from the previous step:
 

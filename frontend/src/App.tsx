@@ -2,7 +2,7 @@ import { Fragment, useRef, useState } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
 
 import { useGetModelsQuery } from './services/baseService'
-import { CloudIcon } from '@heroicons/react/24/solid'
+import { CloudIcon, BookOpenIcon } from '@heroicons/react/24/solid'
 
 export default function App() {
   const [open, setOpen] = useState(false)
@@ -19,6 +19,9 @@ export default function App() {
         <div className='flex flex-row h-18 p-4 items-center border-b border-slate-400'>
           <CloudIcon className="h-8 w-8 text-blue-500 pr-2" />
           <p className="text-lg font-semibold">Model Server</p>
+          <a className='ml-auto' href='http://127.0.0.1:8000/docs' rel="external" target="_blank">
+            <BookOpenIcon className="h-8 w-8 text-black pr-2" />
+          </a>
         </div>
       </header>
 
@@ -133,7 +136,7 @@ export default function App() {
 
       <div className=' flex flex-col flex-grow bg-slate-100'>
         <div className=" my-10 bg-white w-2/3 h-full outline outline-1 outline-slate-400 self-center rounded-md ">
-          <div className="flex flex-col h-full p-4">
+          <div className="flex flex-col h-full p-10">
             <div className="flex flex-row items-center">
               <h3 className="text-3xl font-semibold grow">Available Models</h3>
               <button
@@ -146,18 +149,17 @@ export default function App() {
             <div className="flex flex-row items-center w-full mt-2">
               <p className=' text-lg font-base text-slate-600 leading-tight mt-2'>
                 The models listed below are currently active and available for use.
-                To add a new model to the server, click the <span className=' italic '>Add Model</span> button above.
-                Different versions of each model by indicating the version when invoking the model.
+                Different versions of each model can be used by indicating the version when invoking the model.
               </p>
             </div>
-            <div className="flex flex-row items-center w-full mt-4">
+            <div className="flex flex-row w-full mt-8 mx-auto">
               {(!isLoading && data) ? (
-                <table className="table-fixed border w-full">
+                <table className="table-fixed border-2 w-full">
                   <thead className=' bg-blue-100'>
                     <tr>
-                      <th className='font-bold p-2 border-b text-left'>Name</th>
-                      <th className='font-bold p-2 border-b text-left'>Version</th>
-                      <th className='font-bold p-2 border-b text-left'>Type</th>
+                      <th className='font-bold p-2 border-b-2 text-left'>Name</th>
+                      <th className='font-bold p-2 border-b-2 text-left'>Version</th>
+                      <th className='font-bold p-2 border-b-2 text-left'>Type</th>
                     </tr>
                   </thead>
                   <tbody>

@@ -9,7 +9,7 @@ export default function App() {
 
   const cancelButtonRef = useRef(null)
 
-  let { data, error, isLoading } = useGetModelsQuery()
+  const { data, error, isLoading } = useGetModelsQuery()
 
   if (error) { console.log(error) }
 
@@ -188,4 +188,4 @@ export default function App() {
       </div>
     </div >
   )
-};
+}

@@ -22,7 +22,7 @@ uvicorn modelserver.app:app
 ### Part Two: Web Application
 The first time you set-up the web application, you will need to set-up node and install the dependencies. After setup, the Web Application will be ready to use with the Web Server.
 
-1. Confirm you have node 16.13+ installed by running `node --version` in your terminal. If you don't have node 16.13+ installed, you can download it [here](https://nodejs.org/en/download/).
+1. Confirm you have node 18+ installed by running `node --version` in your terminal
 2. Change your directory to the `frontend` directory.
 3. Run `npm install` to install the dependencies and set up the project.
 4. Run `npm run dev` to start the web application.

@@ -82,6 +82,21 @@ function RegisterModelForm({
                   </div>
 
                   <div className='mb-2'>
+                    <label htmlFor="modelname" className="block text-sm font-medium leading-6 text-gray-900">
+                      Model Version (optional)
+                    </label>
+
+                    <div className="flex rounded-md ring-1 ring-inset ring-gray-300 sm:max-w-md">
+                      <input
+                        type="text"
+                        value={version}
+                        onChange={(evt) => setVersion(evt.target.value)}
+                        className="block flex-1 border-0 bg-transparent py-1.5 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
+                      />
+                    </div>
+                  </div>
+
+                  <div className='mb-2'>
                     <label htmlFor="modelType" className="block text-sm font-medium leading-6 text-gray-900">
                       Model Type
                     </label>
@@ -123,11 +138,11 @@ function RegisterModelForm({
                   // disabled={!!name || !!modelPath || !!modelType}
                   onClick={() => {
                     registerHandler({
-                      name: name!,
+                      name: name,
                       version: version || undefined,
-                      model_type: modelType!,
+                      model_type: modelType,
                       model_params: {
-                        model_path: modelPath!,
+                        model_path: modelPath,
                       }
                     })
                   }}>

@@ -187,6 +187,14 @@ class DataManger(ABC):
         :return:
         """
 
+    @abstractmethod
+    def delete_model_by_id(self, model_id: uuid):
+        """
+        Delete a model by its GUID.
+        :param model_id: The GUID of the model
+        :return:
+        """
+
 
 class PersistentDataManager(DataManger):
     def __init__(self, db_file: str):
@@ -248,14 +256,26 @@ class PersistentDataManager(DataManger):
     def get_model_by_name_and_version(self, model: str, version: Optional[str]) -> RegisteredModel:
         self.mutex.acquire()
         try:
-            if version is not None:
-                cur = self.conn.execute("SELECT json FROM model WHERE name = ?", (model,))
-            else:
-                cur = self.conn.execute("SELECT json FROM model WHERE name = ? AND version = ?", (model, version,))
-            if cur.rowcount == 0:
-                raise HTTPException(status_code=404, detail=f"No such model ({model}, {version})")
+            if version is None:
+                # Find the latest version that is the most recent
+                num_versions = self.conn.execute("SELECT COUNT(*) FROM models WHERE name = ?", (model,)).fetchone()[0]
+                if num_versions == 0:
+                    raise HTTPException(status_code=404, detail=f"No such model ({model})")
+                cur = self.conn.execute("SELECT version FROM models WHERE name = ?", (model,))
+                version = max(map(lambda r: SemVer.from_str(r[0]), cur.fetchall()))
+            cur = self.conn.execute("SELECT json FROM models WHERE name = ? AND version = ?", (model, version,))
             row = cur.fetchone()
+            if row is None:
+                raise HTTPException(status_code=404,
+                                    detail=f"Unknown version for model (model={model}, version={version})")
             return RegisteredModel.parse_raw(row[0])
+        finally:
+            self.mutex.release()
+
+    def delete_model_by_id(self, model_id: uuid):
+        self.mutex.acquire()
+        try:
+            self.conn.execute("DELETE FROM models WHERE id = ?", (str(model_id),))
         finally:
             self.mutex.release()
 
@@ -306,3 +326,8 @@ async def run_inference_sync(
         elapsed_seconds=elapsed,
         completion=completion,
     )
+
+
+@app.delete("/v1/{model_guid}")
+async def delete_model_by_id(model_guid: uuid.UUID):
+    data_manager.delete_model_by_id(model_guid)

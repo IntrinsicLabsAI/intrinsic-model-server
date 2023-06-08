@@ -1,5 +1,6 @@
 # SQlite DB files
-/*.db
+*.db
+*.db-journal
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

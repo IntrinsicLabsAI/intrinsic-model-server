@@ -84,6 +84,9 @@ curl -XPOST localhost:8000/v1/vicuna-7b/0.1.0/complete \
 
 Also checkout the included Swagger runnable API docs at http://localhost:8000/docs for a web-based client to run this example!
 
+## Development
+To generate new bindings for the Web App after adding or editing the Web Server, run `npm run generate-client` from the `frontend` directory. This will replace the bindings in the `src/api` directory.
+
 ## Supported model types
 
 - [x] LLM completion

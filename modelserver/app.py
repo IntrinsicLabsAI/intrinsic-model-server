@@ -1,13 +1,14 @@
 import re
+import sqlite3
 import time
 import uuid
 from abc import ABC, abstractmethod
 from enum import Enum
 from threading import RLock
-from typing import List, Optional, Union, Self, Dict, TypeAlias
+from typing import List, Optional, Union, Self, TypeAlias
 from uuid import UUID
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from llama_cpp import Llama
 from pydantic import BaseModel
@@ -15,7 +16,7 @@ from pydantic import BaseModel
 app = FastAPI(openapi_url="/openapi.yml")
 
 origins = ["*"]
-           
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -50,6 +51,21 @@ class SemVer(str):
     def __hash__(self):
         return hash((self.major, self.minor, self.patch))
 
+    def __eq__(self, other):
+        if not isinstance(other, SemVer):
+            return False
+        return (self.major, self.minor, self.patch) == (other.major, other.minor, other.patch)
+
+    def __gt__(self, other):
+        if not isinstance(other, SemVer):
+            raise TypeError(type(other))
+        return (self.major, self.minor, self.patch) > (other.major, other.minor, other.patch)
+
+    def __lt__(self, other):
+        if not isinstance(other, SemVer):
+            raise TypeError(type(other))
+        return (self.major, self.minor, self.patch) < (other.major, other.minor, other.patch)
+
     @classmethod
     def is_valid(cls, semver: str) -> bool:
         return SEMVER_PATTERN.match(semver) is not None
@@ -57,7 +73,7 @@ class SemVer(str):
     @classmethod
     def from_str(cls, semver: str) -> Self:
         if not SemVer.is_valid(semver):
-            raise ValueError(semver)
+            raise HTTPException(status_code=400, detail=f"Invalid semantic version format {semver}")
         major, minor, patch = SEMVER_PATTERN.match(semver).groups()
         return SemVer.of(major, minor, patch)
 
@@ -172,63 +188,79 @@ class DataManger(ABC):
         """
 
 
-class InMemoryDataManager(DataManger):
-    def __init__(self):
-        self.models: Dict[(str, SemVer), RegisteredModel] = {}
-        self.model_latest_version: Dict[str, SemVer] = {}
+class PersistentDataManager(DataManger):
+    def __init__(self, db_file: str):
+        self.conn = sqlite3.connect(db_file, check_same_thread=False)
         self.mutex = RLock()
+        self.conn.execute("CREATE TABLE IF NOT EXISTS models (id, name, version, json)")
 
     def get_registered_models(self) -> List[RegisteredModel]:
         self.mutex.acquire()
         try:
-            return list(self.models.values())
+            cur = self.conn.cursor()
+            registered_models = []
+            for row in cur.execute("SELECT json FROM models"):
+                registered_models.append(RegisteredModel.parse_raw(row[0]))
+            return registered_models
         finally:
             self.mutex.release()
 
     def register_model(self, model_info: ModelInfo) -> UUID:
         self.mutex.acquire()
         try:
-            # pdb.set_trace()
-            fresh_id = uuid.uuid4()
-            if model_info.version is None:
-                if model_info.name in self.model_latest_version:
-                    latest_semver = self.model_latest_version[model_info.name]
-                    semver = SemVer.of(
-                        latest_semver.major,
-                        latest_semver.minor + 1,
-                        latest_semver.patch,
-                    )
+            if model_info.version is not None:
+                cur = self.conn.execute("SELECT COUNT(*) AS rowcount FROM models WHERE name = ? AND version = ?",
+                                        (model_info.name, model_info.version,))
+                rowcount = cur.fetchone()[0]
+                if rowcount == 0:
+                    next_version = model_info.version
                 else:
-                    semver = SemVer.of(0, 1, 0)
-                self.model_latest_version[model_info.name] = semver
+                    raise HTTPException(status_code=409, detail=f"Version {model_info.version} already registered")
             else:
-                semver = SemVer.from_str(model_info.version)
-            self.models[(model_info.name, semver)] = RegisteredModel(
+                cur = self.conn.execute("SELECT version FROM models WHERE name = ?", (model_info.name,))
+                versions = list(map(lambda row: SemVer.from_str(row[0]), cur.fetchall()))
+                if len(versions) > 0:
+                    latest_version = max(versions)
+                    next_version = SemVer.of(latest_version.major, latest_version.minor + 1, 0)
+                else:
+                    next_version = SemVer.of(0, 1, 0)
+            registered_model = RegisteredModel(
                 model_type=model_info.model_type,
-                guid=fresh_id,
+                guid=uuid.uuid4(),
                 name=model_info.name,
-                version=semver,
-                model_params=model_info.model_params,
+                version=next_version,
+                model_params=model_info.model_params
             )
-            return fresh_id
+            # pdb.set_trace()
+            self.conn.execute(
+                "INSERT INTO models(id, name, version, json) VALUES (?, ?, ?, ?)",
+                (
+                    str(registered_model.guid),
+                    registered_model.name,
+                    str(registered_model.version),
+                    registered_model.json(),
+                ))
+            self.conn.commit()
+            return registered_model.guid
         finally:
             self.mutex.release()
 
     def get_model_by_name_and_version(self, model: str, version: Optional[str]) -> RegisteredModel:
         self.mutex.acquire()
         try:
-            if model not in self.model_latest_version:
-                raise KeyError(model)
-            if version is None:
-                semver = self.model_latest_version[model]
+            if version is not None:
+                cur = self.conn.execute("SELECT json FROM model WHERE name = ?", (model,))
             else:
-                semver = SemVer.from_str(version)
-            return self.models[(model, semver)]
+                cur = self.conn.execute("SELECT json FROM model WHERE name = ? AND version = ?", (model, version,))
+            if cur.rowcount == 0:
+                raise HTTPException(status_code=404, detail=f"No such model ({model}, {version})")
+            row = cur.fetchone()
+            return RegisteredModel.parse_raw(row[0])
         finally:
             self.mutex.release()
 
 
-data_manager = InMemoryDataManager()
+data_manager = PersistentDataManager(db_file="v0.db")
 
 
 @app.get("/v1/models")

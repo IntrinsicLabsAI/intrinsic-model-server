@@ -24,7 +24,7 @@ export default function Card({
                 <p className=" font-mono text-sm"><span className=" font-sans font-semibold ">Version: </span>{version}</p>
             </div>
             <div className="flex flex-row">
-                <p className=" font-mono text-sm"><span className=" font-sans font-semibold ">Type: </span>Compleation</p>
+                <p className=" font-mono text-sm"><span className=" font-sans font-semibold ">Type: </span>Completion</p>
             </div>
         </div>
     </div>

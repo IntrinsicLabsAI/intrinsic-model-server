@@ -164,7 +164,7 @@ export default function App() {
 
   // State for registering a new model
   const { data, error, isLoading } = useGetModelsQuery()
-  
+
   // Mutations for registering and deleting models
   const [registerModelAction] = useRegisterModelMutation();
   const [deleteModelAction] = useDeleteModelMutation();
@@ -210,14 +210,14 @@ export default function App() {
             <div className="flex flex-row w-full mt-8 mx-auto">
               {(!isLoading && data) ? (
                 <div className=' grid grid-cols-3 gap-4 w-full'>
-                    {data?.models.map((model) => (
-                      <Card 
-                        title={model.name} 
-                        version={model.version} 
-                        guid={model.guid}
-                        deleteHandler={(guid) => { deleteModelAction(guid) }}
-                        />
-                    ))}
+                  {data?.models.map((model) => (
+                    <Card
+                      title={model.name}
+                      version={model.version}
+                      guid={model.guid}
+                      deleteHandler={(guid) => { deleteModelAction(guid) }}
+                    />
+                  ))}
                 </div>
               ) : (
                 <p className=' text-lg font-mono '>

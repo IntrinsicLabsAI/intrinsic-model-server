@@ -185,9 +185,8 @@ export default function App() {
 
       <RegisterModelForm open={open} registerHandler={(modelInfo) => {
         registerModelAction(modelInfo);
-        setOpen(false)
-      }
-      } />
+        setOpen(false)}} 
+      />
 
       <div className=' flex flex-col flex-grow bg-slate-100'>
         <div className=" my-10 bg-white w-2/3 h-full outline outline-1 outline-slate-400 self-center rounded-md ">

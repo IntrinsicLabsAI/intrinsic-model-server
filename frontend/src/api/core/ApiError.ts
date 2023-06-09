@@ -21,4 +21,4 @@ export class ApiError extends Error {
         this.body = response.body;
         this.request = request;
     }
-};
+}

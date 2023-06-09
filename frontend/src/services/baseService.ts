@@ -20,7 +20,14 @@ export const baseServiceAPI = createApi({
             method: "POST",
           })
         }),
+        deleteModel: builder.mutation<string, string>({
+          invalidatesTags: ["models"],
+          query: (modelGuid) => ({
+            url: `http://127.0.0.1:8000/v1/${modelGuid}`,
+            method: "DELETE",
+          }),
+        }),
       }),
 });
 
-export const { useGetModelsQuery, useRegisterModelMutation } = baseServiceAPI;
+export const { useGetModelsQuery, useRegisterModelMutation, useDeleteModelMutation } = baseServiceAPI;

@@ -209,7 +209,7 @@ export default function App() {
             </div>
             <div className="flex flex-row w-full mt-8 mx-auto">
               {(!isLoading && data) ? (
-                <div className=' grid grid-cols-3 gap-4 w-full'>
+                <div className=' grid grid-cols-1 lg:grid-cols-3 gap-4 w-full'>
                   {data?.models.map((model) => (
                     <Card
                       title={model.name}

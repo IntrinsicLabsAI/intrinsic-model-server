@@ -5,7 +5,7 @@ import { useGetModelsQuery, useRegisterModelMutation, useDeleteModelMutation } f
 import { CloudIcon, BookOpenIcon } from '@heroicons/react/24/solid'
 import { ModelInfo, ModelType } from './api'
 
-import Card from './components/card'
+import Card from './components/Card'
 
 function RegisterModelForm({
   open,

@@ -1,3 +1,5 @@
+import logging
+import pdb
 import re
 import sqlite3
 import time
@@ -8,9 +10,9 @@ from threading import RLock
 from typing import List, Optional, Union, Self, TypeAlias
 from uuid import UUID
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
-from llama_cpp import Llama
+from llama_cpp import Llama, CompletionChunk
 from pydantic import BaseModel
 
 app = FastAPI(openapi_url="/openapi.yml")
@@ -239,7 +241,6 @@ class PersistentDataManager(DataManger):
                 version=next_version,
                 model_params=model_info.model_params
             )
-            # pdb.set_trace()
             self.conn.execute(
                 "INSERT INTO models(id, name, version, json) VALUES (?, ?, ?, ?)",
                 (
@@ -331,3 +332,26 @@ async def run_inference_sync(
 @app.delete("/v1/{model_guid}")
 async def delete_model_by_id(model_guid: uuid.UUID):
     data_manager.delete_model_by_id(model_guid)
+
+
+@app.websocket("/ws/v1/{model}/{version}/complete")
+async def completion_async(*, websocket: WebSocket, model: str, version: str):
+    await websocket.accept()
+    model = data_manager.get_model_by_name_and_version(model, version)
+    llama = Llama(model_path=model.model_params.model_path)
+    try:
+        msg = await websocket.receive_json()
+        print(f"MESSG: {msg}")
+        request: CompletionInferenceRequest = CompletionInferenceRequest.parse_obj(msg)
+        chunk: CompletionChunk
+        # pdb.set_trace()
+        for chunk in llama.create_completion(
+                request.prompt,
+                max_tokens=request.tokens,
+                temperature=request.temperature,
+                stream=True,
+        ):
+            await websocket.send_text(chunk["choices"][0]["text"])
+        await websocket.close(1000)
+    except WebSocketDisconnect:
+        logging.info("WebSocket disconnected from streaming session")

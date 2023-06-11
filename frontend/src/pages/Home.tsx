@@ -179,7 +179,7 @@ export default function Home() {
 
   const getAllModels = function (data: GetRegisteredModelsResponse): distinctModel[] {
 
-    let distinctModelList = new Array<distinctModel>();
+    const distinctModelList = new Array<distinctModel>();
 
     if(!data) {return distinctModelList}
 
@@ -212,8 +212,8 @@ export default function Home() {
 
   let distinctModelList: distinctModel[] = [];
 
-  if (error) { console.log(error) };
-  if (!isLoading && data) {distinctModelList = getAllModels(data)};
+  if (error) { console.log(error) }
+  if (!isLoading && data) {distinctModelList = getAllModels(data)};;
 
   return (
     <>

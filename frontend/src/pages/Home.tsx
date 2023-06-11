@@ -16,9 +16,11 @@ interface distinctModel {
 
 function RegisterModelForm({
   open,
+  setOpen,
   registerHandler,
 }: {
   open: boolean,
+  setOpen: (toggle: boolean) => void,
   registerHandler: (arg: ModelInfo) => void,
 }) {
   const cancelButtonRef = useRef(null);
@@ -29,7 +31,7 @@ function RegisterModelForm({
 
   return (
     <Transition.Root show={open} as={Fragment}>
-      <Dialog as="div" className="relative z-10" initialFocus={cancelButtonRef} onClose={() => { console.log("Closed modal without doing anything") }}>
+      <Dialog as="div" className="relative z-10" initialFocus={cancelButtonRef} onClose={() => setOpen(false)}>
         <Transition.Child
           as={Fragment}
           enter="ease-out duration-300"
@@ -217,7 +219,7 @@ export default function Home() {
 
   return (
     <>
-      <RegisterModelForm open={open} registerHandler={(modelInfo) => {
+      <RegisterModelForm open={open} setOpen={setOpen} registerHandler={(modelInfo) => {
         registerModelAction(modelInfo);
         setOpen(false)
       }}
@@ -229,7 +231,7 @@ export default function Home() {
           <Callout color='blue'>
             <h3 className='text-lg font-semibold text-blue-600 leading-none'>Welcome to Intrinsic Model Server</h3>
             <p className='text-lg text-blue-600 leading-snug mt-2'>
-              This project is under active development by members of <a href="intrinsiclabs.ai" target="_blank" className='underline underline-offset-2'>Intrinsic Labs</a>.
+              This project is under active development by members of <a href="https://intrinsiclabs.ai" target="_blank" className='underline underline-offset-2'>Intrinsic Labs</a>.
               If you have any issues or ideas, add them as issues to the <a href="https://github.com/IntrinsicLabsAI/intrinsic-model-server" target="_blank" className='underline underline-offset-2'>GitHub repository</a>.
               A roadmap for this project is available in the GitHub repository.
             </p>
@@ -286,12 +288,6 @@ export default function Home() {
                       onClick={() => setOpen(true)}
                       className=' hover:text-blue-700 rounded pt-2'>
                       <p className=' text-base font-semibold'>Register Model</p>
-                    </button>
-                    <button
-                      type='button'
-                      onClick={() => setOpen(true)}
-                      className=' hover:text-blue-700 rounded pt-2'>
-                      <p className=' text-base font-semibold'>Delete Model</p>
                     </button>
                   </div>
                 </Section>

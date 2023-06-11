@@ -247,7 +247,7 @@ export default function Home() {
                   </p>
                 </div>
 
-                <div className="flex flex-row w-full mt-8 mx-auto">
+                <div className="flex flex-col gap-4 w-full mt-8 mx-auto">
                   {(!isLoading && data) ? (
                     distinctModelList.map((model) => (
                       <div key={model.name} className=" w-full ">

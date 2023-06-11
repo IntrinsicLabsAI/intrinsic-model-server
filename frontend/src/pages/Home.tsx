@@ -177,19 +177,19 @@ export default function Home() {
   const [registerModelAction] = useRegisterModelMutation();
   const [deleteModelAction] = useDeleteModelMutation();
 
-  let getAllModels = function (data: GetRegisteredModelsResponse): distinctModel[] {
+  const getAllModels = function (data: GetRegisteredModelsResponse): distinctModel[] {
 
     let distinctModelList = new Array<distinctModel>();
 
     if(!data) {return distinctModelList}
 
-    for (let model of data.models) {
+    for (const model of data.models) {
       let flag = true;
       distinctModelList.forEach((item, index) => {
         if (item.name == model.name) {
           flag = false;
           if (item.maxVersion < model.version) {
-            let priorEntryVersions = distinctModelList[index].versions;
+            const priorEntryVersions = distinctModelList[index].versions;
             priorEntryVersions.push(model.version)
             distinctModelList[index] = {
               name: model.name,

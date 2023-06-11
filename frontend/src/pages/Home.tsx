@@ -2,10 +2,17 @@ import { Fragment, useRef, useState } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
 
 import { useGetModelsQuery, useRegisterModelMutation, useDeleteModelMutation } from '../services/baseService'
-import { CloudIcon, BookOpenIcon } from '@heroicons/react/24/solid'
-import { ModelInfo, ModelType } from '../api'
+import { GetRegisteredModelsResponse, ModelInfo, ModelType } from '../api'
 
-import Card from '../components/Card'
+import Section from '../components/core/Section'
+import Callout from '../components/core/Callout'
+import ModelCardView from '../components/ModelCardView'
+
+interface distinctModel {
+  name: string,
+  maxVersion: string,
+  versions: string[]
+}
 
 function RegisterModelForm({
   open,
@@ -170,65 +177,130 @@ export default function Home() {
   const [registerModelAction] = useRegisterModelMutation();
   const [deleteModelAction] = useDeleteModelMutation();
 
-  if (error) { console.log(error) }
+  let getAllModels = function (data: GetRegisteredModelsResponse): distinctModel[] {
+
+    let distinctModelList = new Array<distinctModel>();
+
+    if(!data) {return distinctModelList}
+
+    for (let model of data.models) {
+      let flag = true;
+      distinctModelList.forEach((item, index) => {
+        if (item.name == model.name) {
+          flag = false;
+          if (item.maxVersion < model.version) {
+            let priorEntryVersions = distinctModelList[index].versions;
+            priorEntryVersions.push(model.version)
+            distinctModelList[index] = {
+              name: model.name,
+              maxVersion: model.version,
+              versions: priorEntryVersions
+            };
+          }
+        }
+      })
+      if (flag) {
+        distinctModelList.push({
+          name: model.name,
+          maxVersion: model.version,
+          versions: [model.version]
+        });
+      }
+    }
+    return distinctModelList;
+  };
+
+  let distinctModelList: distinctModel[] = [];
+
+  if (error) { console.log(error) };
+  if (!isLoading && data) {distinctModelList = getAllModels(data)};
 
   return (
-    <div className="flex flex-col h-screen">
-      <header>
-        <div className='flex flex-row h-18 p-4 items-center border-b border-slate-400'>
-          <CloudIcon className="h-8 w-8 text-blue-500 pr-2" />
-          <p className="text-lg font-semibold">Model Server</p>
-          <a aria-label="View Server API Documentatio." className='ml-auto' href='http://127.0.0.1:8000/docs' rel="noopener" target="_blank">
-            <BookOpenIcon className="h-8 w-8 text-black pr-2" />
-          </a>
-        </div>
-      </header>
-
+    <>
       <RegisterModelForm open={open} registerHandler={(modelInfo) => {
         registerModelAction(modelInfo);
-        setOpen(false)}} 
+        setOpen(false)
+      }}
       />
 
-      <div className=' flex flex-col flex-grow bg-slate-100'>
-        <div className=" my-10 bg-white w-2/3 h-full outline outline-1 outline-slate-400 self-center rounded-md ">
-          <div className="flex flex-col h-full p-10">
-            <div className="flex flex-row items-center">
-              <h3 className="text-3xl font-semibold grow">Available Models</h3>
-              <button
-                type='button'
-                onClick={() => setOpen(true)}
-                className=' bg-blue-500 hover:bg-blue-700 text-white py-2 px-4 rounded'>
-                <p className=' text-base font-normal'>Register</p>
-              </button>
-            </div>
-            <div className="flex flex-row items-center w-full mt-2">
-              <p className=' text-lg font-base text-slate-600 leading-tight mt-2'>
-                The models listed below are currently active and available for use.
-                Different versions of each model can be used by indicating the version when invoking the model.
-              </p>
-            </div>
-            <div className="flex flex-row w-full mt-8 mx-auto">
-              {(!isLoading && data) ? (
-                <div className=' grid grid-cols-1 lg:grid-cols-3 gap-4 w-full'>
-                  {data?.models.map((model) => (
-                    <Card
-                      title={model.name}
-                      version={model.version}
-                      guid={model.guid}
-                      deleteHandler={(guid) => { deleteModelAction(guid) }}
-                    />
-                  ))}
+      <div className='mt-10 w-[80%] self-center'>
+        <div className="flex flex-col gap-5 items-center">
+
+          <Callout color='blue'>
+            <h3 className='text-lg font-semibold text-blue-600 leading-none'>Welcome to Intrinsic Model Server</h3>
+            <p className='text-lg text-blue-600 leading-snug mt-2'>
+              This project is under active development by members of <a href="intrinsiclabs.ai" target="_blank" className='underline underline-offset-2'>Intrinsic Labs</a>.
+              If you have any issues or ideas, add them as issues to the <a href="https://github.com/IntrinsicLabsAI/intrinsic-model-server" target="_blank" className='underline underline-offset-2'>GitHub repository</a>.
+              A roadmap for this project is available in the GitHub repository.
+            </p>
+          </Callout>
+
+          <div className='flex flex-row w-full gap-5'>
+
+            <Section>
+              <div className="flex flex-col h-full">
+                <h3 className="text-3xl font-semibold grow">Registered Models</h3>
+                <div className="flex flex-row items-center w-full mt-2">
+                  <p className=' text-lg font-base text-slate-600 leading-tight mt-2'>
+                    The models listed below are currently active and available for use.
+                    Different versions of each model can be used by indicating the version when invoking the model.
+                  </p>
                 </div>
-              ) : (
-                <p className=' text-lg font-mono '>
-                  Attempting to connect to your server to load information about available models.
-                  Please confirm that the model server is running and accessible from this client.
-                </p>
-              )}
+
+                <div className="flex flex-row w-full mt-8 mx-auto">
+                  {(!isLoading && data) ? (
+                    distinctModelList.map((model) => (
+                      <div key={model.name} className=" w-full ">
+                        <ModelCardView 
+                          modelName={model.name}
+                          modelVersions={data.models.filter((modelVersion) => modelVersion.name == model.name)}
+                          deleteHandler={(guid) => { deleteModelAction(guid) }}
+                          />
+                      </div>
+                    ))) : ( 
+                      null 
+                    )}
+                </div>
+              </div>
+            </Section>
+
+            <div className=' flex flex-col w-80 gap-5'>
+              <div className='grow-0'>
+                <Section>
+                  <div className='flex flex-col items-center'>
+                    <p className=' text-slate-600 font-semibold '>Server Status</p>
+                    {(!error) ? (
+                      <p className=' text-lg font-bold text-emerald-600'>Online</p>
+                    ) : (
+                      <p className=' text-lg font-bold text-red-600'>Offline</p>
+                    )}
+                  </div>
+                </Section>
+              </div>
+              <div className='grow-0'>
+                <Section>
+                  <div className='flex flex-col items-center'>
+                    <p className=' text-slate-600 font-semibold'>Quick Actions</p>
+                    <button
+                      type='button'
+                      onClick={() => setOpen(true)}
+                      className=' hover:text-blue-700 rounded pt-2'>
+                      <p className=' text-base font-semibold'>Register Model</p>
+                    </button>
+                    <button
+                      type='button'
+                      onClick={() => setOpen(true)}
+                      className=' hover:text-blue-700 rounded pt-2'>
+                      <p className=' text-base font-semibold'>Delete Model</p>
+                    </button>
+                  </div>
+                </Section>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div >
+
+    </>
   )
 }

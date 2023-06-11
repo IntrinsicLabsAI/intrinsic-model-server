@@ -5,16 +5,22 @@ export default function Callout({
     color
 } : {
     children?: React.ReactNode | React.ReactNode[],
-    color: string
+    color: "blue" | "red"
 }) {
-    const iconColor = `text-${color}-600`;
-    const borderColor = `outline-${color}-600`;
-    const backgroundColor = `bg-${color}-300`;
+    const colorVariants = {
+        blue: 'bg-blue-300 outline-blue-600',
+        red: 'bg-red-300 outline-red-600',
+    }
+
+    const iconVariants = {
+        blue: 'text-blue-600',
+        red: 'text-red-300',
+    }
 
     return (
-        <div className={`flex flex-col w-full h-full ${backgroundColor} outline outline-1 ${borderColor} rounded-md p-6`}>
+        <div className={`${colorVariants[color]} flex flex-col w-full h-full outline outline-1 rounded-md p-6`}>
             <div className="flex flex-row gap-4 w-full h-full">
-                <SparklesIcon className={`h-6 w-6 stroke-2 ${iconColor}`}/>
+                <SparklesIcon className={`h-6 w-6 stroke-2 ${iconVariants[color]}`}/>
                 <div className=" flex flex-col w-full h-full">
                     {children}
                 </div>

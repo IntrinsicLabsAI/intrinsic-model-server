@@ -213,7 +213,7 @@ export default function Home() {
   let distinctModelList: distinctModel[] = [];
 
   if (error) { console.log(error) }
-  if (!isLoading && data) {distinctModelList = getAllModels(data)};;
+  if (!isLoading && data) {distinctModelList = getAllModels(data)}
 
   return (
     <>

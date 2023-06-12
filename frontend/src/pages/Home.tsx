@@ -228,9 +228,9 @@ export default function Home() {
       <div className='mt-10 w-[80%] self-center'>
         <div className="flex flex-col gap-5 items-center">
 
-          <Callout color='blue'>
-            <h3 className='text-lg font-semibold text-blue-600 leading-none'>Welcome to Intrinsic Model Server</h3>
-            <p className='text-lg text-blue-600 leading-snug mt-2'>
+          <Callout>
+            <h3 className='text-lg font-semibold text-dark-500 leading-none'>Welcome to Intrinsic Model Server</h3>
+            <p className='text-lg text-dark-500 leading-snug mt-2'>
               This project is under active development by members of <a href="https://intrinsiclabs.ai" target="_blank" className='underline underline-offset-2'>Intrinsic Labs</a>.
               If you have any issues or ideas, add them as issues to the <a href="https://github.com/IntrinsicLabsAI/intrinsic-model-server" target="_blank" className='underline underline-offset-2'>GitHub repository</a>.
               A roadmap for this project is available in the GitHub repository.
@@ -241,15 +241,15 @@ export default function Home() {
 
             <Section>
               <div className="flex flex-col h-full">
-                <h3 className="text-3xl font-semibold grow">Registered Models</h3>
+                <h3 className="text-3xl font-semibold grow text-white/90">Registered Models</h3>
                 <div className="flex flex-row items-center w-full mt-2">
-                  <p className=' text-lg font-base text-slate-600 leading-tight mt-2'>
+                  <p className=' text-lg font-base text-slate-600 leading-tight mt-2 text-white/70'>
                     The models listed below are currently active and available for use.
                     Different versions of each model can be used by indicating the version when invoking the model.
                   </p>
                 </div>
 
-                <div className="flex flex-col gap-4 w-full mt-8 mx-auto">
+                <div className="flex flex-row gap-4 w-full mt-8 mx-auto">
                   {(!isLoading && data) ? (
                     distinctModelList.map((model) => (
                       <div key={model.name} className=" w-full ">
@@ -270,28 +270,30 @@ export default function Home() {
               <div className='grow-0'>
                 <Section>
                   <div className='flex flex-col items-center'>
-                    <p className=' text-slate-600 font-semibold '>Server Status</p>
+                    <p className=' text-white font-semibold '>Server Status</p>
                     {(!error) ? (
-                      <p className=' text-lg font-bold text-emerald-600'>Online</p>
+                      <p className=' text-lg font-bold text-primary-600'>Online</p>
                     ) : (
-                      <p className=' text-lg font-bold text-red-600'>Offline</p>
+                      <p className=' text-lg font-bold text-white'>Offline</p>
                     )}
                   </div>
                 </Section>
               </div>
+
               <div className='grow-0'>
                 <Section>
                   <div className='flex flex-col items-center'>
-                    <p className=' text-slate-600 font-semibold'>Quick Actions</p>
+                    <p className=' text-white font-semibold'>Quick Actions</p>
                     <button
                       type='button'
                       onClick={() => setOpen(true)}
-                      className=' hover:text-blue-700 rounded pt-2'>
-                      <p className=' text-base font-semibold'>Register Model</p>
+                      className=' hover:text-primary-400 rounded pt-2'>
+                      <p className=' text-base text-white'>Register Model</p>
                     </button>
                   </div>
                 </Section>
               </div>
+
             </div>
           </div>
         </div>

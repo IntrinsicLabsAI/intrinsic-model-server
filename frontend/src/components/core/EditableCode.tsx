@@ -10,12 +10,10 @@ import ReactMarkdown from "react-markdown";
 export default function EditableCode({
     initialCode,
     langage,
-    publish,
     className,
 }: {
     initialCode: string,
     langage: string,
-    publish: (code: string) => void,
     className?: string,
 }) {
     const [editing, setEditing] = useState(false);

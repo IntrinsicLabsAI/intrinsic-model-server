@@ -19,7 +19,7 @@ export default function EditableCode({
     const [editing, setEditing] = useState(false);
     const [code, setCode] = useState(initialCode);
     return (
-        <div className={`overflow-y-auto h-full ${className || "" }`}>
+        <div className={`overflow-y-auto [&::-webkit-scrollbar]:hidden h-full ${className || "" }`}>
             <div onClick={() => setEditing(true)} onBlur={() => setEditing(false)}>
                 {
                     editing

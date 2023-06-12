@@ -6,7 +6,7 @@ function App() {
     return (
         <Routes>
             <Route path="" element={<Workspace />}>
-              <Route path="home" element={<Home />} />
+              <Route index={true} element={<Home />} />
             </Route>
         </Routes>
     )

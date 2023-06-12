@@ -21,8 +21,8 @@ export default function ModelCardView(
                 className={`w-full p-3 cursor-pointer`}
                 onClick={() => setIsOpen(!isOpen)}
             >
-                <p className=' text-sm text-dark-600 font-semibold'>Completion</p>
-                <p className=' font-semibold text-dark-600 text-xl leading-tight'>{modelName}</p>
+                <p className=' text-xs lg:text-sm text-dark-600 font-semibold truncate'>Completion</p>
+                <p className=' font-semibold text-dark-600 text-sm lg:text-xl leading-tight truncate'>{modelName}</p>
             </div>
 
             {(isOpen) ? (

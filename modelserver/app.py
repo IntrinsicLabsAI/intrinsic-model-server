@@ -391,4 +391,4 @@ class StaticReactRouterFiles(StaticFiles):
             return super().get_path(scope)
 
 
-app.mount("/", StaticReactRouterFiles(directory="frontend/dist", html=True), name="frontend")
+app.mount("/", StaticReactRouterFiles(directory="frontend/dist", check_dir=False, html=True), name="frontend")

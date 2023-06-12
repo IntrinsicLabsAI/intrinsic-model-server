@@ -4,6 +4,7 @@ import DropdownItem from "../components/core/DropdownItem";
 import Page from "../components/core/Page";
 import { useParams } from "react-router-dom";
 import EditableCode from "../components/core/EditableCode";
+import Widget from "../components/core/Widget";
 
 
 export default function ModelPage() {
@@ -42,15 +43,29 @@ function() {
                 </>
             }
             content={
-                <EditableCode
-                    initialCode={markdown}
-                    langage="markdown"
-                    />
+                <Widget title="Details">
+                    <EditableCode
+                        initialCode={markdown}
+                        langage="markdown"
+                        />
+                </Widget>
             }
             sidebar={
                 <>
-                    <p className="mb-1 text-md font-medium">Versions</p>
-                    <div className="pt-4 max-h-80 overflow-y-auto [&::-webkit-scrollbar]:hidden">
+                <div className="pb-5">
+                    <Widget title="About">
+                        <div className="overflow-y-auto [&::-webkit-scrollbar]:hidden">
+                            <ul>
+                                <p className="text-sm">0.3.0</p>
+                                <p className="text-sm">0.2.0</p>
+                                <p className="text-sm">0.1.0</p>
+                                <p className="text-sm">0.0.1</p>
+                            </ul>                            
+                        </div>
+                    </Widget>
+                </div>
+                <Widget title="Versions">
+                    <div className="overflow-y-auto [&::-webkit-scrollbar]:hidden">
                         <ul>
                             <p className="text-sm">0.3.0</p>
                             <p className="text-sm">0.2.0</p>
@@ -58,6 +73,7 @@ function() {
                             <p className="text-sm">0.0.1</p>
                         </ul>                            
                     </div>
+                </Widget>
                 </>
             }
         />

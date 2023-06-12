@@ -9,7 +9,7 @@ export const baseServiceAPI = createApi({
     tagTypes: [
       "models",
     ],
-    baseQuery: fetchBaseQuery({ baseUrl: isDevServer ? "http://0.0.0.0:8000/v1" : '/v1/' }),
+    baseQuery: fetchBaseQuery({ baseUrl: isDevServer ? "http://0.0.0.0:8000/v1" : '/v1' }),
     endpoints: (builder) => ({
         getModels: builder.query<GetRegisteredModelsResponse, void>({
           query: () => `models`,

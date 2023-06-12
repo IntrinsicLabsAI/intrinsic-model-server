@@ -1,19 +1,21 @@
 import logging
-import pdb
 import re
 import sqlite3
 import time
 import uuid
 from abc import ABC, abstractmethod
 from enum import Enum
+from os import PathLike
 from threading import RLock
-from typing import List, Optional, Union, Self, TypeAlias
+from typing import List, Optional, Union, Self, TypeAlias, Tuple
 from uuid import UUID
 
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from llama_cpp import Llama, CompletionChunk
 from pydantic import BaseModel
+from starlette.types import Scope
 
 app = FastAPI(openapi_url="/openapi.yml")
 
@@ -355,3 +357,38 @@ async def completion_async(*, websocket: WebSocket, model: str, version: str):
         await websocket.close(1000)
     except WebSocketDisconnect:
         logging.info("WebSocket disconnected from streaming session")
+
+
+class StaticReactRouterFiles(StaticFiles):
+    """
+    Customzied version of upstream StaticFiles app that resolves all react browser routes to the index.html file.
+    """
+
+    def __init__(
+            self,
+            *,
+            directory: Optional[PathLike] = None,
+            packages: Optional[
+                List[Union[str, Tuple[str, str]]]
+            ] = None,
+            html: bool = False,
+            check_dir: bool = True,
+            follow_symlink: bool = False,
+    ) -> None:
+        super().__init__(
+            directory=directory,
+            packages=packages,
+            html=html,
+            check_dir=check_dir,
+            follow_symlink=follow_symlink)
+
+    def get_path(self, scope: Scope) -> str:
+        path: str = scope["path"]
+        if path.startswith("/assets") or path == "/":
+            return super().get_path(scope)
+        else:
+            scope["path"] = "/"
+            return super().get_path(scope)
+
+
+app.mount("/", StaticReactRouterFiles(directory="frontend/dist", check_dir=False, html=True), name="frontend")

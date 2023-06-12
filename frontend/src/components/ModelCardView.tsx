@@ -16,13 +16,13 @@ export default function ModelCardView(
     const [isOpen, setIsOpen] = useState(false);
 
     return (
-        <div className='flex flex-col gap-2 w-full'>
+        <div className='flex flex-col gap-2 w-full outline outline-gray-200 rounded-sm'>
             <div 
-                className={`w-full outline rounded p-3 cursor-pointer ${!isOpen ? 'outline-slate-600' : 'outline-blue-400'}`}
+                className={`w-full p-3 cursor-pointer`}
                 onClick={() => setIsOpen(!isOpen)}
             >
-                <p className=' text-sm text-slate-600 font-semibold'>Model</p>
-                <p className=' font-semibold text-xl leading-tight'>{modelName}</p>
+                <p className=' text-sm text-dark-600 font-semibold'>Completion</p>
+                <p className=' font-semibold text-dark-600 text-xl leading-tight'>{modelName}</p>
             </div>
 
             {(isOpen) ? (
@@ -39,7 +39,7 @@ export default function ModelCardView(
                             </div>
                             <TrashIcon 
                                 onClick={() => deleteHandler(modelVersion.guid)}
-                                className="cursor-pointer h-4 w-4 ml-auto hover:text-red-500 text-slate-500"/>
+                                className="cursor-pointer h-4 w-4 ml-auto hover:text-primary-400 text-gray-200"/>
                         </div>
                     ))}
                 </div>

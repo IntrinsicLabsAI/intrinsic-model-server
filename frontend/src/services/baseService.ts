@@ -2,7 +2,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { GetRegisteredModelsResponse, ModelInfo } from '../api/index.ts';
 
 
-const isDevServer = window.location.host.endsWith(":5174");
+const isDevServer = window.location.host.endsWith(":5173");
 
 export const baseServiceAPI = createApi({
     reducerPath: 'baseServiceAPI',
@@ -18,7 +18,7 @@ export const baseServiceAPI = createApi({
         registerModel: builder.mutation<string, ModelInfo>({
           invalidatesTags: ["models"],
           query: (modelInfo) => ({
-            url: "/v1/models",
+            url: "models",
             body: modelInfo,
             method: "POST",
           })
@@ -26,7 +26,7 @@ export const baseServiceAPI = createApi({
         deleteModel: builder.mutation<string, string>({
           invalidatesTags: ["models"],
           query: (modelGuid) => ({
-            url: `/v1/${modelGuid}`,
+            url: `${modelGuid}`,
             method: "DELETE",
           }),
         }),

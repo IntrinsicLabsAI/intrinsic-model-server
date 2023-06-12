@@ -3,7 +3,13 @@ from pathlib import Path
 import pytest
 from fastapi import HTTPException
 
-from .app import SemVer, PersistentDataManager, ModelInfo, CompletionModelParams, ModelType
+from .app import (
+    SemVer,
+    PersistentDataManager,
+    ModelInfo,
+    CompletionModelParams,
+    ModelType,
+)
 
 
 def test_semver():
@@ -33,6 +39,7 @@ def test_db(tmp_path: Path):
     # 1: model registration
     unversioned_model_info = ModelInfo(
         name="anewmodel",
+        version=None,
         model_type=ModelType.completion,
         model_params=CompletionModelParams(
             model_path="/path/to/model.bin",
@@ -55,7 +62,10 @@ def test_db(tmp_path: Path):
     assert len(db.get_registered_models()) == 2
 
     assert db.get_model_by_name_and_version("anewmodel", "0.2.0") is not None
-    assert db.get_model_by_name_and_version(model="anewmodel", version=None).version == "0.2.0"
+    assert (
+        db.get_model_by_name_and_version(model="anewmodel", version=None).version
+        == "0.2.0"
+    )
 
     # Ensure duplicative model registration fails with 409 CONFLICT exception
     with pytest.raises(HTTPException) as http_ex:

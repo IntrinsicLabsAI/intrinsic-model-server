@@ -1,7 +1,7 @@
 import { Fragment, useRef, useState } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
 
-import { useGetModelsQuery, useRegisterModelMutation, useDeleteModelMutation } from '../services/baseService'
+import { useGetModelsQuery, useRegisterModelMutation } from '../services/baseService'
 import { GetRegisteredModelsResponse, ModelInfo, ModelType } from '../api'
 
 import Section from '../components/core/Section'
@@ -177,7 +177,6 @@ export default function Home() {
 
   // Mutations for registering and deleting models
   const [registerModelAction] = useRegisterModelMutation();
-  const [deleteModelAction] = useDeleteModelMutation();
 
   const getAllModels = function (data: GetRegisteredModelsResponse): distinctModel[] {
 
@@ -255,8 +254,6 @@ export default function Home() {
                       <div key={model.name} className=" w-full ">
                         <ModelCardView 
                           modelName={model.name}
-                          modelVersions={data.models.filter((modelVersion) => modelVersion.name == model.name)}
-                          deleteHandler={(guid) => { deleteModelAction(guid) }}
                           />
                       </div>
                     ))) : ( 

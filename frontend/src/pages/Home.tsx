@@ -249,7 +249,7 @@ export default function Home() {
                   </p>
                 </div>
 
-                <div className="flex flex-row gap-4 w-full mt-8 mx-auto">
+                <div className="grid grid-cols-3 gap-4 w-full mt-8 mx-auto">
                   {(!isLoading && data) ? (
                     distinctModelList.map((model) => (
                       <div key={model.name} className=" w-full ">

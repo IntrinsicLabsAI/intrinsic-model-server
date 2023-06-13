@@ -5,6 +5,7 @@ import Page from "../components/core/Page";
 import { useParams } from "react-router-dom";
 import EditableCode from "../components/core/EditableCode";
 import Widget from "../components/core/Widget";
+import InferenceRunner from "../components/InferenceRunner";
 
 
 export default function ModelPage() {
@@ -42,14 +43,23 @@ function() {
                     </div>
                 </>
             }
+            
             content={
-                <Widget title="Details">
-                    <EditableCode
-                        initialCode={markdown}
-                        langage="markdown"
-                        />
-                </Widget>
+                <>
+                    <div className="pb-5">
+                        <Widget title="Details">
+                            <EditableCode
+                                initialCode={markdown}
+                                langage="markdown"
+                                />
+                        </Widget>
+                    </div>
+                    <Widget title="Model Runner">
+                        <InferenceRunner />
+                    </Widget>
+                </>
             }
+
             sidebar={
                 <>
                 <div className="pb-5">

@@ -13,7 +13,7 @@ from fastapi import Body, FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from llama_cpp import Completion, CompletionChunk, Llama  # type:ignore
-from pydantic import BaseModel
+from pydantic import BaseModel, validator
 from starlette.staticfiles import PathLike
 from starlette.types import Scope
 
@@ -154,6 +154,12 @@ class RegisteredModel(BaseModel):
     version: SemVer
     model_params: CompletionModelParams
 
+    @validator("version")
+    def validate_version(cls, v: str | SemVer) -> SemVer:
+        if isinstance(v, str):
+            return SemVer.from_str(v)
+        return v
+
 
 class CompletionInferenceRequest(BaseModel):
     """
@@ -187,6 +193,12 @@ class CompletionInference(BaseModel):
     model_version: SemVer
     elapsed_seconds: float
     completion: str
+
+    @validator("model_version")
+    def validate_version(cls, v: str | SemVer) -> SemVer:
+        if isinstance(v, str):
+            return SemVer.from_str(v)
+        return v
 
 
 class GetRegisteredModelsResponse(BaseModel):

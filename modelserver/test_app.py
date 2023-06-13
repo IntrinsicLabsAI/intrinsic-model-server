@@ -62,10 +62,9 @@ def test_db(tmp_path: Path) -> None:
     assert len(db.get_registered_models()) == 2
 
     assert db.get_model_by_name_and_version("anewmodel", "0.2.0") is not None
-    assert (
-        db.get_model_by_name_and_version(model="anewmodel", version=None).version
-        == "0.2.0"
-    )
+    assert db.get_model_by_name_and_version(
+        model="anewmodel", version=None
+    ).version == SemVer.from_str("0.2.0")
 
     # Ensure duplicative model registration fails with 409 CONFLICT exception
     with pytest.raises(HTTPException) as http_ex:

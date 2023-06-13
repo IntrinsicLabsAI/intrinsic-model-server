@@ -12,7 +12,7 @@ from uuid import UUID
 from fastapi import Body, FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from llama_cpp import Completion, CompletionChunk, Llama  # type:ignore
+from llama_cpp import Llama  # type:ignore
 from pydantic import BaseModel, validator
 from starlette.staticfiles import PathLike
 from starlette.types import Scope
@@ -447,7 +447,6 @@ async def run_inference_sync(
     res = llama.create_completion(
         request.prompt, temperature=request.temperature, max_tokens=request.tokens
     )
-    assert isinstance(res, Completion)
 
     completion = res["choices"][0]["text"]
     elapsed = time.time() - starttime
@@ -491,7 +490,6 @@ async def completion_async(*, websocket: WebSocket, model: str, version: str) ->
             temperature=request.temperature,
             stream=True,
         ):
-            assert isinstance(chunk, CompletionChunk)
             await websocket.send_text(chunk["choices"][0]["text"])
         await websocket.close(1000)
     except WebSocketDisconnect:

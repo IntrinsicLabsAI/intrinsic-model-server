@@ -6,14 +6,14 @@ import uuid
 from abc import ABC, abstractmethod
 from enum import Enum
 from threading import RLock
-from typing import Any, List, Optional, Tuple, Type, TypeAlias, Union
+from typing import Annotated, Any, List, Optional, Tuple, Type, TypeAlias, Union
 from uuid import UUID
 
-from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import Body, FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from llama_cpp import Completion, CompletionChunk, Llama  # type:ignore
-from pydantic import BaseModel
+from pydantic import BaseModel, validator
 from starlette.staticfiles import PathLike
 from starlette.types import Scope
 
@@ -154,6 +154,12 @@ class RegisteredModel(BaseModel):
     version: SemVer
     model_params: CompletionModelParams
 
+    @validator("version")
+    def validate_version(cls, v: str | SemVer) -> SemVer:
+        if isinstance(v, str):
+            return SemVer.from_str(v)
+        return v
+
 
 class CompletionInferenceRequest(BaseModel):
     """
@@ -187,6 +193,12 @@ class CompletionInference(BaseModel):
     model_version: SemVer
     elapsed_seconds: float
     completion: str
+
+    @validator("model_version")
+    def validate_version(cls, v: str | SemVer) -> SemVer:
+        if isinstance(v, str):
+            return SemVer.from_str(v)
+        return v
 
 
 class GetRegisteredModelsResponse(BaseModel):
@@ -228,12 +240,38 @@ class DataManger(ABC):
         :return:
         """
 
+    @abstractmethod
+    def upsert_model_description(self, model_name: str, description: str) -> None:
+        """
+        Insert or update a description for a given model
+        :param model_name: Name of the model, e.g. "vicuna-7b"
+        :param description: Description in Markdown format
+        """
+
+    @abstractmethod
+    def get_model_description(self, model_name: str) -> Optional[str]:
+        """
+        Retrieve the description for a model
+        :param model_name: Name of the model, e.g. "vicuna-7b"
+        :return: The Markdown-formatted description for the model, or null if none is found.
+        """
+
 
 class PersistentDataManager(DataManger):
     def __init__(self, db_file: str):
         self.conn = sqlite3.connect(db_file, check_same_thread=False)
         self.mutex = RLock()
-        self.conn.execute("CREATE TABLE IF NOT EXISTS models (id, name, version, json)")
+
+        # Run thru the steps of the migration process.
+        self.conn.executescript(
+            """
+            -- Model versions table
+            CREATE TABLE IF NOT EXISTS models (id, name, version, json);
+
+            -- Model definitions table
+            CREATE TABLE IF NOT EXISTS descriptions (name PRIMARY KEY, description);
+        """
+        )
 
     def get_registered_models(self) -> List[RegisteredModel]:
         self.mutex.acquire()
@@ -342,6 +380,34 @@ class PersistentDataManager(DataManger):
         finally:
             self.mutex.release()
 
+    def upsert_model_description(self, model_name: str, description: str) -> None:
+        self.mutex.acquire()
+        try:
+            self.conn.execute(
+                "INSERT INTO descriptions(name, description) VALUES(?, ?) ON CONFLICT (name) DO UPDATE SET description = excluded.description",
+                (
+                    model_name,
+                    description,
+                ),
+            )
+            self.conn.commit()
+        finally:
+            self.mutex.release()
+
+    def get_model_description(self, model_name: str) -> Optional[str]:
+        self.mutex.acquire()
+        try:
+            cur = self.conn.execute(
+                "SELECT description FROM descriptions WHERE name = ?", (model_name,)
+            )
+            row = cur.fetchone()
+            if row is None:
+                return None
+            assert isinstance(row[0], str)
+            return row[0]
+        finally:
+            self.mutex.release()
+
 
 data_manager = PersistentDataManager(db_file="v0.db")
 
@@ -396,6 +462,18 @@ async def run_inference_sync(
 @app.delete("/v1/{model_guid}")
 async def delete_model_by_id(model_guid: uuid.UUID) -> None:
     data_manager.delete_model_by_id(model_guid)
+
+
+@app.put("/v1/{model_name}/description")
+async def update_model_description(
+    model_name: str, description: Annotated[str, Body(media_type="text/plain")]
+) -> None:
+    data_manager.upsert_model_description(model_name, description)
+
+
+@app.get("/v1/{model_name}/description")
+async def get_model_description(model_name: str) -> Optional[str]:
+    return data_manager.get_model_description(model_name)
 
 
 @app.websocket("/ws/v1/{model}/{version}/complete")

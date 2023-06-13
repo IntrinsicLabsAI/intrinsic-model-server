@@ -6,15 +6,15 @@ import uuid
 from abc import ABC, abstractmethod
 from enum import Enum
 from threading import RLock
-from typing import List, Optional, Type, Union, Self, TypeAlias, Tuple
+from typing import Any, List, Optional, Tuple, Type, TypeAlias, Union
 from uuid import UUID
 
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from starlette.staticfiles import PathLike
-from llama_cpp import Llama, Completion, CompletionChunk  # type:ignore
+from llama_cpp import Completion, CompletionChunk, Llama  # type:ignore
 from pydantic import BaseModel
+from starlette.staticfiles import PathLike
 from starlette.types import Scope
 
 app = FastAPI(openapi_url="/openapi.yml")
@@ -55,13 +55,13 @@ class SemVer(str):
         assert match is not None
         return int(match.groups()[2])
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"{self.major}.{self.minor}.{self.patch}"
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash((self.major, self.minor, self.patch))
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
         if not isinstance(other, SemVer):
             return False
         return (self.major, self.minor, self.patch) == (
@@ -70,7 +70,7 @@ class SemVer(str):
             other.patch,
         )
 
-    def __gt__(self, other):
+    def __gt__(self, other: Any) -> bool:
         if not isinstance(other, SemVer):
             raise TypeError(type(other))
         return (self.major, self.minor, self.patch) > (
@@ -79,7 +79,7 @@ class SemVer(str):
             other.patch,
         )
 
-    def __lt__(self, other):
+    def __lt__(self, other: Any) -> bool:
         if not isinstance(other, SemVer):
             raise TypeError(type(other))
         return (self.major, self.minor, self.patch) < (
@@ -152,7 +152,7 @@ class RegisteredModel(BaseModel):
     guid: UUID
     name: str
     version: SemVer
-    model_params: Union[CompletionModelParams]
+    model_params: CompletionModelParams
 
 
 class CompletionInferenceRequest(BaseModel):
@@ -221,7 +221,7 @@ class DataManger(ABC):
         """
 
     @abstractmethod
-    def delete_model_by_id(self, model_id: uuid.UUID):
+    def delete_model_by_id(self, model_id: uuid.UUID) -> None:
         """
         Delete a model by its GUID.
         :param model_id: The GUID of the model
@@ -335,7 +335,7 @@ class PersistentDataManager(DataManger):
         finally:
             self.mutex.release()
 
-    def delete_model_by_id(self, model_id: uuid.UUID):
+    def delete_model_by_id(self, model_id: uuid.UUID) -> None:
         self.mutex.acquire()
         try:
             self.conn.execute("DELETE FROM models WHERE id = ?", (str(model_id),))
@@ -394,12 +394,12 @@ async def run_inference_sync(
 
 
 @app.delete("/v1/{model_guid}")
-async def delete_model_by_id(model_guid: uuid.UUID):
+async def delete_model_by_id(model_guid: uuid.UUID) -> None:
     data_manager.delete_model_by_id(model_guid)
 
 
 @app.websocket("/ws/v1/{model}/{version}/complete")
-async def completion_async(*, websocket: WebSocket, model: str, version: str):
+async def completion_async(*, websocket: WebSocket, model: str, version: str) -> None:
     await websocket.accept()
     found_model = data_manager.get_model_by_name_and_version(model, version)
     llama = Llama(model_path=found_model.model_params.model_path)

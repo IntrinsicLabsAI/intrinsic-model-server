@@ -4,15 +4,15 @@ import pytest
 from fastapi import HTTPException
 
 from .app import (
-    SemVer,
-    PersistentDataManager,
-    ModelInfo,
     CompletionModelParams,
+    ModelInfo,
     ModelType,
+    PersistentDataManager,
+    SemVer,
 )
 
 
-def test_semver():
+def test_semver() -> None:
     """
     :return:
     """
@@ -31,7 +31,7 @@ def test_semver():
     assert SemVer.from_str("100.10.19") == SemVer.of(100, 10, 19)
 
 
-def test_db(tmp_path: Path):
+def test_db(tmp_path: Path) -> None:
     db_file = str(tmp_path / "store.db")
     db = PersistentDataManager(db_file=db_file)
     assert db.get_registered_models() == []

@@ -5,16 +5,16 @@ import time
 import uuid
 from abc import ABC, abstractmethod
 from enum import Enum
-from os import PathLike
 from threading import RLock
-from typing import List, Optional, Union, Self, TypeAlias, Tuple
+from typing import Any, List, Optional, Tuple, Type, TypeAlias, Union
 from uuid import UUID
 
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from llama_cpp import Llama, CompletionChunk
+from llama_cpp import Completion, CompletionChunk, Llama  # type:ignore
 from pydantic import BaseModel
+from starlette.staticfiles import PathLike
 from starlette.types import Scope
 
 app = FastAPI(openapi_url="/openapi.yml")
@@ -39,50 +39,72 @@ class SemVer(str):
 
     @property
     def major(self) -> int:
-        return int(SEMVER_PATTERN.match(str(self)).groups()[0])
+        match = SEMVER_PATTERN.match(str(self))
+        assert match is not None
+        return int(match.groups()[0])
 
     @property
     def minor(self) -> int:
-        return int(SEMVER_PATTERN.match(str(self)).groups()[1])
+        match = SEMVER_PATTERN.match(str(self))
+        assert match is not None
+        return int(match.groups()[1])
 
     @property
     def patch(self) -> int:
-        return int(SEMVER_PATTERN.match(str(self)).groups()[2])
+        match = SEMVER_PATTERN.match(str(self))
+        assert match is not None
+        return int(match.groups()[2])
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"{self.major}.{self.minor}.{self.patch}"
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash((self.major, self.minor, self.patch))
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
         if not isinstance(other, SemVer):
             return False
-        return (self.major, self.minor, self.patch) == (other.major, other.minor, other.patch)
+        return (self.major, self.minor, self.patch) == (
+            other.major,
+            other.minor,
+            other.patch,
+        )
 
-    def __gt__(self, other):
+    def __gt__(self, other: Any) -> bool:
         if not isinstance(other, SemVer):
             raise TypeError(type(other))
-        return (self.major, self.minor, self.patch) > (other.major, other.minor, other.patch)
+        return (self.major, self.minor, self.patch) > (
+            other.major,
+            other.minor,
+            other.patch,
+        )
 
-    def __lt__(self, other):
+    def __lt__(self, other: Any) -> bool:
         if not isinstance(other, SemVer):
             raise TypeError(type(other))
-        return (self.major, self.minor, self.patch) < (other.major, other.minor, other.patch)
+        return (self.major, self.minor, self.patch) < (
+            other.major,
+            other.minor,
+            other.patch,
+        )
 
     @classmethod
     def is_valid(cls, semver: str) -> bool:
         return SEMVER_PATTERN.match(semver) is not None
 
     @classmethod
-    def from_str(cls, semver: str) -> Self:
+    def from_str(cls: Type["SemVer"], semver: str) -> "SemVer":
         if not SemVer.is_valid(semver):
-            raise HTTPException(status_code=400, detail=f"Invalid semantic version format {semver}")
-        major, minor, patch = SEMVER_PATTERN.match(semver).groups()
-        return SemVer.of(major, minor, patch)
+            raise HTTPException(
+                status_code=400, detail=f"Invalid semantic version format {semver}"
+            )
+        match = SEMVER_PATTERN.match(semver)
+        assert match is not None
+        major, minor, patch = match.groups()
+        return SemVer.of(int(major), int(minor), int(patch))
 
     @classmethod
-    def of(cls, major: int, minor: int, patch: int) -> Self:
+    def of(cls: Type["SemVer"], major: int, minor: int, patch: int) -> "SemVer":
         return SemVer(f"{major}.{minor}.{patch}")
 
 
@@ -94,6 +116,7 @@ class ModelType(str, Enum):
 
     * `completion`: A language model using completion
     """
+
     completion = "completion"
 
 
@@ -103,6 +126,7 @@ class CompletionModelParams(BaseModel):
 
     :param model_path: The disk path to the ggml model file used by llama-cpp for inference.
     """
+
     model_path: str
 
 
@@ -123,11 +147,12 @@ class RegisteredModel(BaseModel):
     :param version: The semantic version of the model
     :param model_metadata: Various extra metadata used by the model
     """
+
     model_type: ModelType
     guid: UUID
     name: str
     version: SemVer
-    model_params: Union[CompletionModelParams]
+    model_params: CompletionModelParams
 
 
 class CompletionInferenceRequest(BaseModel):
@@ -138,6 +163,7 @@ class CompletionInferenceRequest(BaseModel):
     :param tokens: Max number of tokens to generate (defaults to 128)
     :param temperature: The temperature of the completion, higher values add more entropy to the result (default=0).
     """
+
     prompt: str
     tokens: int = 128
     temperature: float = 0.0
@@ -156,6 +182,7 @@ class CompletionInference(BaseModel):
     :param elapsed_seconds: Elapsed time in seconds spent doing inference for this request
     :param completion: The full completion text as a single string
     """
+
     model_name: str
     model_version: SemVer
     elapsed_seconds: float
@@ -183,7 +210,9 @@ class DataManger(ABC):
         """
 
     @abstractmethod
-    def get_model_by_name_and_version(self, model: str, version: Optional[str]) -> RegisteredModel:
+    def get_model_by_name_and_version(
+        self, model: str, version: Optional[str]
+    ) -> RegisteredModel:
         """
         Retrieve a single model using its name and version. If version isn't provided
         :param model:
@@ -192,7 +221,7 @@ class DataManger(ABC):
         """
 
     @abstractmethod
-    def delete_model_by_id(self, model_id: uuid):
+    def delete_model_by_id(self, model_id: uuid.UUID) -> None:
         """
         Delete a model by its GUID.
         :param model_id: The GUID of the model
@@ -221,19 +250,33 @@ class PersistentDataManager(DataManger):
         self.mutex.acquire()
         try:
             if model_info.version is not None:
-                cur = self.conn.execute("SELECT COUNT(*) AS rowcount FROM models WHERE name = ? AND version = ?",
-                                        (model_info.name, model_info.version,))
+                cur = self.conn.execute(
+                    "SELECT COUNT(*) AS rowcount FROM models WHERE name = ? AND version = ?",
+                    (
+                        model_info.name,
+                        model_info.version,
+                    ),
+                )
                 rowcount = cur.fetchone()[0]
                 if rowcount == 0:
-                    next_version = model_info.version
+                    next_version = SemVer.from_str(model_info.version)
                 else:
-                    raise HTTPException(status_code=409, detail=f"Version {model_info.version} already registered")
+                    raise HTTPException(
+                        status_code=409,
+                        detail=f"Version {model_info.version} already registered",
+                    )
             else:
-                cur = self.conn.execute("SELECT version FROM models WHERE name = ?", (model_info.name,))
-                versions = list(map(lambda row: SemVer.from_str(row[0]), cur.fetchall()))
+                cur = self.conn.execute(
+                    "SELECT version FROM models WHERE name = ?", (model_info.name,)
+                )
+                versions = list(
+                    map(lambda row: SemVer.from_str(row[0]), cur.fetchall())
+                )
                 if len(versions) > 0:
                     latest_version = max(versions)
-                    next_version = SemVer.of(latest_version.major, latest_version.minor + 1, 0)
+                    next_version = SemVer.of(
+                        latest_version.major, latest_version.minor + 1, 0
+                    )
                 else:
                     next_version = SemVer.of(0, 1, 0)
             registered_model = RegisteredModel(
@@ -241,7 +284,7 @@ class PersistentDataManager(DataManger):
                 guid=uuid.uuid4(),
                 name=model_info.name,
                 version=next_version,
-                model_params=model_info.model_params
+                model_params=model_info.model_params,
             )
             self.conn.execute(
                 "INSERT INTO models(id, name, version, json) VALUES (?, ?, ?, ?)",
@@ -250,32 +293,49 @@ class PersistentDataManager(DataManger):
                     registered_model.name,
                     str(registered_model.version),
                     registered_model.json(),
-                ))
+                ),
+            )
             self.conn.commit()
             return registered_model.guid
         finally:
             self.mutex.release()
 
-    def get_model_by_name_and_version(self, model: str, version: Optional[str]) -> RegisteredModel:
+    def get_model_by_name_and_version(
+        self, model: str, version: Optional[str]
+    ) -> RegisteredModel:
         self.mutex.acquire()
         try:
             if version is None:
                 # Find the latest version that is the most recent
-                num_versions = self.conn.execute("SELECT COUNT(*) FROM models WHERE name = ?", (model,)).fetchone()[0]
+                num_versions = self.conn.execute(
+                    "SELECT COUNT(*) FROM models WHERE name = ?", (model,)
+                ).fetchone()[0]
                 if num_versions == 0:
-                    raise HTTPException(status_code=404, detail=f"No such model ({model})")
-                cur = self.conn.execute("SELECT version FROM models WHERE name = ?", (model,))
+                    raise HTTPException(
+                        status_code=404, detail=f"No such model ({model})"
+                    )
+                cur = self.conn.execute(
+                    "SELECT version FROM models WHERE name = ?", (model,)
+                )
                 version = max(map(lambda r: SemVer.from_str(r[0]), cur.fetchall()))
-            cur = self.conn.execute("SELECT json FROM models WHERE name = ? AND version = ?", (model, version,))
+            cur = self.conn.execute(
+                "SELECT json FROM models WHERE name = ? AND version = ?",
+                (
+                    model,
+                    version,
+                ),
+            )
             row = cur.fetchone()
             if row is None:
-                raise HTTPException(status_code=404,
-                                    detail=f"Unknown version for model (model={model}, version={version})")
+                raise HTTPException(
+                    status_code=404,
+                    detail=f"Unknown version for model (model={model}, version={version})",
+                )
             return RegisteredModel.parse_raw(row[0])
         finally:
             self.mutex.release()
 
-    def delete_model_by_id(self, model_id: uuid):
+    def delete_model_by_id(self, model_id: uuid.UUID) -> None:
         self.mutex.acquire()
         try:
             self.conn.execute("DELETE FROM models WHERE id = ?", (str(model_id),))
@@ -303,9 +363,8 @@ async def register_model(model_info: ModelInfo) -> UUID:
 
 @app.post("/v1/{model}/{version}/complete")
 async def run_inference_sync(
-        model: str,
-        version: str,
-        request: CompletionInferenceRequest) -> CompletionInference:
+    model: str, version: str, request: CompletionInferenceRequest
+) -> CompletionInference:
     """
     Run inference on the specified model
     :param model: The name of the model.
@@ -313,46 +372,48 @@ async def run_inference_sync(
     :param request: Request body for inference
     :return:
     """
-    model = data_manager.get_model_by_name_and_version(model, version)
+    found_model = data_manager.get_model_by_name_and_version(model, version)
 
     # Generate the Llama context
     starttime = time.time()
-    llama = Llama(model_path=model.model_params.model_path)
-    completion = llama.create_completion(
-        request.prompt,
-        temperature=request.temperature,
-        max_tokens=request.tokens)["choices"][0]["text"]
+    llama = Llama(model_path=found_model.model_params.model_path)
+
+    res = llama.create_completion(
+        request.prompt, temperature=request.temperature, max_tokens=request.tokens
+    )
+    assert isinstance(res, Completion)
+
+    completion = res["choices"][0]["text"]
     elapsed = time.time() - starttime
     return CompletionInference(
-        model_name=model.name,
-        model_version=model.version,
+        model_name=found_model.name,
+        model_version=found_model.version,
         elapsed_seconds=elapsed,
         completion=completion,
     )
 
 
 @app.delete("/v1/{model_guid}")
-async def delete_model_by_id(model_guid: uuid.UUID):
+async def delete_model_by_id(model_guid: uuid.UUID) -> None:
     data_manager.delete_model_by_id(model_guid)
 
 
 @app.websocket("/ws/v1/{model}/{version}/complete")
-async def completion_async(*, websocket: WebSocket, model: str, version: str):
+async def completion_async(*, websocket: WebSocket, model: str, version: str) -> None:
     await websocket.accept()
-    model = data_manager.get_model_by_name_and_version(model, version)
-    llama = Llama(model_path=model.model_params.model_path)
+    found_model = data_manager.get_model_by_name_and_version(model, version)
+    llama = Llama(model_path=found_model.model_params.model_path)
     try:
         msg = await websocket.receive_json()
         print(f"MESSG: {msg}")
         request: CompletionInferenceRequest = CompletionInferenceRequest.parse_obj(msg)
-        chunk: CompletionChunk
-        # pdb.set_trace()
         for chunk in llama.create_completion(
-                request.prompt,
-                max_tokens=request.tokens,
-                temperature=request.temperature,
-                stream=True,
+            request.prompt,
+            max_tokens=request.tokens,
+            temperature=request.temperature,
+            stream=True,
         ):
+            assert isinstance(chunk, CompletionChunk)
             await websocket.send_text(chunk["choices"][0]["text"])
         await websocket.close(1000)
     except WebSocketDisconnect:
@@ -365,22 +426,21 @@ class StaticReactRouterFiles(StaticFiles):
     """
 
     def __init__(
-            self,
-            *,
-            directory: Optional[PathLike] = None,
-            packages: Optional[
-                List[Union[str, Tuple[str, str]]]
-            ] = None,
-            html: bool = False,
-            check_dir: bool = True,
-            follow_symlink: bool = False,
+        self,
+        *,
+        directory: Optional[PathLike] = None,
+        packages: Optional[List[Union[str, Tuple[str, str]]]] = None,
+        html: bool = False,
+        check_dir: bool = True,
+        follow_symlink: bool = False,
     ) -> None:
         super().__init__(
             directory=directory,
             packages=packages,
             html=html,
             check_dir=check_dir,
-            follow_symlink=follow_symlink)
+            follow_symlink=follow_symlink,
+        )
 
     def get_path(self, scope: Scope) -> str:
         path: str = scope["path"]
@@ -391,4 +451,8 @@ class StaticReactRouterFiles(StaticFiles):
             return super().get_path(scope)
 
 
-app.mount("/", StaticReactRouterFiles(directory="frontend/dist", check_dir=False, html=True), name="frontend")
+app.mount(
+    "/",
+    StaticReactRouterFiles(directory="frontend/dist", check_dir=False, html=True),
+    name="frontend",
+)

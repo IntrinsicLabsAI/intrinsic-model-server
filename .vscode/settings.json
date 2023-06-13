@@ -1,0 +1,10 @@
+{
+    "python.formatting.blackPath": "./venv/bin/black",
+    "python.formatting.provider": "black",
+    "editor.formatOnSave": true,
+    "isort.args": [
+        "--profile",
+        "black"
+    ],
+    "mypy-type-checker.args": []
+}

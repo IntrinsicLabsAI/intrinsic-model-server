@@ -69,9 +69,7 @@ function() {
                                 />
                         </Widget>
                     </div>
-                    <Widget title="Model Runner">
-                        <InferenceRunner />
-                    </Widget>
+                    <InferenceRunner />
                 </>
             }
 

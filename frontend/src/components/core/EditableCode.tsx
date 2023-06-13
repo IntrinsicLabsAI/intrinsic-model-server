@@ -9,17 +9,20 @@ import ReactMarkdown from "react-markdown";
  */
 export default function EditableCode({
     initialCode,
+    code,
+    setCode,
     langage,
     className,
 }: {
     initialCode: string,
+    code?: string,
+    setCode: (update: string) => void,
     langage: string,
     className?: string,
 }) {
     const [editing, setEditing] = useState(false);
-    const [code, setCode] = useState(initialCode);
     return (
-        <div className={`overflow-y-auto [&::-webkit-scrollbar]:hidden h-full ${className || "" }`}>
+        <div className={`overflow-y-auto [&::-webkit-scrollbar]:hidden h-full ${className || ""}`}>
             <div onClick={() => setEditing(true)} onBlur={() => setEditing(false)}>
                 {
                     editing
@@ -27,14 +30,17 @@ export default function EditableCode({
                             fontSize: 14,
                             backgroundColor: "",
                             minHeight: "300px",
-                        }} value={code} onChange={(evt) => setCode(evt.target.value)} language={langage}  />
+                        }} value={code} placeholder={initialCode} onChange={(evt) => {
+                            setCode(evt.target.value);
+                        }} language={langage} />
                         : <ReactMarkdown
                             components={{
                                 h1: ({ ...props }) => (<p className="text-xl underline" {...props} />),
                                 h2: ({ ...props }) => (<p className="text-md underline" {...props} />),
                                 p: ({ ...props }) => (<p className="text-sm" {...props} />),
                             }}
-                            children={code}
+                            children={code || "Nothing"}
+                            disallowedElements={["img", "script"]}
                             className="prose"
                         />
                 }

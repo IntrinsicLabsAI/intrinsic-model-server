@@ -269,9 +269,15 @@ export default function Home() {
                   <div className='flex flex-col items-center'>
                     <p className=' text-white font-semibold '>Server Status</p>
                     {(!error) ? (
-                      <p className=' text-lg font-bold text-primary-600'>Online</p>
+                      <div className='flex flex-row items-center gap-2'>
+                        <div className="w-4 h-4 bg-primary-600 rounded-full"></div>
+                        <p className=' text-lg font-bold text-primary-600'>Online</p>
+                      </div>
                     ) : (
-                      <p className=' text-lg font-bold text-white'>Offline</p>
+                      <div className='flex flex-row items-center gap-2'>
+                        <div className="w-4 h-4 bg-white rounded-full"></div>
+                        <p className=' text-lg font-bold text-white'>Offline</p>
+                      </div>
                     )}
                   </div>
                 </Section>

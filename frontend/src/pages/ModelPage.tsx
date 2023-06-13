@@ -5,10 +5,16 @@ import Page from "../components/core/Page";
 import { useParams } from "react-router-dom";
 import EditableCode from "../components/core/EditableCode";
 import Widget from "../components/core/Widget";
+import InferenceRunner from "../components/InferenceRunner";
+import { useGetDescriptionQuery, useUpdateDescriptionMutation } from "../services/baseService";
 
 
 export default function ModelPage() {
-    const { name } = useParams();
+    const { name } = useParams<"name">();
+
+    // eslint-disable-next-line  @typescript-eslint/no-non-null-assertion
+    const { data: description } = useGetDescriptionQuery(name!);
+    const [updateDescriptionAction] = useUpdateDescriptionMutation();
 
     const markdown =
         `# ${name}
@@ -42,14 +48,33 @@ function() {
                     </div>
                 </>
             }
+            
             content={
-                <Widget title="Details">
-                    <EditableCode
-                        initialCode={markdown}
-                        langage="markdown"
-                        />
-                </Widget>
+                <>
+                    <div className="pb-5">
+                        <Widget title="Details">
+                            <EditableCode
+                                initialCode={markdown}
+                                code={description}
+                                langage="markdown"
+                                setCode={
+                                    (desc) => {
+                                        updateDescriptionAction({
+                                            // eslint-disable-next-line  @typescript-eslint/no-non-null-assertion
+                                            modelName: name!,
+                                            description: desc,
+                                        });
+                                    }
+                                }
+                                />
+                        </Widget>
+                    </div>
+                    <Widget title="Model Runner">
+                        <InferenceRunner />
+                    </Widget>
+                </>
             }
+
             sidebar={
                 <>
                 <div className="pb-5">

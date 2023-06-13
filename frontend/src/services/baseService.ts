@@ -32,13 +32,13 @@ export const baseServiceAPI = createApi({
       }),
     }),
     getDescription: builder.query<string, string>({
-      providesTags: (result, error, query) => [{type: "description", id: query}],
+      providesTags: (_result, _error, query) => [{type: "description", id: query}],
       query: (modelName) => ({
         url: `${modelName}/description`,
       }),
     }),
     updateDescription: builder.mutation<string | undefined, { modelName: string, description: string }>({
-      invalidatesTags: (result, error, query) => [{type: "description", id: query.modelName}],
+      invalidatesTags: (_result, _error, query) => [{type: "description", id: query.modelName}],
       query: ({ modelName, description }) => ({
         url: `${modelName}/description`,
         method: "PUT",

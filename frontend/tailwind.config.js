@@ -32,9 +32,18 @@ export default {
         500: '#FAFBFC',
       }
     },
-    extend: {},
+    extend: {
+      typography: (theme) => ({
+        DEFAULT: {
+          css: {
+            color: theme("colors.white"),
+          },
+        },
+      }),
+    },
   },
   plugins: [
     require('@tailwindcss/forms'),
+    require('@tailwindcss/typography'),
   ],
 }

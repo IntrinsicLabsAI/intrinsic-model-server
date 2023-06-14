@@ -4,9 +4,12 @@ import { Dialog, Transition } from '@headlessui/react'
 import { useGetModelsQuery, useRegisterModelMutation } from '../services/baseService'
 import { GetRegisteredModelsResponse, ModelInfo, ModelType } from '../api'
 
-import Section from '../components/core/Section'
 import Callout from '../components/core/Callout'
 import ModelCardView from '../components/ModelCardView'
+import Page from '../components/layout/Page'
+import OneColumnLayout from '../components/layout/OneColumnLayout'
+import TwoColumnLayout from '../components/layout/TwoColumnLayout'
+import Widget from '../components/core/Widget'
 
 interface distinctModel {
   name: string,
@@ -182,7 +185,7 @@ export default function Home() {
 
     const distinctModelList = new Array<distinctModel>();
 
-    if(!data) {return distinctModelList}
+    if (!data) { return distinctModelList }
 
     for (const model of data.models) {
       let flag = true;
@@ -214,7 +217,7 @@ export default function Home() {
   let distinctModelList: distinctModel[] = [];
 
   if (error) { console.log(error) }
-  if (!isLoading && data) {distinctModelList = getAllModels(data)}
+  if (!isLoading && data) { distinctModelList = getAllModels(data) }
 
   return (
     <>
@@ -224,84 +227,84 @@ export default function Home() {
       }}
       />
 
-      <div className='mt-10 w-[80%] self-center'>
-        <div className="flex flex-col gap-5 items-center">
+      <Page>
 
-          <Callout>
-            <h3 className='text-lg font-semibold text-dark-500 leading-none'>Welcome to Intrinsic Model Server</h3>
-            <p className='text-lg text-dark-500 leading-snug mt-2'>
-              This project is under active development by members of <a href="https://intrinsiclabs.ai" target="_blank" className='underline underline-offset-2'>Intrinsic Labs</a>.
-              If you have any issues or ideas, add them as issues to the <a href="https://github.com/IntrinsicLabsAI/intrinsic-model-server" target="_blank" className='underline underline-offset-2'>GitHub repository</a>.
-              A roadmap for this project is available in the GitHub repository.
-            </p>
-          </Callout>
+        <OneColumnLayout
+          colOneContent={
+            <Callout>
+              <h3 className='text-lg font-semibold text-dark-500 leading-none'>Welcome to Intrinsic Model Server</h3>
+              <p className='text-lg text-dark-500 leading-snug mt-2'>
+                This project is under active development by members of <a href="https://intrinsiclabs.ai" target="_blank" className='underline underline-offset-2'>Intrinsic Labs</a>.
+                If you have any issues or ideas, add them as issues to the <a href="https://github.com/IntrinsicLabsAI/intrinsic-model-server" target="_blank" className='underline underline-offset-2'>GitHub repository</a>.
+                A roadmap for this project is available in the GitHub repository.
+              </p>
+            </Callout>
+          } />
 
-          <div className='flex flex-row w-full gap-5'>
+        <TwoColumnLayout
+          type="left"
+          colOneContent={
+            <>
+              <Widget title="Registered Models">
+                <div className="flex flex-col h-full">
+                  <div className="flex flex-row items-center w-full">
+                    <p className=' text-lg font-base text-slate-600 leading-tight text-white/70'>
+                      The models listed below are currently active and available for use.
+                      Different versions of each model can be used by indicating the version when invoking the model.
+                    </p>
+                  </div>
 
-            <Section>
-              <div className="flex flex-col h-full">
-                <h3 className="text-3xl font-semibold grow text-white/90">Registered Models</h3>
-                <div className="flex flex-row items-center w-full mt-2">
-                  <p className=' text-lg font-base text-slate-600 leading-tight mt-2 text-white/70'>
-                    The models listed below are currently active and available for use.
-                    Different versions of each model can be used by indicating the version when invoking the model.
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4 w-full mt-8 mx-auto">
-                  {(!isLoading && data) ? (
-                    distinctModelList.map((model) => (
-                      <div key={model.name} className=" w-full ">
-                        <ModelCardView 
-                          modelName={model.name}
+                  <div className="grid grid-cols-1 gap-4 w-10/12 mt-4 mx-auto">
+                    {(!isLoading && data) ? (
+                      distinctModelList.map((model) => (
+                        <div key={model.name} className=" w-full ">
+                          <ModelCardView
+                            modelName={model.name}
                           />
-                      </div>
-                    ))) : ( 
-                      null 
+                        </div>
+                      ))) : (
+                      null
                     )}
+                  </div>
                 </div>
-              </div>
-            </Section>
+              </Widget>
+            </>
+          }
+          colTwoContent={
+            <>
+              <Widget title="Server Status">
+                <div className='flex flex-col items-center'>
+                  <p className=' text-white font-semibold '>Current Status</p>
+                  {(!error) ? (
+                    <div className='flex flex-row items-center gap-2'>
+                      <div className="w-4 h-4 bg-primary-600 rounded-full"></div>
+                      <p className=' text-lg font-bold text-primary-600'>Online</p>
+                    </div>
+                  ) : (
+                    <div className='flex flex-row items-center gap-2'>
+                      <div className="w-4 h-4 bg-white rounded-full"></div>
+                      <p className=' text-lg font-bold text-white'>Offline</p>
+                    </div>
+                  )}
+                </div>
+              </Widget>
 
-            <div className=' flex flex-col w-80 gap-5'>
-              <div className='grow-0'>
-                <Section>
-                  <div className='flex flex-col items-center'>
-                    <p className=' text-white font-semibold '>Server Status</p>
-                    {(!error) ? (
-                      <div className='flex flex-row items-center gap-2'>
-                        <div className="w-4 h-4 bg-primary-600 rounded-full"></div>
-                        <p className=' text-lg font-bold text-primary-600'>Online</p>
-                      </div>
-                    ) : (
-                      <div className='flex flex-row items-center gap-2'>
-                        <div className="w-4 h-4 bg-white rounded-full"></div>
-                        <p className=' text-lg font-bold text-white'>Offline</p>
-                      </div>
-                    )}
-                  </div>
-                </Section>
-              </div>
-
-              <div className='grow-0'>
-                <Section>
-                  <div className='flex flex-col items-center'>
-                    <p className=' text-white font-semibold'>Quick Actions</p>
-                    <button
-                      type='button'
-                      onClick={() => setOpen(true)}
-                      className=' hover:text-primary-400 rounded pt-2'>
-                      <p className=' text-base text-white'>Register Model</p>
-                    </button>
-                  </div>
-                </Section>
-              </div>
-
-            </div>
-          </div>
-        </div>
-      </div>
-
+              <Widget title="Quick Actions">
+                <div className='flex flex-col items-center'>
+                  <p className=' text-white font-semibold'>Actions Available</p>
+                  <button
+                    type='button'
+                    onClick={() => setOpen(true)}
+                    className=' hover:text-primary-400 rounded pt-2'>
+                    <p className='text-base text-white hover:text-primary-400 hover:font-semibold'>Register Model</p>
+                    <p className='text-base text-white hover:text-primary-400 hover:font-semibold'>View Documentation</p>
+                  </button>
+                </div>
+              </Widget>
+            </>
+          }
+        />
+      </Page>
     </>
   )
 }

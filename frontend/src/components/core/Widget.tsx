@@ -14,7 +14,7 @@ export default function Widget(
     }
 ){
     return (
-        <div className="flex flex-col w-full outline outline-2 outline-dark-400 rounded-md divide-dark-400 divide-y-2">
+        <div className="flex flex-col w-full outline outline-2 outline-dark-400 rounded-md divide-dark-400 divide-y-2 mb-5">
             <div className="flex flex-row w-full items-center p-2 gap-2 bg-dark-200">
                 {(icon ? (
                     <div className="">

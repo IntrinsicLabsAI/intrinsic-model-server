@@ -15,5 +15,3 @@ export type { ModelInfo } from './models/ModelInfo';
 export { ModelType } from './models/ModelType';
 export type { RegisteredModel } from './models/RegisteredModel';
 export type { ValidationError } from './models/ValidationError';
-
-export { DefaultService } from './services/DefaultService';

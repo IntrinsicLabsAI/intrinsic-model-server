@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useState } from "react";
-import { createDefaultClient } from "../services/completion";
+import { createDefaultClient } from "../api/services/completion";
 
 export default function CompletionComponent({
     prompt,

@@ -1,5 +1,5 @@
 import { webSocketBaseUrl } from "./util";
-import { CompletionInferenceRequest } from "../api/models/CompletionInferenceRequest";
+import { CompletionInferenceRequest } from "../models/CompletionInferenceRequest";
 
 export class CompletionClient {
     private ws?: WebSocket;

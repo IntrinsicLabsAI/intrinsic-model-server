@@ -6,7 +6,7 @@ import { useParams } from "react-router-dom";
 import EditableCode from "../components/core/EditableCode";
 import Widget from "../components/core/Widget";
 import InferenceRunner from "../components/InferenceRunner";
-import { useGetDescriptionQuery, useUpdateDescriptionMutation } from "../services/baseService";
+import { useGetDescriptionQuery, useUpdateDescriptionMutation } from "../api/services/baseService";
 
 
 export default function ModelPage() {

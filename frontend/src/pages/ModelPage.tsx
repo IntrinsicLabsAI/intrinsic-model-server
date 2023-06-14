@@ -11,13 +11,15 @@ import { useGetDescriptionQuery, useUpdateDescriptionMutation } from "../service
 
 export default function ModelPage() {
     const { name } = useParams<"name">();
+    // eslint-disable-next-line  @typescript-eslint/no-non-null-assertion
+    const modelName = name!;
 
     // eslint-disable-next-line  @typescript-eslint/no-non-null-assertion
-    const { data: description } = useGetDescriptionQuery(name!);
+    const { data: description } = useGetDescriptionQuery(modelName);
     const [updateDescriptionAction] = useUpdateDescriptionMutation();
 
     const markdown =
-        `# ${name}
+        `# ${modelName}
 
 \`\`\`javascript
 function() {
@@ -39,7 +41,7 @@ function() {
                     </div>
                     <div>
                         <h3 className=" text-gray-200 leading-none">Completion</h3>
-                        <h1 className=" text-3xl">{name}</h1>
+                        <h1 className=" text-3xl">{modelName}</h1>
                     </div>
                     <div className="ml-auto">
                         <Dropdown buttonText="Actions">
@@ -60,8 +62,7 @@ function() {
                                 setCode={
                                     (desc) => {
                                         updateDescriptionAction({
-                                            // eslint-disable-next-line  @typescript-eslint/no-non-null-assertion
-                                            modelName: name!,
+                                            modelName,
                                             description: desc,
                                         });
                                     }
@@ -69,7 +70,8 @@ function() {
                                 />
                         </Widget>
                     </div>
-                    <InferenceRunner />
+                    // eslint-disable-next-line  @typescript-eslint/no-non-null-assertion
+                    <InferenceRunner model={modelName} version="0.1.0" />
                 </>
             }
 

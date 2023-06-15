@@ -18,7 +18,6 @@ const InferenceRunner = React.memo(({
     const [temperature, setTemperature] = useState(0);
     const [tokenLimit, setTokenLimit] = useState(128);
 
-    // Find all models that only match this current model version.
     const { data: allModels } = useGetModelsQuery();
 
     const allVersions = useMemo(() => {

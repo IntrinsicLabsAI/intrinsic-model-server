@@ -46,7 +46,7 @@ const CompletionLivePreview = React.memo(({
     }, [model, version, prompt, temperature, tokenLimit]);
 
     return (
-        <div className="text-xl text-orange-600 font-mono whitespace-pre-wrap">
+        <div className="text-xl text-white font-mono whitespace-pre-wrap">
             {tokens}
         </div>
     );

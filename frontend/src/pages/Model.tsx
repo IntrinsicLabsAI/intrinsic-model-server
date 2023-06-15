@@ -10,6 +10,7 @@ import Page from "../components/layout/Page";
 import OneColumnLayout from "../components/layout/OneColumnLayout";
 import TwoColumnLayout from "../components/layout/TwoColumnLayout";
 import Column from "../components/layout/Column";
+import Pill from "../components/core/Pill";
 
 export default function Model() {
     const { name } = useParams<"name">();
@@ -67,12 +68,31 @@ export default function Model() {
                 <Column>
                     <Widget title="About">
                         <div className="overflow-y-auto [&::-webkit-scrollbar]:hidden">
-                            <ul>
-                                <p className="text-sm">0.3.0</p>
-                                <p className="text-sm">0.2.0</p>
-                                <p className="text-sm">0.1.0</p>
-                                <p className="text-sm">0.0.1</p>
-                            </ul>
+                            <div className="flex flex-row items-center gap-4 pb-4" >
+                                <p className=" w-1/3 font-semibol ">Model Type</p>
+                                <Pill text="Compleation"></Pill>
+                            </div>
+                            <div className="flex flex-row items-center gap-4 pb-4" >
+                                <p className=" w-1/3 font-semibold">Source</p>
+                                <Pill text="HuggingFace"></Pill>
+                            </div>
+                            <div className="flex flex-row items-center gap-4 pb-4" >
+                                <p className=" w-1/3 font-semibold">Lineage</p>
+                                <Pill text="User Upload"></Pill>
+                            </div>
+                            <div className="flex flex-row items-center gap-4 pb-4" >
+                                <p className=" w-1/3 font-semibold">Format</p>
+                                <Pill text="GGML"></Pill>
+                            </div>
+                            <div className="flex flex-row items-center gap-4 pb-4" >
+                                <p className=" w-1/3 font-semibold">Context Size</p>
+                                <Pill text="4,250 Tokens"></Pill>
+                            </div>
+                        </div>
+                    </Widget>
+                    <Widget title="History">
+                        <div className="overflow-y-auto [&::-webkit-scrollbar]:hidden">
+                            <p>Version history for the model</p>
                         </div>
                     </Widget>
                 </Column>

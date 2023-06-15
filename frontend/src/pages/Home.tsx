@@ -1,4 +1,4 @@
-import { Fragment, useRef, useState } from 'react'
+import { Fragment, useEffect, useRef, useState } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
 
 import { useGetModelsQuery, useRegisterModelMutation } from '../api/services/baseService'
@@ -11,6 +11,7 @@ import OneColumnLayout from '../components/layout/OneColumnLayout'
 import TwoColumnLayout from '../components/layout/TwoColumnLayout'
 import Widget from '../components/core/Widget'
 import Column from '../components/layout/Column'
+import { Status, StatusChecker } from "../api/services/statusService";
 
 interface distinctModel {
   name: string,
@@ -215,6 +216,17 @@ export default function Home() {
     return distinctModelList;
   };
 
+  // Setup status checker in background.
+  const [onlineState, setOnlineState] = useState<Status>("loading");
+  useEffect(() => {
+    // Create and mount a status checker on the beginning of page load.
+    const checker = new StatusChecker(setOnlineState);
+    checker.start();
+    return () => {
+      checker.stop();
+    };
+  }, []);
+
   let distinctModelList: distinctModel[] = [];
 
   if (error) { console.log(error) }
@@ -275,9 +287,9 @@ export default function Home() {
                 ) : (
                   <div className="mt-2">
                     <p className=''>
-                       No models were found. 
-                       This could be because no models have been registered or the server is offline.
-                       To get started, please register a model.
+                      No models were found.
+                      This could be because no models have been registered or the server is offline.
+                      To get started, please register a model.
                     </p>
                   </div>
                 )}
@@ -285,20 +297,29 @@ export default function Home() {
               </div>
             </Widget>
           </Column>
-          
+
           <Column>
             <Widget title="Server Status">
               <div className='flex flex-col items-center'>
                 <p className=' text-white font-semibold '>Current Status</p>
-                {(!error) ? (
+                {
+                  onlineState === "loading" && (
+                    <div className='flex flex-row items-center gap-2'>
+                      <div className="w-4 h-4 bg-amber-600 rounded-full"></div>
+                      <p className=' text-lg font-bold text-amber-400'>Connecting</p>
+                    </div>
+                  )
+                }
+                {onlineState === "online" && (
                   <div className='flex flex-row items-center gap-2'>
                     <div className="w-4 h-4 bg-primary-600 rounded-full"></div>
-                    <p className=' text-lg font-bold text-primary-600'>Online</p>
+                    <p className=' text-lg font-bold text-primary-400'>Online</p>
                   </div>
-                ) : (
+                )}
+                {onlineState === "offline" && (
                   <div className='flex flex-row items-center gap-2'>
-                    <div className="w-4 h-4 bg-red-400 rounded-full"></div>
-                    <p className=' text-lg font-bold text-red-400'>Offline</p>
+                    <div className="w-4 h-4 bg-red-500 rounded-full"></div>
+                    <p className=' text-lg font-bold text-red-600'>Offline</p>
                   </div>
                 )}
               </div>
@@ -317,8 +338,8 @@ export default function Home() {
               </div>
             </Widget>
           </Column>
-        </TwoColumnLayout>
-      </Page>
+        </TwoColumnLayout >
+      </Page >
     </>
   )
 }

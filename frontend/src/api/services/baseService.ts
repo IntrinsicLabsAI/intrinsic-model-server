@@ -1,8 +1,6 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { GetRegisteredModelsResponse, ModelInfo } from '..';
-
-
-const isDevServer = window.location.host.endsWith(":5173");
+import { isDevServer } from './util';
 
 export const baseServiceAPI = createApi({
   reducerPath: 'baseServiceAPI',
@@ -10,7 +8,7 @@ export const baseServiceAPI = createApi({
     "models",
     "description",
   ],
-  baseQuery: fetchBaseQuery({ baseUrl: isDevServer ? "http://0.0.0.0:8000/v1" : '/v1' }),
+  baseQuery: fetchBaseQuery({ baseUrl: isDevServer() ? "http://0.0.0.0:8000/v1" : '/v1' }),
   endpoints: (builder) => ({
     getModels: builder.query<GetRegisteredModelsResponse, void>({
       query: () => `models`,
@@ -32,13 +30,13 @@ export const baseServiceAPI = createApi({
       }),
     }),
     getDescription: builder.query<string, string>({
-      providesTags: (_result, _error, query) => [{type: "description", id: query}],
+      providesTags: (_result, _error, query) => [{ type: "description", id: query }],
       query: (modelName) => ({
         url: `${modelName}/description`,
       }),
     }),
     updateDescription: builder.mutation<string | undefined, { modelName: string, description: string }>({
-      invalidatesTags: (_result, _error, query) => [{type: "description", id: query.modelName}],
+      invalidatesTags: (_result, _error, query) => [{ type: "description", id: query.modelName }],
       query: ({ modelName, description }) => ({
         url: `${modelName}/description`,
         method: "PUT",

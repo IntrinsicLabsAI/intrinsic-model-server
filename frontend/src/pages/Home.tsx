@@ -10,6 +10,7 @@ import Page from '../components/layout/Page'
 import OneColumnLayout from '../components/layout/OneColumnLayout'
 import TwoColumnLayout from '../components/layout/TwoColumnLayout'
 import Widget from '../components/core/Widget'
+import Column from '../components/layout/Column'
 
 interface distinctModel {
   name: string,
@@ -228,9 +229,8 @@ export default function Home() {
       />
 
       <Page>
-
-        <OneColumnLayout
-          colOneContent={
+        <OneColumnLayout>
+          <Column>
             <Callout>
               <h3 className='text-lg font-semibold text-dark-500 leading-none'>Welcome to Intrinsic Model Server</h3>
               <p className='text-lg text-dark-500 leading-snug mt-2'>
@@ -239,71 +239,67 @@ export default function Home() {
                 A roadmap for this project is available in the GitHub repository.
               </p>
             </Callout>
-          } />
+          </Column>
+        </OneColumnLayout>
 
-        <TwoColumnLayout
-          type="left"
-          colOneContent={
-            <>
-              <Widget title="Registered Models">
-                <div className="flex flex-col h-full">
-                  <div className="flex flex-row items-center w-full">
-                    <p className=' text-lg font-base text-slate-600 leading-tight text-white/70'>
-                      The models listed below are currently active and available for use.
-                      Different versions of each model can be used by indicating the version when invoking the model.
-                    </p>
-                  </div>
-
-                  <div className="grid grid-cols-1 gap-4 w-10/12 mt-4 mx-auto">
-                    {(!isLoading && data) ? (
-                      distinctModelList.map((model) => (
-                        <div key={model.name} className=" w-full ">
-                          <ModelCardView
-                            modelName={model.name}
-                          />
-                        </div>
-                      ))) : (
-                      null
-                    )}
-                  </div>
+        <TwoColumnLayout type="left">
+          <Column>
+            <Widget title="Registered Models">
+              <div className="flex flex-col h-full">
+                <div className="flex flex-row items-center w-full">
+                  <p className=' text-lg font-base text-slate-600 leading-tight text-white/70'>
+                    The models listed below are currently active and available for use.
+                    Different versions of each model can be used by indicating the version when invoking the model.
+                  </p>
                 </div>
-              </Widget>
-            </>
-          }
-          colTwoContent={
-            <>
-              <Widget title="Server Status">
-                <div className='flex flex-col items-center'>
-                  <p className=' text-white font-semibold '>Current Status</p>
-                  {(!error) ? (
-                    <div className='flex flex-row items-center gap-2'>
-                      <div className="w-4 h-4 bg-primary-600 rounded-full"></div>
-                      <p className=' text-lg font-bold text-primary-600'>Online</p>
-                    </div>
-                  ) : (
-                    <div className='flex flex-row items-center gap-2'>
-                      <div className="w-4 h-4 bg-white rounded-full"></div>
-                      <p className=' text-lg font-bold text-white'>Offline</p>
-                    </div>
+
+                <div className="grid grid-cols-1 gap-4 w-10/12 mt-4 mx-auto">
+                  {(!isLoading && data) ? (
+                    distinctModelList.map((model) => (
+                      <div key={model.name} className=" w-full ">
+                        <ModelCardView
+                          modelName={model.name}
+                        />
+                      </div>
+                    ))) : (
+                    null
                   )}
                 </div>
-              </Widget>
+              </div>
+            </Widget>
+          </Column>
+          <Column>
+            <Widget title="Server Status">
+              <div className='flex flex-col items-center'>
+                <p className=' text-white font-semibold '>Current Status</p>
+                {(!error) ? (
+                  <div className='flex flex-row items-center gap-2'>
+                    <div className="w-4 h-4 bg-primary-600 rounded-full"></div>
+                    <p className=' text-lg font-bold text-primary-600'>Online</p>
+                  </div>
+                ) : (
+                  <div className='flex flex-row items-center gap-2'>
+                    <div className="w-4 h-4 bg-white rounded-full"></div>
+                    <p className=' text-lg font-bold text-white'>Offline</p>
+                  </div>
+                )}
+              </div>
+            </Widget>
 
-              <Widget title="Quick Actions">
-                <div className='flex flex-col items-center'>
-                  <p className=' text-white font-semibold'>Actions Available</p>
-                  <button
-                    type='button'
-                    onClick={() => setOpen(true)}
-                    className=' hover:text-primary-400 rounded pt-2'>
-                    <p className='text-base text-white hover:text-primary-400 hover:font-semibold'>Register Model</p>
-                    <p className='text-base text-white hover:text-primary-400 hover:font-semibold'>View Documentation</p>
-                  </button>
-                </div>
-              </Widget>
-            </>
-          }
-        />
+            <Widget title="Quick Actions">
+              <div className='flex flex-col items-center'>
+                <p className=' text-white font-semibold'>Actions Available</p>
+                <button
+                  type='button'
+                  onClick={() => setOpen(true)}
+                  className=' hover:text-primary-400 rounded pt-2'>
+                  <p className='text-base text-white hover:text-primary-400 hover:font-semibold'>Register Model</p>
+                  <p className='text-base text-white hover:text-primary-400 hover:font-semibold'>View Documentation</p>
+                </button>
+              </div>
+            </Widget>
+          </Column>
+        </TwoColumnLayout>
       </Page>
     </>
   )

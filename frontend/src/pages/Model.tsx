@@ -19,32 +19,19 @@ export default function Model() {
     const { data: description } = useGetDescriptionQuery(modelName);
     const [updateDescriptionAction] = useUpdateDescriptionMutation();
 
-    const markdown =
-        `# ${modelName}
-
-        \`\`\`javascript
-        function() {
-        // Example of dispatching requests via fetch() API
-        const result = await fetch("https://localhost:8000/v1/vicuna-7b/0.1.0/complete");
-        }
-        \`\`\`
-
-        ## Have a loading indicator that can show how things are going...`;
+    const markdown = `# ${modelName}`;
 
     return (
         <Page>
             <OneColumnLayout>
                 <Column>
-                    <div className="flex flex-row h-full gap-4 bg-dark-200 p-4">
-                        <div className="w-14 h-14 bg-primary-100 rounded-sm">
+                    <div className="flex flex-row h-full gap-4 bg-dark-200 p-4 justify-items-start rounded">
+                        <div className="w-8 h-8 bg-primary-100 rounded-sm">
                             <div className="flex flex-col h-full items-center justify-center">
-                                <Icon icon="graph" size={32} color="#252A31" />
+                                <Icon icon="lengthen-text" size={20} color="#252A31" />
                             </div>
                         </div>
-                        <div>
-                            <h3 className=" text-gray-200 leading-none">Completion</h3>
-                            <h1 className=" text-3xl">{modelName}</h1>
-                        </div>
+                        <h1 className=" leading-none text-3xl font-semibold">{modelName}</h1>
                         <div className="ml-auto">
                             <Dropdown
                                 buttonText="Actions"
@@ -55,6 +42,7 @@ export default function Model() {
                             />
                         </div>
                     </div>
+                    
                 </Column>
             </OneColumnLayout>
             <TwoColumnLayout type="left">

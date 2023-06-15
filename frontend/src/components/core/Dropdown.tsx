@@ -24,7 +24,7 @@ export default function Dropdown<K extends React.Key, T extends { id: K, value: 
         <Menu as="div" className="relative inline-block text-left">
             <div>
                 <Menu.Button>
-                    <p className=' bg-primary-100 text-dark-300 font-semibold px-3 py-1.5 rounded hover:bg-primary-300'>{selected || buttonText}</p>
+                    <p className=' bg-primary-100 text-dark-300 font-semibold px-2 py-1 rounded hover:bg-primary-300'>{selected || buttonText}</p>
                 </Menu.Button>
             </div>
 

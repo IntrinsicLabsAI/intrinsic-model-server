@@ -1,8 +1,9 @@
 import { useEffect } from "react";
 import { useState } from "react";
 import { createDefaultClient } from "../api/services/completion";
+import React from "react";
 
-export default function CompletionComponent({
+const CompletionLivePreview = React.memo(({
     prompt,
     model,
     version,
@@ -10,7 +11,7 @@ export default function CompletionComponent({
     prompt: string,
     model: string,
     version: string,
-}) {
+}) => {
     const [tokens, setTokens] = useState("");
 
     // Try and start the prompt shit off the very first time.
@@ -45,8 +46,10 @@ export default function CompletionComponent({
     }, [model, version, prompt]);
 
     return (
-        <div className="text-xl text-white font-mono whitespace-pre-wrap">
-        {tokens}
+        <div className="text-xl text-orange-600 font-mono whitespace-pre-wrap">
+            {tokens}
         </div>
     );
-}
+});
+
+export default CompletionLivePreview;

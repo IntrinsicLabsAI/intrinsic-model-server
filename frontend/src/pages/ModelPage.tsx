@@ -1,6 +1,5 @@
 import { Icon } from "@blueprintjs/core";
 import Dropdown from "../components/core/Dropdown";
-import DropdownItem from "../components/core/DropdownItem";
 import Page from "../components/core/Page";
 import { useParams } from "react-router-dom";
 import EditableCode from "../components/core/EditableCode";
@@ -14,7 +13,6 @@ export default function ModelPage() {
     // eslint-disable-next-line  @typescript-eslint/no-non-null-assertion
     const modelName = name!;
 
-    // eslint-disable-next-line  @typescript-eslint/no-non-null-assertion
     const { data: description } = useGetDescriptionQuery(modelName);
     const [updateDescriptionAction] = useUpdateDescriptionMutation();
 
@@ -44,13 +42,17 @@ function() {
                         <h1 className=" text-3xl">{modelName}</h1>
                     </div>
                     <div className="ml-auto">
-                        <Dropdown buttonText="Actions">
-                            <DropdownItem name="Delete Model" />
-                        </Dropdown>
+                        <Dropdown
+                            buttonText="Actions"
+                            items={[
+                                { id: "delete", value: "Delete Model" },
+                                { id: "new-version", value: "New Version" },
+                            ]}
+                        />
                     </div>
                 </>
             }
-            
+
             content={
                 <>
                     <div className="pb-5">
@@ -67,38 +69,37 @@ function() {
                                         });
                                     }
                                 }
-                                />
+                            />
                         </Widget>
                     </div>
-                    // eslint-disable-next-line  @typescript-eslint/no-non-null-assertion
-                    <InferenceRunner model={modelName} version="0.1.0" />
+                    <InferenceRunner model={modelName} />
                 </>
             }
 
             sidebar={
                 <>
-                <div className="pb-5">
-                    <Widget title="About">
+                    <div className="pb-5">
+                        <Widget title="About">
+                            <div className="overflow-y-auto [&::-webkit-scrollbar]:hidden">
+                                <ul>
+                                    <p className="text-sm">0.3.0</p>
+                                    <p className="text-sm">0.2.0</p>
+                                    <p className="text-sm">0.1.0</p>
+                                    <p className="text-sm">0.0.1</p>
+                                </ul>
+                            </div>
+                        </Widget>
+                    </div>
+                    <Widget title="Versions">
                         <div className="overflow-y-auto [&::-webkit-scrollbar]:hidden">
                             <ul>
                                 <p className="text-sm">0.3.0</p>
                                 <p className="text-sm">0.2.0</p>
                                 <p className="text-sm">0.1.0</p>
                                 <p className="text-sm">0.0.1</p>
-                            </ul>                            
+                            </ul>
                         </div>
                     </Widget>
-                </div>
-                <Widget title="Versions">
-                    <div className="overflow-y-auto [&::-webkit-scrollbar]:hidden">
-                        <ul>
-                            <p className="text-sm">0.3.0</p>
-                            <p className="text-sm">0.2.0</p>
-                            <p className="text-sm">0.1.0</p>
-                            <p className="text-sm">0.0.1</p>
-                        </ul>                            
-                    </div>
-                </Widget>
                 </>
             }
         />

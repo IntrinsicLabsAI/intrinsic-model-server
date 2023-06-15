@@ -102,9 +102,9 @@ const InferenceRunner = React.memo(({
                                 {prompt}
                             </h3>
                             <div className=" flex flex-row gap-3">
-                                <p className=" text-xs font-bold px-1.5 py-1 bg-primary-100 rounded text-dark-400"> Version: 0.1.0 </p>
-                                <p className=" text-xs font-bold px-1.5 py-1 bg-primary-100 rounded text-dark-400"> Temperature: 0.12 </p>
-                                <p className=" text-xs font-bold px-1.5 py-1 bg-primary-100 rounded text-dark-400"> Tokens: 128 </p>
+                                <p className=" text-xs font-bold px-1.5 py-1 bg-primary-100 rounded text-dark-400"> Version: {version} </p>
+                                <p className=" text-xs font-bold px-1.5 py-1 bg-primary-100 rounded text-dark-400"> Temperature: {temperature} </p>
+                                <p className=" text-xs font-bold px-1.5 py-1 bg-primary-100 rounded text-dark-400"> Tokens: {tokenLimit} </p>
                             </div>
                         </div>
                         <div className="mt-4">

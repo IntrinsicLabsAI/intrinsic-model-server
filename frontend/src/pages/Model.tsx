@@ -70,7 +70,7 @@ export default function Model() {
                         <div className="overflow-y-auto [&::-webkit-scrollbar]:hidden">
                             <div className="flex flex-row items-center gap-4 pb-4" >
                                 <p className=" w-1/3 font-semibol ">Model Type</p>
-                                <Pill text="Compleation"></Pill>
+                                <Pill text="Completion"></Pill>
                             </div>
                             <div className="flex flex-row items-center gap-4 pb-4" >
                                 <p className=" w-1/3 font-semibold">Source</p>

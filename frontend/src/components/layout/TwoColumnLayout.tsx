@@ -5,7 +5,7 @@ export default function TwoColumnLayout(
         children,
         type
     }: {
-        children?: ReactNode[],
+        children: [ReactNode, ReactNode],
         type: "left" | "right" | "equal"
     }
 ) {
@@ -15,20 +15,17 @@ export default function TwoColumnLayout(
         equal: ["w-1/2", "w-1/2"]
     }
 
-    if (children && children.length == 2) {
-        return (
-            <div className='flex flex-row w-full gap-5 pb-5'>
-                <div className={`${typeOptions[type][0]}`}>
-                    {children[0]}
-                </div>
+    const [child1, child2] = children;
 
-                <div className={`${typeOptions[type][1]}`}>
-                    {children[1]}
-                </div>
+    return (
+        <div className='flex flex-row w-full gap-5 pb-5'>
+            <div className={`${typeOptions[type][0]}`}>
+                {child1}
             </div>
-        )
-    } else {
-        console.error("TwoColumnLayout requires exactly two children elements.")
-        return (<></>)
-    }
+
+            <div className={`${typeOptions[type][1]}`}>
+                {child2}
+            </div>
+        </div>
+    )
 }

@@ -7,10 +7,14 @@ const CompletionLivePreview = React.memo(({
     prompt,
     model,
     version,
+    temperature,
+    tokenLimit,
 }: {
     prompt: string,
     model: string,
     version: string,
+    temperature: number,
+    tokenLimit: number,
 }) => {
     const [tokens, setTokens] = useState("");
 
@@ -23,15 +27,13 @@ const CompletionLivePreview = React.memo(({
             await client.connect();
             client.completeAsync(
                 {
-                    prompt: prompt,
-                    temperature: 0.3,
-                    tokens: 128,
+                    prompt,
+                    temperature,
+                    tokens: tokenLimit,
                 },
-                (token) => {
-                    console.log(`next token: ${token} (${token.length})`);
-                    setTokens(prev => prev + token);
-                },
+                (token) => setTokens(prev => prev + token),
                 () => {
+                    // What to do? Set the completion state to finalized or something.
                     console.log("completed");
                 },
             )
@@ -43,7 +45,7 @@ const CompletionLivePreview = React.memo(({
         return () => {
             client.disconnect();
         }
-    }, [model, version, prompt]);
+    }, [model, version, prompt, temperature, tokenLimit]);
 
     return (
         <div className="text-xl text-orange-600 font-mono whitespace-pre-wrap">

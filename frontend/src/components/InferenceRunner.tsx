@@ -15,6 +15,9 @@ const InferenceRunner = React.memo(({
     const [version, setVersion] = useState("0.1.0");
     const [isRunning, setIsRunning] = useState(false);
 
+    const [temperature, setTemperature] = useState(0);
+    const [tokenLimit, setTokenLimit] = useState(128);
+
     // Find all models that only match this current model version.
     const { data: allModels } = useGetModelsQuery();
 
@@ -61,13 +64,22 @@ const InferenceRunner = React.memo(({
                             </div>
 
                             <div className="flex flex-row w-full gap-4 justify-start">
-                                <h3 className=" font-semibold leading-none">Tempurature</h3>
-                                <input className="ml-auto w-[80%] focus:border-primary-100 focus:ring-0 focus:shadow-none rounded bg-dark-200 text-gray-400" type="number" id="temp" />
+                                <h3 className=" font-semibold leading-none">Temperature</h3>
+                                <input
+                                    className="ml-auto w-[80%] focus:border-primary-100 focus:ring-0 focus:shadow-none rounded bg-dark-200 text-gray-400"
+                                    type="number"
+                                    step={0.1}
+                                    value={temperature}
+                                    onChange={(evt) => setTemperature(evt.target.valueAsNumber)} />
                             </div>
 
                             <div className="flex flex-row w-full gap-4 justify-start">
                                 <h3 className=" font-semibold leading-none">Token Limit</h3>
-                                <input className="ml-auto w-[80%] focus:border-primary-100 focus:ring-0 focus:shadow-none rounded bg-dark-200 text-gray-400" type="number" id="token" />
+                                <input
+                                    className="ml-auto w-[80%] focus:border-primary-100 focus:ring-0 focus:shadow-none rounded bg-dark-200 text-gray-400"
+                                    type="number"
+                                    value={tokenLimit}
+                                    onChange={(evt) => setTokenLimit(evt.target.valueAsNumber)} />
                             </div>
 
                             <div className="flex flex-row w-full gap-4 justify-start">
@@ -96,7 +108,13 @@ const InferenceRunner = React.memo(({
                             </div>
                         </div>
                         <div className="mt-4">
-                            <CompletionLivePreview model={model} version={version} prompt={prompt} />
+                            <CompletionLivePreview
+                                model={model}
+                                version={version}
+                                prompt={prompt}
+                                temperature={temperature}
+                                tokenLimit={tokenLimit}
+                            />
                         </div>
                     </>
                     )

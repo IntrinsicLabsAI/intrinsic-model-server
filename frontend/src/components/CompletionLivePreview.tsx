@@ -18,11 +18,9 @@ const CompletionLivePreview = React.memo(({
 }) => {
     const [tokens, setTokens] = useState("");
 
-    // Try and start the prompt shit off the very first time.
     useEffect(() => {
         const client = createDefaultClient(model, version);
 
-        // Get all of the shit
         async function startWebSocket() {
             await client.connect();
             client.completeAsync(

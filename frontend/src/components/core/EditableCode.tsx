@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import CodeEditor from '@uiw/react-textarea-code-editor';
 import ReactMarkdown from "react-markdown";
+import React from 'react';
 
 /**
  * A component that allows toggling between editor and preview functionality.
  * 
  * Also accepts a save action that can be dispatched to publish the updates back to the server.
  */
-export default function EditableCode({
+const EditableCode = React.memo(({
     initialCode,
     code,
     setCode,
@@ -19,7 +20,7 @@ export default function EditableCode({
     setCode: (update: string) => void,
     langage: string,
     className?: string,
-}) {
+}) => {
     const [editing, setEditing] = useState(false);
     return (
         <div className={`overflow-y-auto [&::-webkit-scrollbar]:hidden h-full ${className || ""}`}>
@@ -47,4 +48,6 @@ export default function EditableCode({
             </div>
         </div>
     );
-}
+});
+
+export default EditableCode;

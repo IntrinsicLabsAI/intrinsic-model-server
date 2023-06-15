@@ -1,7 +1,7 @@
 import { Fragment, useRef, useState } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
 
-import { useGetModelsQuery, useRegisterModelMutation } from '../services/baseService'
+import { useGetModelsQuery, useRegisterModelMutation } from '../api/services/baseService'
 import { GetRegisteredModelsResponse, ModelInfo, ModelType } from '../api'
 
 import Callout from '../components/core/Callout'

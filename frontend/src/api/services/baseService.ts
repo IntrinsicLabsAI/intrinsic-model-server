@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { GetRegisteredModelsResponse, ModelInfo } from '../api/index.ts';
+import { GetRegisteredModelsResponse, ModelInfo } from '..';
 
 
 const isDevServer = window.location.host.endsWith(":5173");

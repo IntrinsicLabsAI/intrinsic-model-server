@@ -8,7 +8,7 @@
     "build": "tsc && vite build",
     "lint": "eslint src --ext ts,tsx --max-warnings 0",
     "preview": "vite preview",
-    "generate-client": "openapi --input http://localhost:8000/openapi.yml --output ./src/api --client axios"
+    "generate-client": "openapi --input http://localhost:8000/openapi.yml --output ./src/api --exportServices false"
   },
   "dependencies": {
     "@blueprintjs/core": "^4.20.1",
@@ -40,6 +40,7 @@
     "postcss": "^8.4.24",
     "tailwindcss": "^3.3.2",
     "typescript": "^5.0.2",
-    "vite": "^4.3.9"
+    "vite": "^4.3.9",
+    "vite-bundle-visualizer": "^0.7.0"
   }
 }

@@ -1,23 +1,23 @@
 import { Icon } from "@blueprintjs/core";
 import Dropdown from "../components/core/Dropdown";
-import DropdownItem from "../components/core/DropdownItem";
 import Page from "../components/core/Page";
 import { useParams } from "react-router-dom";
 import EditableCode from "../components/core/EditableCode";
 import Widget from "../components/core/Widget";
 import InferenceRunner from "../components/InferenceRunner";
-import { useGetDescriptionQuery, useUpdateDescriptionMutation } from "../services/baseService";
+import { useGetDescriptionQuery, useUpdateDescriptionMutation } from "../api/services/baseService";
 
 
 export default function ModelPage() {
     const { name } = useParams<"name">();
-
     // eslint-disable-next-line  @typescript-eslint/no-non-null-assertion
-    const { data: description } = useGetDescriptionQuery(name!);
+    const modelName = name!;
+
+    const { data: description } = useGetDescriptionQuery(modelName);
     const [updateDescriptionAction] = useUpdateDescriptionMutation();
 
     const markdown =
-        `# ${name}
+        `# ${modelName}
 
 \`\`\`javascript
 function() {
@@ -39,16 +39,20 @@ function() {
                     </div>
                     <div>
                         <h3 className=" text-gray-200 leading-none">Completion</h3>
-                        <h1 className=" text-3xl">{name}</h1>
+                        <h1 className=" text-3xl">{modelName}</h1>
                     </div>
                     <div className="ml-auto">
-                        <Dropdown buttonText="Actions">
-                            <DropdownItem name="Delete Model" />
-                        </Dropdown>
+                        <Dropdown
+                            buttonText="Actions"
+                            items={[
+                                { id: "delete", value: "Delete Model" },
+                                { id: "new-version", value: "New Version" },
+                            ]}
+                        />
                     </div>
                 </>
             }
-            
+
             content={
                 <>
                     <div className="pb-5">
@@ -60,43 +64,42 @@ function() {
                                 setCode={
                                     (desc) => {
                                         updateDescriptionAction({
-                                            // eslint-disable-next-line  @typescript-eslint/no-non-null-assertion
-                                            modelName: name!,
+                                            modelName,
                                             description: desc,
                                         });
                                     }
                                 }
-                                />
+                            />
                         </Widget>
                     </div>
-                    <InferenceRunner />
+                    <InferenceRunner model={modelName} />
                 </>
             }
 
             sidebar={
                 <>
-                <div className="pb-5">
-                    <Widget title="About">
+                    <div className="pb-5">
+                        <Widget title="About">
+                            <div className="overflow-y-auto [&::-webkit-scrollbar]:hidden">
+                                <ul>
+                                    <p className="text-sm">0.3.0</p>
+                                    <p className="text-sm">0.2.0</p>
+                                    <p className="text-sm">0.1.0</p>
+                                    <p className="text-sm">0.0.1</p>
+                                </ul>
+                            </div>
+                        </Widget>
+                    </div>
+                    <Widget title="Versions">
                         <div className="overflow-y-auto [&::-webkit-scrollbar]:hidden">
                             <ul>
                                 <p className="text-sm">0.3.0</p>
                                 <p className="text-sm">0.2.0</p>
                                 <p className="text-sm">0.1.0</p>
                                 <p className="text-sm">0.0.1</p>
-                            </ul>                            
+                            </ul>
                         </div>
                     </Widget>
-                </div>
-                <Widget title="Versions">
-                    <div className="overflow-y-auto [&::-webkit-scrollbar]:hidden">
-                        <ul>
-                            <p className="text-sm">0.3.0</p>
-                            <p className="text-sm">0.2.0</p>
-                            <p className="text-sm">0.1.0</p>
-                            <p className="text-sm">0.0.1</p>
-                        </ul>                            
-                    </div>
-                </Widget>
                 </>
             }
         />

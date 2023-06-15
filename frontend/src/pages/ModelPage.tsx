@@ -73,6 +73,8 @@ function() {
                         </Widget>
                     </div>
                     <InferenceRunner model={modelName} />
+                    <InferenceRunner model={modelName} />
+                    <InferenceRunner model={modelName} />
                 </>
             }
 

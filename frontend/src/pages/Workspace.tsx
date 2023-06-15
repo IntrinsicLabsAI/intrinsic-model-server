@@ -3,9 +3,9 @@ import { BookOpenIcon } from '@heroicons/react/24/solid'
 
 export default function Workspace() {
     return (
-        <div className='bg-dark-300'>
-            <header className='sticky top-0 z-50'>
-                <div className='flex flex-row h-18 p-4 items-center bg-dark-200'>
+        <div className='bg-dark-300 '>
+            <header className=' sticky top-0 z-50'>
+                <div className='flex flex-row h-16 p-4 items-center bg-dark-200'>
                     <Link to="/">
                         <p className="text-lg font-semibold">Model Server</p>
                     </Link>
@@ -14,7 +14,7 @@ export default function Workspace() {
                     </a>
                 </div>
             </header>
-            <main className=' isolate '>
+            <main className=' isolate h-[calc(100vh-4rem)] overflow-auto '>
                 <Outlet />
             </main>
         </div>

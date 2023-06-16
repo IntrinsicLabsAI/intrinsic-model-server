@@ -6,7 +6,17 @@ import uuid
 from abc import ABC, abstractmethod
 from enum import Enum
 from threading import RLock
-from typing import Annotated, Any, List, Optional, Tuple, Type, TypeAlias, Union
+from typing import (
+    Annotated,
+    Any,
+    List,
+    Optional,
+    Tuple,
+    Type,
+    TypeAlias,
+    TypedDict,
+    Union,
+)
 from uuid import UUID
 
 from fastapi import Body, FastAPI, HTTPException, WebSocket, WebSocketDisconnect
@@ -473,6 +483,15 @@ async def update_model_description(
 @app.get("/v1/{model_name}/description")
 async def get_model_description(model_name: str) -> Optional[str]:
     return data_manager.get_model_description(model_name)
+
+
+class HealthStatus(BaseModel):
+    status: str
+
+
+@app.get("/healthz")
+async def get_healthz() -> HealthStatus:
+    return HealthStatus(status="ok")
 
 
 @app.websocket("/ws/v1/{model}/{version}/complete")

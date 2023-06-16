@@ -247,27 +247,45 @@ export default function Home() {
             <Widget title="Registered Models">
               <div className="flex flex-col h-full">
                 <div className="flex flex-row items-center w-full">
-                  <p className=' text-lg font-base text-slate-600 leading-tight text-white/70'>
+                  <p className=' text-lg font-base text-slate-600 leading-tight text-gray-200'>
                     The models listed below are currently active and available for use.
                     Different versions of each model can be used by indicating the version when invoking the model.
+                    You can register new models here or via API.
+                    For information how how to use the API, view the included <a className='underline underline-offset-2' href="http://127.0.0.1:8000/docs">documentation</a>.
                   </p>
                 </div>
 
-                <div className="grid grid-cols-1 gap-4 w-10/12 mt-4 mx-auto">
-                  {(!isLoading && data) ? (
-                    distinctModelList.map((model) => (
-                      <div key={model.name} className=" w-full ">
-                        <ModelCardView
-                          modelName={model.name}
-                        />
-                      </div>
-                    ))) : (
-                    null
-                  )}
+                <div className="flex flex-row items-center w-full mt-4">
+                  <h3 className=' text-xl font-semibold'>Completion Models</h3>
                 </div>
+
+                {distinctModelList.length > 0 ? (
+                  <div className="grid grid-cols-2 gap-4 mt-4 mb-4">
+                    {(!isLoading && data) ? (
+                      distinctModelList.map((model) => (
+                        <div key={model.name} className=" w-full ">
+                          <ModelCardView
+                            modelName={model.name}
+                          />
+                        </div>
+                      ))) : (
+                      null
+                    )}
+                  </div>
+                ) : (
+                  <div className="mt-2">
+                    <p className=''>
+                       No models were found. 
+                       This could be because no models have been registered or the server is offline.
+                       To get started, please register a model.
+                    </p>
+                  </div>
+                )}
+
               </div>
             </Widget>
           </Column>
+          
           <Column>
             <Widget title="Server Status">
               <div className='flex flex-col items-center'>
@@ -279,8 +297,8 @@ export default function Home() {
                   </div>
                 ) : (
                   <div className='flex flex-row items-center gap-2'>
-                    <div className="w-4 h-4 bg-white rounded-full"></div>
-                    <p className=' text-lg font-bold text-white'>Offline</p>
+                    <div className="w-4 h-4 bg-red-400 rounded-full"></div>
+                    <p className=' text-lg font-bold text-red-400'>Offline</p>
                   </div>
                 )}
               </div>

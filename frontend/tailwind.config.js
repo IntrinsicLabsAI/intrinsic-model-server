@@ -8,13 +8,6 @@ export default {
   ],
   theme: {
     extend: {
-      typography: (theme) => ({
-        DEFAULT: {
-          css: {
-            color: theme("colors.white"),
-          },
-        },
-      }),
       colors: {
         primary: {
           600: '#34ae8e',
@@ -63,6 +56,15 @@ export default {
         red: colors.red,
       },
     }
+  },
+  extend: {
+    typography: (theme) => ({
+      DEFAULT: {
+        css: {
+          color: theme("colors.white"),
+        },
+      },
+    }),
   },
   plugins: [
     require('@tailwindcss/forms'),

@@ -27,7 +27,7 @@ export default function Model() {
             <OneColumnLayout>
                 <Column>
                     <div className="flex flex-row h-full gap-4 bg-dark-200 p-4 justify-items-start rounded">
-                        <div className="w-8 h-8 bg-primary-100 rounded-sm">
+                        <div className="w-8 h-8 bg-purple-600 rounded-sm">
                             <div className="flex flex-col h-full items-center justify-center">
                                 <Icon icon="lengthen-text" size={20} color="#252A31" />
                             </div>

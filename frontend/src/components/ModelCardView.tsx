@@ -1,6 +1,5 @@
 import { Icon } from "@blueprintjs/core"
 import { Link } from "react-router-dom";
-import Pill from "./core/Pill";
 
 export default function ModelCardView(
     {

@@ -6,17 +6,7 @@ import uuid
 from abc import ABC, abstractmethod
 from enum import Enum
 from threading import RLock
-from typing import (
-    Annotated,
-    Any,
-    List,
-    Optional,
-    Tuple,
-    Type,
-    TypeAlias,
-    TypedDict,
-    Union,
-)
+from typing import Annotated, Any, List, Optional, Tuple, Type, TypeAlias, Union, final
 from uuid import UUID
 
 from fastapi import Body, FastAPI, HTTPException, WebSocket, WebSocketDisconnect
@@ -215,7 +205,7 @@ class GetRegisteredModelsResponse(BaseModel):
     models: List[RegisteredModel]
 
 
-class DataManger(ABC):
+class DataManager(ABC):
     @abstractmethod
     def get_registered_models(self) -> List[RegisteredModel]:
         """
@@ -267,7 +257,8 @@ class DataManger(ABC):
         """
 
 
-class PersistentDataManager(DataManger):
+@final
+class PersistentDataManager(DataManager):
     def __init__(self, db_file: str):
         self.conn = sqlite3.connect(db_file, check_same_thread=False)
         self.mutex = RLock()

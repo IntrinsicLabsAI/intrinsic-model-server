@@ -5,19 +5,20 @@ export default function Dropdown<K extends React.Key, T extends { id: K, value: 
     buttonText,
     items,
     onSelectionChange,
+    ...props
 }: {
     buttonText: string,
     items: T[],
-    onSelectionChange?: (selection: K) => void,
+    onSelectionChange?: (select: K) => void,
+    default?: K,
 }) {
     const [selection, setSelection] = useState<React.Key | undefined>();
-    const selected = useMemo(() => items.find(it => it.id == selection), [selection, items])?.value;
+    const effectiveSelect = useMemo(() => selection || props.default, [selection, props.default]);
+    const selected = useMemo(() => items.find(it => it.id == effectiveSelect)?.value, [effectiveSelect, items]);
 
     const updateSelected = (key: K) => {
         setSelection(key);
-        if (onSelectionChange) {
-            onSelectionChange(key);
-        }
+        onSelectionChange && onSelectionChange(key);
     };
 
     return (

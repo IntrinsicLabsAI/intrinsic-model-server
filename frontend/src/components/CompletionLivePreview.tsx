@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useState } from "react";
 import { createDefaultClient } from "../api/services/completion";
 import React from "react";
@@ -17,6 +17,7 @@ const CompletionLivePreview = React.memo(({
     tokenLimit: number,
 }) => {
     const [tokens, setTokens] = useState("");
+    const [completed, setCompleted] = useState(false);
 
     useEffect(() => {
         const client = createDefaultClient(model, version);
@@ -31,8 +32,7 @@ const CompletionLivePreview = React.memo(({
                 },
                 (token) => setTokens(prev => prev + token),
                 () => {
-                    // What to do? Set the completion state to finalized or something.
-                    console.log("completed");
+                    setCompleted(true);
                 },
             )
         }
@@ -45,8 +45,10 @@ const CompletionLivePreview = React.memo(({
         }
     }, [model, version, prompt, temperature, tokenLimit]);
 
+    const bgStyle = useMemo(() => completed ? "bg-green-700" : "", [completed]);
+
     return (
-        <div className="text-xl text-white font-mono whitespace-pre-wrap">
+        <div className={`text-xl text-white font-mono whitespace-pre-wrap rounded-xl overflow-x-auto m-4 p-4 ${bgStyle}`}>
             {tokens}
         </div>
     );

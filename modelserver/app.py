@@ -132,9 +132,9 @@ class CompletionModelParams(BaseModel):
 
 class ModelInfo(BaseModel):
     name: str
-    version: Optional[str]
+    version: str | None
     model_type: ModelType
-    model_params: Union[CompletionModelParams]
+    model_params: CompletionModelParams
 
 
 class RegisteredModel(BaseModel):
@@ -223,7 +223,7 @@ class DataManager(ABC):
 
     @abstractmethod
     def get_model_by_name_and_version(
-        self, model: str, version: Optional[str]
+        self, model: str, version: str | None
     ) -> RegisteredModel:
         """
         Retrieve a single model using its name and version. If version isn't provided
@@ -249,7 +249,7 @@ class DataManager(ABC):
         """
 
     @abstractmethod
-    def get_model_description(self, model_name: str) -> Optional[str]:
+    def get_model_description(self, model_name: str) -> str | None:
         """
         Retrieve the description for a model
         :param model_name: Name of the model, e.g. "vicuna-7b"
@@ -275,19 +275,15 @@ class PersistentDataManager(DataManager):
         )
 
     def get_registered_models(self) -> List[RegisteredModel]:
-        self.mutex.acquire()
-        try:
+        with self.mutex:
             cur = self.conn.cursor()
             registered_models = []
             for row in cur.execute("SELECT json FROM models"):
                 registered_models.append(RegisteredModel.parse_raw(row[0]))
             return registered_models
-        finally:
-            self.mutex.release()
 
     def register_model(self, model_info: ModelInfo) -> UUID:
-        self.mutex.acquire()
-        try:
+        with self.mutex:
             if model_info.version is not None:
                 cur = self.conn.execute(
                     "SELECT COUNT(*) AS rowcount FROM models WHERE name = ? AND version = ?",
@@ -336,14 +332,11 @@ class PersistentDataManager(DataManager):
             )
             self.conn.commit()
             return registered_model.guid
-        finally:
-            self.mutex.release()
 
     def get_model_by_name_and_version(
-        self, model: str, version: Optional[str]
+        self, model: str, version: str | None
     ) -> RegisteredModel:
-        self.mutex.acquire()
-        try:
+        with self.mutex:
             if version is None:
                 # Find the latest version that is the most recent
                 num_versions = self.conn.execute(
@@ -371,19 +364,13 @@ class PersistentDataManager(DataManager):
                     detail=f"Unknown version for model (model={model}, version={version})",
                 )
             return RegisteredModel.parse_raw(row[0])
-        finally:
-            self.mutex.release()
 
     def delete_model_by_id(self, model_id: uuid.UUID) -> None:
-        self.mutex.acquire()
-        try:
+        with self.mutex:
             self.conn.execute("DELETE FROM models WHERE id = ?", (str(model_id),))
-        finally:
-            self.mutex.release()
 
     def upsert_model_description(self, model_name: str, description: str) -> None:
-        self.mutex.acquire()
-        try:
+        with self.mutex:
             self.conn.execute(
                 "INSERT INTO descriptions(name, description) VALUES(?, ?) ON CONFLICT (name) DO UPDATE SET description = excluded.description",
                 (
@@ -392,12 +379,9 @@ class PersistentDataManager(DataManager):
                 ),
             )
             self.conn.commit()
-        finally:
-            self.mutex.release()
 
-    def get_model_description(self, model_name: str) -> Optional[str]:
-        self.mutex.acquire()
-        try:
+    def get_model_description(self, model_name: str) -> str | None:
+        with self.mutex:
             cur = self.conn.execute(
                 "SELECT description FROM descriptions WHERE name = ?", (model_name,)
             )
@@ -406,8 +390,6 @@ class PersistentDataManager(DataManager):
                 return None
             assert isinstance(row[0], str)
             return row[0]
-        finally:
-            self.mutex.release()
 
 
 data_manager = PersistentDataManager(db_file="v0.db")
@@ -472,7 +454,7 @@ async def update_model_description(
 
 
 @app.get("/v1/{model_name}/description")
-async def get_model_description(model_name: str) -> Optional[str]:
+async def get_model_description(model_name: str) -> str | None:
     return data_manager.get_model_description(model_name)
 
 
@@ -514,8 +496,8 @@ class StaticReactRouterFiles(StaticFiles):
     def __init__(
         self,
         *,
-        directory: Optional[PathLike] = None,
-        packages: Optional[List[Union[str, Tuple[str, str]]]] = None,
+        directory: PathLike | None = None,
+        packages: List[Union[str, Tuple[str, str]]] | None = None,
         html: bool = False,
         check_dir: bool = True,
         follow_symlink: bool = False,

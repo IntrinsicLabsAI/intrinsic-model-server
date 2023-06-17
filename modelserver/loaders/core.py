@@ -1,105 +1,29 @@
-from abc import ABC, ABCMeta, abstractmethod
-from pathlib import Path
-from typing import Generic, Literal, Type, TypeVar, final
+from abc import ABC, abstractmethod
+from typing import TypedDict
 
-from pydantic import BaseModel
+from modelserver.loaders.locators import Locator
 
 
-class ModelProvenance(BaseModel):
+class Provenance(TypedDict):
     """
-    Information about the provenance and storage path for the downloaded model.
-    """
-
-    provenance_type: str
-    source: str
-    local_path: Path
-
-
-class FileUploadModelProvenance(ModelProvenance):
-    provenance_type: Literal["file-upload"] = "file-upload"
-
-
-class HFHubModelProvenance(ModelProvenance):
-    provenance_type: Literal["huggingface-hub"] = "huggingface-hub"
-
-
-ModelStoreT = TypeVar("ModelStoreT")
-
-
-class ModelLocator(BaseModel):
-    """
-    Base type for references to models.
+    A model can be
     """
 
-    locator_type: str
 
-    class Config:
-        fields = {
-            "locator_type": "type",
-        }
-
-
-class FileUploadModelLocator(ModelLocator):
-    locator_type: Literal["file-upload-locator"] = "file-upload-locator"
-
-    model_path: Path
-
-    class Config:
-        fields = {
-            "locator_type": "type",
-        }
-
-
-class HFHubModelLocator(ModelLocator):
-    locator_type: Literal["file-upload-locator"] = "file-upload-locator"
-
-    model_path: Path
-
-    class Config:
-        fields = {
-            "locator_type": "type",
-        }
-
-
-LocatorT = TypeVar("LocatorT", bound="ModelLocator")
-
-
-class ModelLoader(ABC, Generic[LocatorT]):
-    """
-    Load models from a source.
-    """
-
+class Importer(ABC):
     @abstractmethod
-    def download_model(self, model_locator: LocatorT) -> ModelProvenance:
+    def import_from(self, locator: Locator) -> Provenance:
         """
-        Implement the model downloader. Returns
+        Accepts a locator that directs the importer to pull the model from the specified location.
+
+        Returns a generic type U that represents the model in such a way that there are traits etc.
         """
 
 
-@final
-class DiskModeLoader(ModelLoader[FileUploadModelLocator]):
+class DiskImporter(Importer):
     """
-    Model locator
+    Imports from local filesystem.
     """
 
-    def __init__(self) -> None:
-        pass
 
-    def download_model(
-        self, model_locator: FileUploadModelLocator
-    ) -> FileUploadModelProvenance:
-        return FileUploadModelProvenance(
-            source=model_locator.model_path.__str__(),
-            local_path=model_locator.model_path,
-        )
-
-
-if __name__ == "__main__":
-    # Create a set of compliant model uploaders.
-
-    loader: ModelLoader
-    loader = DiskModeLoader()
-
-    loader.download_model(HFHubModelLocator(model_path=Path("vicuna/ggml-7b-1.1")))
-
-    pass
+# How to decode from JSON directly to the correct locator type.

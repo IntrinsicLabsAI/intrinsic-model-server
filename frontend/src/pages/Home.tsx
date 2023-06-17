@@ -259,7 +259,7 @@ export default function Home() {
             <Widget title="Registered Models">
               <div className="flex flex-col h-full">
                 <div className="flex flex-row items-center w-full">
-                  <p className=' text-lg font-base text-white leading-tight text-gray-200'>
+                  <p className=' text-lg font-base leading-tight text-gray-200'>
                     The models listed below are currently active and available for use.
                     Different versions of each model can be used by indicating the version when invoking the model.
                     You can register new models here or via API.

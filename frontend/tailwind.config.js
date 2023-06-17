@@ -52,19 +52,28 @@ export default {
           400: '#F6F7F9',
           500: '#FAFBFC',
         },
-        amber: colors.amber,
-        red: colors.red,
       },
-    }
-  },
-  extend: {
-    typography: (theme) => ({
-      DEFAULT: {
-        css: {
-          color: theme("colors.white"),
+      typography: (theme) => ({
+        DEFAULT: {
+          css: {
+            '--tw-prose-body': theme('colors.gray.300'),
+            '--tw-prose-headings': theme('colors.gray.200'),
+            '--tw-prose-lead': theme('colors.gray.300'),
+            '--tw-prose-links': theme('colors.cyan.500'),
+            '--tw-prose-bold': theme('colors.gray.500'),
+            '--tw-prose-counters': theme('colors.gray.300'),
+            '--tw-prose-bullets': theme('colors.gray.300'),
+            '--tw-prose-hr': theme('colors.gray.300'),
+            '--tw-prose-quotes': theme('colors.gray.200'),
+            '--tw-prose-quote-borders': theme('colors.gray.300'),
+            '--tw-prose-captions': theme('colors.gray.300'),
+            '--tw-prose-code': theme('colors.gray.200'),
+            '--tw-prose-pre-code': theme('colors.gray.500'),
+            '--tw-prose-pre-bg': theme('colors.gray.700'),
+          },
         },
-      },
-    }),
+      }),
+    }
   },
   plugins: [
     require('@tailwindcss/forms'),

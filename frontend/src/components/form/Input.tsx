@@ -2,9 +2,11 @@ import { useState } from "react"
 
 export default function Input(
     {
-        state
+        state,
+        name
     }:{
-        state?: string
+        state?: string,
+        name: string
     }
 ) {
     const [inputState, setInputState] = useState(state)
@@ -15,6 +17,6 @@ export default function Input(
                 type="text" 
                 placeholder={inputState}
                 id="name" 
-                name="name" />
+                name={name} />
     )
 }

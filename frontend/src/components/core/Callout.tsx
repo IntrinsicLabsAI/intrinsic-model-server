@@ -9,8 +9,8 @@ export default function Callout({
 }) {
     const colorOptions = {
         green: "bg-primary-300",
-        blue: "bg-blue-400",
-        purple: "bg-purple-400"
+        blue: "bg-blue-600",
+        purple: "bg-purple-600"
     }
 
     return (

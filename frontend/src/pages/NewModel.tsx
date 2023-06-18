@@ -20,7 +20,8 @@ export default function NewModel() {
     const registerHandler = (modelInfo: ModelInfo) => {
         registerModelAction(modelInfo)
         navigate("/")
-    }
+        setModelType(ModelType.COMPLETION)
+    };
 
     return (
         <Page>
@@ -29,6 +30,7 @@ export default function NewModel() {
                     <h3 className=" font-semibold text-3xl pb-1">Add a new model</h3>
                     <p className=" text-lg text-white/70 pb-2">
                         A model represents a set of binaries that are deployed to the server.
+                        Use this to register a new model with the server.
                         Once deployed, models can be run from the Web Portal or via API.
                         Each model is independently versioned.
                     </p>
@@ -72,7 +74,7 @@ export default function NewModel() {
                     <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
                         <button
                             type="button"
-                            className="inline-flex w-full justify-center rounded-md bg-blue-400 hover:bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm sm:ml-3 sm:w-auto"
+                            className="inline-flex w-full justify-center rounded-md bg-primary-400 hover:bg-primary-600 px-3 py-2 text-sm font-semibold text-dark-400 shadow-sm sm:ml-3 sm:w-auto"
                             // disabled={!!name || !!modelPath || !!modelType}
                             onClick={() => {
                                 registerHandler({

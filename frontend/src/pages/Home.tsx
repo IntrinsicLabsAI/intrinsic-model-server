@@ -76,7 +76,7 @@ export default function Home() {
       <Page>
         <OneColumnLayout>
           <Column>
-            <Callout color="blue">
+            <Callout color="green">
               <h3 className='text-lg font-semibold text-dark-500 leading-none'>Welcome to Intrinsic Model Server</h3>
               <p className='text-lg text-dark-500 leading-snug mt-2'>
                 This project is under active development by members of <a href="https://intrinsiclabs.ai" target="_blank" className='underline underline-offset-2'>Intrinsic Labs</a>.

@@ -12,12 +12,7 @@ export default function Dropdown<K extends React.Key, T extends { id: K, value: 
     onSelectionChange?: (select: K) => void,
     default?: K,
 }) {
-    const [selection, setSelection] = useState<React.Key | undefined>();
-    const effectiveSelect = useMemo(() => selection || props.default, [selection, props.default]);
-    const selected = useMemo(() => items.find(it => it.id == effectiveSelect)?.value, [effectiveSelect, items]);
-
     const updateSelected = (key: K) => {
-        setSelection(key);
         onSelectionChange && onSelectionChange(key);
     };
 
@@ -25,7 +20,7 @@ export default function Dropdown<K extends React.Key, T extends { id: K, value: 
         <Menu as="div" className="relative inline-block text-left">
             <div>
                 <Menu.Button>
-                    <p className=' bg-primary-100 text-dark-300 font-semibold px-2 py-1 rounded hover:bg-primary-300'>{selected || buttonText}</p>
+                    <p className='outline outline-primary-600 text-primary-600 font-semibold px-2 py-1 rounded'>{buttonText}</p>
                 </Menu.Button>
             </div>
 

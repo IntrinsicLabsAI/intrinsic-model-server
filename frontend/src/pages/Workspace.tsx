@@ -19,7 +19,6 @@ export default function Workspace() {
                     <div className='ml-auto'>
                         <Dropdown 
                             buttonText="Actions"
-                            staticSelection={true} 
                             onSelectionChange={actionsButton}
                             items={[
                                 { id: "new-model", value: "Add New Model" },

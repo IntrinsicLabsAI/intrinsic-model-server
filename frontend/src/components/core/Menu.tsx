@@ -1,16 +1,14 @@
 import { Menu } from '@headlessui/react'
-import React, { useMemo, useState } from 'react'
+import React from 'react'
 
 export default function Dropdown<K extends React.Key, T extends { id: K, value: string }>({
     buttonText,
     items,
-    onSelectionChange,
-    ...props
+    onSelectionChange
 }: {
     buttonText: string,
     items: T[],
-    onSelectionChange?: (select: K) => void,
-    default?: K,
+    onSelectionChange?: (select: K) => void
 }) {
     const updateSelected = (key: K) => {
         onSelectionChange && onSelectionChange(key);

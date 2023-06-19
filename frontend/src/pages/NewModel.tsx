@@ -11,7 +11,7 @@ import TextInput from "../components/form/TextInput"
 export default function NewModel() {
     const [name, setName] = useState("");
     const [version, setVersion] = useState("");
-    const [modelType, _setModelType] = useState<ModelType>(ModelType.COMPLETION);
+    const [modelType,] = useState<ModelType>(ModelType.COMPLETION);
     const [modelPath, setModelPath] = useState<string>("");
     const [registerModelAction] = useRegisterModelMutation();
 

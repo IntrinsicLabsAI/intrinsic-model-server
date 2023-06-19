@@ -5,7 +5,7 @@ export default function Callout({
     color
 } : {
     children?: React.ReactNode | React.ReactNode[],
-    color: "green" | "blue" | "purple"
+    color?: "green" | "blue" | "purple"
 }) {
     const colorOptions = {
         green: "bg-primary-300",
@@ -14,7 +14,7 @@ export default function Callout({
     }
 
     return (
-        <div className={`flex flex-col w-full h-full rounded-md p-6 ${colorOptions[color]}`}>
+        <div className={`flex flex-col w-full h-full rounded-md p-6 ${color ? colorOptions[color] : colorOptions["blue"]}`}>
             <div className="flex flex-row gap-4 w-full h-full">
                 <SparklesIcon className="h-6 w-6 stroke-2 text-dark-500"/>
                 <div className=" flex flex-col w-full h-full ">

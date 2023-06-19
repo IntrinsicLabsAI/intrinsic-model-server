@@ -87,6 +87,7 @@ const ConfigView = React.memo(({
                     className="ml-auto w-[80%] focus:border-primary-100 focus:ring-0 focus:shadow-none rounded bg-dark-200 text-gray-400"
                     type="number"
                     step={0.1}
+                    min={0.0}
                     value={temperature}
                     onChange={(evt) => setTemperature(evt.target.valueAsNumber)} />
             </div>

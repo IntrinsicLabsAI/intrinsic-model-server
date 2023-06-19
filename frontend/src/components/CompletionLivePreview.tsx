@@ -45,11 +45,13 @@ const CompletionLivePreview = React.memo(({
         }
     }, [model, version, prompt, temperature, tokenLimit]);
 
-    const bgStyle = useMemo(() => completed ? "bg-green-700" : "", [completed]);
+    const bgStyle = useMemo(() => completed ? " outline outline-primary-600 " : " outline outline-gray-600 ", [completed]);
 
     return (
-        <div className={`text-xl text-white font-mono whitespace-pre-wrap rounded-xl overflow-x-auto m-4 p-4 ${bgStyle}`}>
-            {tokens}
+        <div className={` rounded overflow-x-auto p-4 mb-4 ${bgStyle}`}>
+            <p className="leading-snug font-mono whitespace-pre-line text-gray-400">
+                {tokens}
+            </p>
         </div>
     );
 });

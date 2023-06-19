@@ -127,32 +127,33 @@ const RunningView = React.memo(({
     prompt,
     cancel,
 }: Experiment) => {
-    return (<>
-        <div className="flex flex-col gap-2 w-full p-4 rounded bg-dark-200">
-            <div className=" flex flex-row ">
-                <h3 className=" font-semibold">Running Completion Query</h3>
-                <div className="ml-auto cursor-pointer p-1 hover:bg-primary-100/20 hover:rounded" onClick={() => cancel && cancel()}><Icon icon="cross" color="#F6F7F9" /></div>
+    return (
+        <>
+            <div className="flex flex-col gap-2 w-full p-4 rounded bg-dark-200">
+                <div className=" flex flex-row ">
+                    <h3 className=" font-semibold">Running Completion Query</h3>
+                    <div className="ml-auto cursor-pointer p-1 hover:bg-primary-100/20 hover:rounded" onClick={() => cancel && cancel()}><Icon icon="cross" color="#F6F7F9" /></div>
+                </div>
+                <h3 className=" font-mono text-sm whitespace-pre-wrap">
+                    {prompt}
+                </h3>
+                <div className=" flex flex-row gap-3">
+                    <p className=" text-xs font-bold px-1.5 py-1 bg-primary-100 rounded text-dark-400"> Version: {version} </p>
+                    <p className=" text-xs font-bold px-1.5 py-1 bg-primary-100 rounded text-dark-400"> Temperature: {temperature} </p>
+                    <p className=" text-xs font-bold px-1.5 py-1 bg-primary-100 rounded text-dark-400"> Tokens: {tokenLimit} </p>
+                </div>
             </div>
-            <h3 className=" font-mono text-sm whitespace-pre-wrap">
-                {prompt}
-            </h3>
-            <div className=" flex flex-row gap-3">
-                <p className=" text-xs font-bold px-1.5 py-1 bg-primary-100 rounded text-dark-400"> Version: {version} </p>
-                <p className=" text-xs font-bold px-1.5 py-1 bg-primary-100 rounded text-dark-400"> Temperature: {temperature} </p>
-                <p className=" text-xs font-bold px-1.5 py-1 bg-primary-100 rounded text-dark-400"> Tokens: {tokenLimit} </p>
+            <div className="mt-4">
+                <CompletionLivePreview
+                    model={model}
+                    version={version}
+                    prompt={prompt}
+                    temperature={temperature}
+                    tokenLimit={tokenLimit}
+                />
             </div>
-        </div>
-        <div className="mt-4">
-            <CompletionLivePreview
-                model={model}
-                version={version}
-                prompt={prompt}
-                temperature={temperature}
-                tokenLimit={tokenLimit}
-            />
-        </div>
-    </>
-    );
+        </>
+    )
 });
 
 const InferenceRunner = React.memo(({
@@ -161,6 +162,7 @@ const InferenceRunner = React.memo(({
     model: string,
 }) => {
     const { data: allModels } = useGetModelsQuery();
+    
     const allVersions = useMemo(() => {
         return allModels === undefined
             ? []

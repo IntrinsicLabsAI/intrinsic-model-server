@@ -34,7 +34,7 @@ export default function Dropdown<K extends React.Key, T extends { id: K, value: 
                     items.map(item => (
                         <Menu.Item key={item.id}>
                             <p
-                                className="hover:bg-primary-100 hover:font-semibold cursor-pointer text-gray-100 block px-4 py-2 text-sm rounded"
+                                className="hover:bg-primary-100 hover:font-semibold cursor-pointer text-gray-100 block px-4 py-2 text-sm"
                                 onClick={() => updateSelected(item.id)}>
                                 {item.value}
                             </p>

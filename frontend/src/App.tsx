@@ -3,6 +3,7 @@ import Home from './pages/Home';
 import Workspace from './pages/Workspace';
 import NotFound from './pages/NotFound';
 import Model from './pages/Model';
+import NewModel from './pages/NewModel';
 
 function App() {
     return (
@@ -10,6 +11,7 @@ function App() {
             <Route element={<Workspace />}>
                 <Route index={true} element={<Home />} />
                 <Route path="model/:name" element={<Model />} />
+                <Route path="new-model" element={<NewModel />} />
                 <Route path="*" element={<NotFound />} />
             </Route>
         </Routes>

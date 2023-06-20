@@ -1,8 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from . import api
-from .middleware import StaticReactRouterFiles
+from modelserver.middleware import StaticReactRouterFiles
+from modelserver.routes import v1
 
 app = FastAPI(openapi_url="/openapi.yml")
 
@@ -16,7 +16,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(api.router)
+app.include_router(v1.router)
+
 app.mount(
     "/",
     StaticReactRouterFiles(directory="frontend/dist", check_dir=False, html=True),

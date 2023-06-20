@@ -18,22 +18,20 @@ from modelserver.loaders import locators as L
 from modelserver.types.locator import DiskLocator, HFLocator, Locator
 
 from ..db import DataManager
-from ..dependencies import AppComponent, get_db, get_disk_importer, get_hf_importer
-from ..loaders import DiskModelImporter, HFModelImporter
+from ..dependencies import AppComponent, get_db
 from ..types.api import (
     CompletionInference,
     CompletionInferenceRequest,
     GetRegisteredModelsResponse,
     HealthStatus,
     ModelInfo,
-    RegisteredModel,
 )
-from ..types.tasks import DownloadHFModelTask, TaskId
+from ..types.tasks import TaskId
 
-router = APIRouter(dependencies=[Depends(get_db)])
+router = APIRouter(dependencies=[Depends(get_db)], prefix="/v1")
 
 
-@router.get("/v1/models")
+@router.get("/models")
 async def get_models(
     component: Annotated[AppComponent, Depends(AppComponent)]
 ) -> GetRegisteredModelsResponse:
@@ -44,7 +42,7 @@ async def get_models(
     return GetRegisteredModelsResponse(models=component.db.get_registered_models())
 
 
-@router.post("/v1/models")
+@router.post("/models")
 async def register_model(
     model_info: ModelInfo, component: Annotated[AppComponent, Depends(AppComponent)]
 ) -> UUID:
@@ -52,7 +50,7 @@ async def register_model(
     return guid
 
 
-@router.post("/v1/{model}/{version}/complete")
+@router.post("/{model}/{version}/complete")
 async def run_inference_sync(
     model: str,
     version: str,
@@ -86,14 +84,14 @@ async def run_inference_sync(
     )
 
 
-@router.delete("/v1/{model_guid}")
+@router.delete("/{model_guid}")
 async def delete_model_by_id(
     model_guid: UUID, component: Annotated[AppComponent, Depends(AppComponent)]
 ) -> None:
     component.db.delete_model_by_id(model_guid)
 
 
-@router.put("/v1/{model_name}/description")
+@router.put("/{model_name}/description")
 async def update_model_description(
     model_name: str,
     description: Annotated[str, Body(media_type="text/plain")],
@@ -102,24 +100,21 @@ async def update_model_description(
     db.upsert_model_description(model_name, description)
 
 
-@router.get("/v1/{model_name}/description")
+@router.get("/{model_name}/description")
 async def get_model_description(
     model_name: str, db: Annotated[DataManager, Depends(get_db)]
 ) -> str | None:
     return db.get_model_description(model_name)
 
 
-@router.get("/healthz")
-async def get_healthz() -> HealthStatus:
-    return HealthStatus(status="ok")
-
-
-@router.post("/import-model")
+@router.post("/import")
 async def import_model(
     locator: Annotated[Locator, Body()],
     component: Annotated[AppComponent, Depends(AppComponent)],
     background_tasks: BackgroundTasks,
 ) -> TaskId:
+    logging.info("Need to make this do a real thing...")
+
     def import_hf(hf_locator: HFLocator) -> TaskId:
         return uuid.uuid4()
 
@@ -141,10 +136,10 @@ async def completion_async(
     websocket: WebSocket,
     model: str,
     version: str,
-    db: Annotated[DataManager, Depends(get_db)],
+    component: Annotated[AppComponent, Depends(AppComponent)],
 ) -> None:
     await websocket.accept()
-    found_model = db.get_model_by_name_and_version(model, version)
+    found_model = component.db.get_model_by_name_and_version(model, version)
     llama = Llama(model_path=found_model.model_params.model_path)
     try:
         msg = await websocket.receive_json()

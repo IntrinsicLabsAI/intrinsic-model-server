@@ -6,13 +6,17 @@ from uuid import UUID
 from fastapi import APIRouter, Body, Depends, WebSocket, WebSocketDisconnect
 from llama_cpp import Llama
 
-from ..db import DataManager, get_db
-from .types import (
+from ..db import DataManager
+from ..dependencies import get_db, get_disk_importer, get_hf_importer
+from ..loaders import DiskModelImporter, HFModelImporter
+from ..loaders import locators as L
+from ._types import (
     CompletionInference,
     CompletionInferenceRequest,
     GetRegisteredModelsResponse,
     HealthStatus,
     ModelInfo,
+    RegisteredModel,
 )
 
 router = APIRouter(dependencies=[Depends(get_db)])
@@ -97,6 +101,30 @@ async def get_model_description(
 @router.get("/healthz")
 async def get_healthz() -> HealthStatus:
     return HealthStatus(status="ok")
+
+
+@router.post("/import-model")
+async def import_model(
+    locator: Annotated[L.Locator, Body()],
+    disk_importer: Annotated[DiskModelImporter, Depends(get_disk_importer)],
+    hf_importer: Annotated[HFModelImporter, Depends(get_hf_importer)],
+) -> RegisteredModel:
+    # Try and import the given model, attempt to fail it if we have problems instead...
+    # We should send back a saved job that you can poll for updates.
+
+    def import_hf(hf_locator: L.HFLocator) -> RegisteredModel:
+        raise NotImplementedError()
+
+    def import_disk(disk_locator: L.DiskLocator) -> RegisteredModel:
+        raise NotImplementedError()
+
+    # Save a partial value that may complete at another point in time here to the DB.
+    # Save the import task state.
+    return L.match_locator(
+        locator,
+        hf=import_hf,
+        disk=import_disk,
+    )
 
 
 @router.websocket("/ws/v1/{model}/{version}/complete")

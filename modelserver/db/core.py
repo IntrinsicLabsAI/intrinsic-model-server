@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from uuid import UUID
 
-from modelserver.api.types import ModelInfo, RegisteredModel
+from modelserver.api._types import ModelInfo, RegisteredModel
 
 
 class DataManager(ABC):

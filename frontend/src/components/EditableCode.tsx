@@ -51,10 +51,10 @@ const EditableCode = React.memo(({
                                     language={langage} />) :
                                 (<ReactMarkdown
                                     components={{
-                                        h1: ({ node, ...props }) => (<p className="text-3xl underline" {...props} />),
-                                        h2: ({ node, ...props }) => (<p className="text-xl underline" {...props} />),
-                                        h3: ({ node, ...props }) => (<p className="text-lg underline" {...props} />),
-                                        p: ({ node, ...props }) => (<p className="text-md" {...props} />),}}
+                                        h1: ({ node, ...props }) => (<p className="text-2xl font-semibold leading-tight" {...props} />),
+                                        h2: ({ node, ...props }) => (<p className="text-xl font-semibold leading-tight" {...props} />),
+                                        h3: ({ node, ...props }) => (<p className="text-lg font-semibold leading-tight" {...props} />),
+                                        p: ({ node, ...props }) =>  (<p className="text-md" {...props} />),}}
                                     children={code || "Nothing"}
                                     disallowedElements={["img", "script"]}
                                     className="prose"/>)}

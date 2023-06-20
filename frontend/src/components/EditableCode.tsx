@@ -31,7 +31,7 @@ const EditableCode = React.memo(({
             onClick={() => setEditing(!editing)} 
             className="p-1.5 rounded cursor-pointer hover:bg-slate-200/40">
             {editing ? 
-                (<Icon icon="tick" size={14} color="#F6F7F9" />) :
+                (<Icon icon="floppy-disk" size={14} color="#F6F7F9" />) :
                 (<Icon icon="edit" size={14} color="#F6F7F9" />)}
         </div>
     );
@@ -54,7 +54,7 @@ const EditableCode = React.memo(({
                                         h1: ({ node, ...props }) => (<p className="text-2xl font-semibold leading-tight" {...props} />),
                                         h2: ({ node, ...props }) => (<p className="text-xl font-semibold leading-tight" {...props} />),
                                         h3: ({ node, ...props }) => (<p className="text-lg font-semibold leading-tight" {...props} />),
-                                        p: ({ node, ...props }) =>  (<p className="text-md whitespace-pre-line" {...props} />),}}
+                                        p: ({ node, ...props }) =>  (<p className="text-md" {...props} />),}}
                                     children={code || "Nothing"}
                                     disallowedElements={["img", "script"]}
                                     className="prose"/>)}

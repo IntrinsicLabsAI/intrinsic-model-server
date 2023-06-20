@@ -30,9 +30,9 @@ const EditableCode = React.memo(({
         <div
             onClick={() => setEditing(!editing)} 
             className="p-1.5 rounded cursor-pointer hover:bg-slate-200/40">
-            {!editing ? 
-                (<Icon icon="edit" size={14} color="#F6F7F9" />) :
-                (<Icon icon="floppy-disk" size={14} color="#F6F7F9" />)}
+            {editing ? 
+                (<Icon icon="floppy-disk" size={14} color="#F6F7F9" />) :
+                (<Icon icon="edit" size={14} color="#F6F7F9" />)}
         </div>
     );
 

@@ -3,7 +3,9 @@ from pathlib import Path
 import pytest
 from fastapi import HTTPException, status
 
-from ..api._types import CompletionModelParams, ModelInfo, ModelType, SemVer
+from modelserver.types.tasks import InProgressState, TaskState
+
+from ..types.api import CompletionModelParams, ModelInfo, ModelType, SemVer
 from .sqlite import PersistentDataManager
 
 
@@ -55,3 +57,15 @@ def test_db(tmp_path: Path) -> None:
     db.delete_model_by_id(guid020)
 
     assert len(db.get_registered_models()) == 1
+
+
+def test_taskdb() -> None:
+    # Ensure serialization
+
+    task_json = """
+    {
+        "type": "in-progress",
+        "progress": 0.8
+    }
+    """
+    assert TaskState.parse_raw(task_json).__root__ == InProgressState(progress=0.8)

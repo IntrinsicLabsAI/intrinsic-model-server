@@ -6,7 +6,7 @@ from uuid import UUID
 from fastapi import HTTPException, status
 from pydantic import BaseModel, validator
 
-from ..loaders import Locator
+from .locator import Locator
 
 SEMVER_PATTERN = re.compile(r"(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)")
 

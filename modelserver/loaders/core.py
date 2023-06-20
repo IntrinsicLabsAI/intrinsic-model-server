@@ -2,8 +2,6 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Generic, TypeAlias, TypeGuard, TypeVar
 
-from modelserver.loaders.locators import Locator
-
 TLocator = TypeVar("TLocator")
 
 

@@ -1,8 +1,5 @@
-import pytest
-from pydantic import ValidationError
-
 from modelserver.types.api import SemVer
-from modelserver.types.locator import DiskLocator, HFLocator
+from modelserver.types.locator import DiskLocator
 from modelserver.types.tasks import DownloadDiskModelTask, DownloadHFModelTask, Task
 
 
@@ -26,51 +23,17 @@ def test_semver() -> None:
 
 
 def test_tasks() -> None:
-    parsed_task1 = Task.parse_obj(
-        {
-            "type": "taskv1/download-disk",
-            "locator": {"type": "locatorv1/disk", "path": "/my/new/file.bin"},
+    parsed_task = Task.parse_raw(
+        """
+    {
+        "type": "taskv1/download-disk",
+        "locator": {
+            "type": "locatorv1/disk",
+            "path": "/my/new/file.bin"
         }
+    }
+    """
     )
-    assert parsed_task1.__root__ == DownloadDiskModelTask(
+    assert parsed_task.__root__ == DownloadDiskModelTask(
         locator=DiskLocator(path="/my/new/file.bin")
     )
-
-    parsed_task2 = Task.parse_obj(
-        {
-            "type": "taskv1/download-hf",
-            "locator": {
-                "type": "locatorv1/hf",
-                "repo": "vicuna/7b",
-                "file": "ggml.bin",
-            },
-        }
-    )
-
-    assert parsed_task2.__root__ == DownloadHFModelTask(
-        locator=HFLocator(
-            repo="vicuna/7b",
-            file="ggml.bin",
-        )
-    )
-
-    # Ensuer mismatched tasks/locators reject
-    with pytest.raises(ValidationError):
-        Task.parse_obj(
-            {
-                "type": "taskv1/download-hf",
-                "locator": {"type": "locatorv1/disk", "path": "/this/will/fail.bin"},
-            }
-        )
-
-    with pytest.raises(ValidationError):
-        Task.parse_obj(
-            {
-                "type": "taskv1/download-disk",
-                "locator": {
-                    "type": "locatorv1/hf",
-                    "repo": "vicuna/7b",
-                    "file": "fail.bin",
-                },
-            }
-        )

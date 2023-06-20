@@ -3,6 +3,9 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from modelserver.middleware import StaticReactRouterFiles
 from modelserver.routes import v1
+import logging
+
+logging.root.setLevel(logging.INFO)
 
 app = FastAPI(openapi_url="/openapi.yml")
 

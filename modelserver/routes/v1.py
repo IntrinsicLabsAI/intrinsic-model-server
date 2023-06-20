@@ -113,7 +113,7 @@ async def import_model(
     component: Annotated[AppComponent, Depends(AppComponent)],
     background_tasks: BackgroundTasks,
 ) -> TaskId:
-    logging.info("Need to make this do a real thing...")
+    logging.info(f"Received import request: {locator.json()}")
 
     def import_hf(hf_locator: HFLocator) -> TaskId:
         return uuid.uuid4()
@@ -143,7 +143,6 @@ async def completion_async(
     llama = Llama(model_path=found_model.model_params.model_path)
     try:
         msg = await websocket.receive_json()
-        print(f"MESSG: {msg}")
         request: CompletionInferenceRequest = CompletionInferenceRequest.parse_obj(msg)
         for chunk in llama.create_completion(
             request.prompt,

@@ -18,7 +18,7 @@ def test_poly() -> None:
         return loc.path
 
     assert (
-        L.handle(
+        L.match_locator(
             locator1,
             # hf=handle_hf,
             hf=handle_hf,
@@ -28,7 +28,7 @@ def test_poly() -> None:
     )
 
     assert (
-        L.handle(
+        L.match_locator(
             locator2,
             hf=handle_hf,
             disk=handle_disk,

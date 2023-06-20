@@ -26,7 +26,7 @@ class Locator(BaseModel):
     __root__: Annotated[HFLocator | DiskLocator, Field(discriminator="type")]
 
 
-def handle(
+def match_locator(
     locator: Locator, /, hf: Callable[[HFLocator], T], disk: Callable[[DiskLocator], T]
 ) -> T:
     match locator.__root__:

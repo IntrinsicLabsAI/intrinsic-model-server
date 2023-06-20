@@ -1,34 +1,10 @@
 from pathlib import Path
 
 import pytest
-from fastapi import HTTPException
+from fastapi import HTTPException, status
 
-from .app import (
-    CompletionModelParams,
-    ModelInfo,
-    ModelType,
-    PersistentDataManager,
-    SemVer,
-)
-
-
-def test_semver() -> None:
-    """
-    :return:
-    """
-    versions = [
-        SemVer.of(1, 1, 1),
-        SemVer.of(1, 0, 0),
-        SemVer.of(1, 1, 0),
-    ]
-
-    assert sorted(versions) == [
-        SemVer.of(1, 0, 0),
-        SemVer.of(1, 1, 0),
-        SemVer.of(1, 1, 1),
-    ]
-
-    assert SemVer.from_str("100.10.19") == SemVer.of(100, 10, 19)
+from ..api.types import CompletionModelParams, ModelInfo, ModelType, SemVer
+from .sqlite import PersistentDataManager
 
 
 def test_db(tmp_path: Path) -> None:
@@ -69,12 +45,12 @@ def test_db(tmp_path: Path) -> None:
     # Ensure duplicative model registration fails with 409 CONFLICT exception
     with pytest.raises(HTTPException) as http_ex:
         db.register_model(versioned_model_info)
-    assert http_ex.value.status_code == 409
+    assert http_ex.value.status_code == status.HTTP_409_CONFLICT
 
     # Ensure model lookups fail with 404 exception
     with pytest.raises(HTTPException) as http_ex:
         db.get_model_by_name_and_version("anewmodel", "0.3.0")
-    assert http_ex.value.status_code == 404
+    assert http_ex.value.status_code == status.HTTP_404_NOT_FOUND
 
     db.delete_model_by_id(guid020)
 

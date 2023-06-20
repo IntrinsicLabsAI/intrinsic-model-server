@@ -1,14 +1,12 @@
 import re
-from datetime import datetime
 from enum import Enum
-from pathlib import Path
-from typing import Annotated, Any, List, Literal, Type, TypeAlias
+from typing import Any, List, Type, TypeAlias
 from uuid import UUID
 
 from fastapi import HTTPException, status
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, validator
 
-from .locator import DiskLocator, HFLocator, Locator
+from .locator import Locator
 
 SEMVER_PATTERN = re.compile(r"(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)")
 
@@ -109,32 +107,26 @@ class CompletionModelParams(BaseModel):
     :param model_path: The disk path to the ggml model file used by llama-cpp for inference.
     """
 
-    type: Literal["paramsv1/completion"] = "paramsv1/completion"
-
     model_path: str
-
-
-class HFImportSource(BaseModel):
-    type: Literal["importv1/hf"] = "importv1/hf"
-    source: HFLocator
-
-
-class DiskImportSource(BaseModel):
-    type: Literal["importv1/disk"] = "importv1/disk"
-    source: DiskLocator
-
-
-class ImportMetadata(BaseModel):
-    imported_at: datetime
-    source: Annotated[HFImportSource | DiskImportSource, Field(discriminator="type")]
 
 
 class ModelInfo(BaseModel):
     name: str
-    version: str | None = None
+    version: str | None
     model_type: ModelType
     model_params: CompletionModelParams
-    import_metadata: ImportMetadata
+
+
+class ModelInfoV2(BaseModel):
+    """
+    V2 of ModelInfoType that accepts an import argument.
+    """
+
+    name: str
+    version: str | None
+    model_type: ModelType
+    model_params: CompletionModelParams
+    locator: Locator
 
 
 class RegisteredModel(BaseModel):
@@ -152,21 +144,13 @@ class RegisteredModel(BaseModel):
     guid: UUID
     name: str
     version: SemVer
-    import_metadata: ImportMetadata | None = None
+    model_params: CompletionModelParams
 
     @validator("version")
     def validate_version(cls, v: str | SemVer) -> SemVer:
         if isinstance(v, str):
             return SemVer.from_str(v)
         return v
-
-
-class RegisteredModelInternal(RegisteredModel):
-    model_params: CompletionModelParams
-
-
-class ModelVerisonV2(BaseModel):
-    ...
 
 
 class CompletionInferenceRequest(BaseModel):
@@ -215,27 +199,3 @@ class GetRegisteredModelsResponse(BaseModel):
 
 class HealthStatus(BaseModel):
     status: str
-
-
-class ListHFFiles(BaseModel):
-    repo: str
-    subfolder: str | None
-
-    @validator("repo")
-    def validate_repo(cls, v: str) -> str:
-        REPO_PATTERN = re.compile(r"^[^\s/]+/[^\s/]$")
-        if REPO_PATTERN.match(v) is None:
-            raise ValueError(f"Invalid repo format {v}")
-        return v
-
-
-class HFFile(BaseModel):
-    filename: str
-    subfolder: str | None = None
-    size_bytes: int
-    committed_at: datetime
-
-
-class ListHFFilesResponse(BaseModel):
-    repo: str
-    files: list[HFFile]

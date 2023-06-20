@@ -6,10 +6,9 @@ from huggingface_hub import cached_assets_path, cached_download, hf_hub_download
 from huggingface_hub.constants import HUGGINGFACE_HUB_CACHE
 
 from modelserver.loaders.core import ModelImportResult
-from modelserver.loaders.locators import HFLocator
+from modelserver.types.locator import HFLocator
 
 from .core import ModelImporter, ModelImportError, ModelImportResult, ModelImportSuccess
-from .locators import HFLocator
 
 
 @final

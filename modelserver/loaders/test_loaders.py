@@ -1,5 +1,5 @@
 from modelserver.loaders import locators as L
-from modelserver.loaders.locators import DiskLocator, HFLocator, Locator
+from modelserver.types.locator import DiskLocator, HFLocator, Locator
 
 
 def test_poly() -> None:

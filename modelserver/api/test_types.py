@@ -1,4 +1,4 @@
-from ._types import SemVer
+from modelserver.types.api import SemVer
 
 
 def test_semver() -> None:

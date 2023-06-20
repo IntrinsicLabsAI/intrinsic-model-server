@@ -1,16 +1,26 @@
 import logging
 import time
+import uuid
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Body, Depends, WebSocket, WebSocketDisconnect
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Body,
+    Depends,
+    WebSocket,
+    WebSocketDisconnect,
+)
 from llama_cpp import Llama
 
+from modelserver.loaders import locators as L
+from modelserver.types.locator import DiskLocator, HFLocator, Locator
+
 from ..db import DataManager
-from ..dependencies import get_db, get_disk_importer, get_hf_importer
+from ..dependencies import AppComponent, get_db, get_disk_importer, get_hf_importer
 from ..loaders import DiskModelImporter, HFModelImporter
-from ..loaders import locators as L
-from ._types import (
+from ..types.api import (
     CompletionInference,
     CompletionInferenceRequest,
     GetRegisteredModelsResponse,
@@ -18,26 +28,27 @@ from ._types import (
     ModelInfo,
     RegisteredModel,
 )
+from ..types.tasks import DownloadHFModelTask, TaskId
 
 router = APIRouter(dependencies=[Depends(get_db)])
 
 
 @router.get("/v1/models")
 async def get_models(
-    db: Annotated[DataManager, Depends(get_db)]
+    component: Annotated[AppComponent, Depends(AppComponent)]
 ) -> GetRegisteredModelsResponse:
     """
     Retrieve all registered models in the namespace.
     :return: The list of registered models
     """
-    return GetRegisteredModelsResponse(models=db.get_registered_models())
+    return GetRegisteredModelsResponse(models=component.db.get_registered_models())
 
 
 @router.post("/v1/models")
 async def register_model(
-    model_info: ModelInfo, db: Annotated[DataManager, Depends(get_db)]
+    model_info: ModelInfo, component: Annotated[AppComponent, Depends(AppComponent)]
 ) -> UUID:
-    guid = db.register_model(model_info)
+    guid = component.db.register_model(model_info)
     return guid
 
 
@@ -46,7 +57,7 @@ async def run_inference_sync(
     model: str,
     version: str,
     request: CompletionInferenceRequest,
-    db: Annotated[DataManager, Depends(get_db)],
+    component: Annotated[AppComponent, Depends(AppComponent)],
 ) -> CompletionInference:
     """
     Run inference on the specified model
@@ -55,7 +66,7 @@ async def run_inference_sync(
     :param request: Request body for inference
     :return:
     """
-    found_model = db.get_model_by_name_and_version(model, version)
+    found_model = component.db.get_model_by_name_and_version(model, version)
 
     # Generate the Llama context
     starttime = time.time()
@@ -77,9 +88,9 @@ async def run_inference_sync(
 
 @router.delete("/v1/{model_guid}")
 async def delete_model_by_id(
-    model_guid: UUID, db: Annotated[DataManager, Depends(get_db)]
+    model_guid: UUID, component: Annotated[AppComponent, Depends(AppComponent)]
 ) -> None:
-    db.delete_model_by_id(model_guid)
+    component.db.delete_model_by_id(model_guid)
 
 
 @router.put("/v1/{model_name}/description")
@@ -105,18 +116,15 @@ async def get_healthz() -> HealthStatus:
 
 @router.post("/import-model")
 async def import_model(
-    locator: Annotated[L.Locator, Body()],
-    disk_importer: Annotated[DiskModelImporter, Depends(get_disk_importer)],
-    hf_importer: Annotated[HFModelImporter, Depends(get_hf_importer)],
-) -> RegisteredModel:
-    # Try and import the given model, attempt to fail it if we have problems instead...
-    # We should send back a saved job that you can poll for updates.
+    locator: Annotated[Locator, Body()],
+    component: Annotated[AppComponent, Depends(AppComponent)],
+    background_tasks: BackgroundTasks,
+) -> TaskId:
+    def import_hf(hf_locator: HFLocator) -> TaskId:
+        return uuid.uuid4()
 
-    def import_hf(hf_locator: L.HFLocator) -> RegisteredModel:
-        raise NotImplementedError()
-
-    def import_disk(disk_locator: L.DiskLocator) -> RegisteredModel:
-        raise NotImplementedError()
+    def import_disk(disk_locator: DiskLocator) -> TaskId:
+        return uuid.uuid4()
 
     # Save a partial value that may complete at another point in time here to the DB.
     # Save the import task state.

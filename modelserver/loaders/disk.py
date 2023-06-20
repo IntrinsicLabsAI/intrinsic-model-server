@@ -1,8 +1,13 @@
 from pathlib import Path
 from typing import final
 
-from .core import ModelImporter, ModelImportError, ModelImportResult, ModelImportSuccess
-from .locators import DiskLocator
+from modelserver.loaders.core import (
+    ModelImporter,
+    ModelImportError,
+    ModelImportResult,
+    ModelImportSuccess,
+)
+from modelserver.types.locator import DiskLocator
 
 
 @final

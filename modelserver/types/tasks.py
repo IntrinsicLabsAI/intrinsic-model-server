@@ -15,7 +15,7 @@ TaskId: TypeAlias = UUID
 class DownloadHFModelTask(BaseModel):
     type: Literal["taskv1/download-hf"] = "taskv1/download-hf"
     locator: HFLocator
-    cache_dir: str | None = None
+    cache_dir: str | None
 
 
 class DownloadDiskModelTask(BaseModel):
@@ -27,14 +27,6 @@ class Task(BaseModel):
     __root__: Annotated[
         DownloadHFModelTask | DownloadDiskModelTask, Field(discriminator="type")
     ]
-
-    @classmethod
-    def from_disk(cls, task: DownloadDiskModelTask) -> "Task":
-        return Task(**task.dict())
-
-    @classmethod
-    def from_hf(cls, task: DownloadHFModelTask) -> "Task":
-        return Task(**task.dict())
 
 
 class InProgressState(BaseModel):

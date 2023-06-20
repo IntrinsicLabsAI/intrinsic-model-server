@@ -3,7 +3,7 @@
  * @returns True if we are running in the Vite dev server, false otherwise.
  */
 export function isDevServer() {
-    return window.location.host.endsWith(":5173");   
+    return window.location.host.endsWith(":5173");
 }
 
 function webSocketScheme() {
@@ -20,5 +20,5 @@ export function webSocketBaseUrl() {
     const hostname = isDevServer()
         ? "0.0.0.0:8000"
         : window.location.host;
-    return `${scheme}://${hostname}/ws`;
+    return `${scheme}://${hostname}`;
 }

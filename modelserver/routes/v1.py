@@ -130,7 +130,7 @@ async def import_model(
     )
 
 
-@router.websocket("/ws/v1/{model}/{version}/complete")
+@router.websocket("/{model}/{version}/complete")
 async def completion_async(
     *,
     websocket: WebSocket,

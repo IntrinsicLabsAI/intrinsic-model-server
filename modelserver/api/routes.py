@@ -4,7 +4,7 @@ from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Body, Depends, WebSocket, WebSocketDisconnect
-from llama_cpp import Llama  # type:ignore
+from llama_cpp import Llama
 
 from ..db import DataManager, get_db
 from .types import (

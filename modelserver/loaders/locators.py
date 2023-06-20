@@ -1,6 +1,3 @@
-from collections import namedtuple
-from enum import Enum
-from pathlib import Path
 from typing import Annotated, Callable, Literal, TypeVar, final
 
 from pydantic import BaseModel, Field
@@ -8,9 +5,14 @@ from pydantic import BaseModel, Field
 
 @final
 class HFLocator(BaseModel):
+    """
+    Locator type for validating the different set of possible revisions.
+    """
+
     type: Literal["hf"] = "hf"
     repo: str
     file: str
+    revision: str | None = None
 
 
 @final

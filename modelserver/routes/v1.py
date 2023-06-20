@@ -9,13 +9,12 @@ from fastapi import (
     BackgroundTasks,
     Body,
     Depends,
-    HTTPException,
     WebSocket,
     WebSocketDisconnect,
-    status,
 )
 from llama_cpp import Llama
 
+from modelserver.loaders import locators as L
 from modelserver.types.locator import DiskLocator, HFLocator, Locator
 
 from ..db import DataManager
@@ -26,17 +25,9 @@ from ..types.api import (
     GetRegisteredModelsResponse,
     HealthStatus,
     ModelInfo,
-    RegisteredModel,
 )
-from ..types.tasks import (
-    DownloadDiskModelTask,
-    DownloadHFModelTask,
-    Task,
-    TaskId,
-    TaskState,
-)
+from ..types.tasks import TaskId
 
-logger = logging.getLogger(__name__)
 router = APIRouter(dependencies=[Depends(get_db)], prefix="/v1")
 
 
@@ -48,9 +39,7 @@ async def get_models(
     Retrieve all registered models in the namespace.
     :return: The list of registered models
     """
-    in_models = component.db.get_registered_models()
-    out_models = [RegisteredModel(**m.dict()) for m in in_models]
-    return GetRegisteredModelsResponse(models=out_models)
+    return GetRegisteredModelsResponse(models=component.db.get_registered_models())
 
 
 @router.post("/models")
@@ -122,36 +111,26 @@ async def get_model_description(
 async def import_model(
     locator: Annotated[Locator, Body()],
     component: Annotated[AppComponent, Depends(AppComponent)],
+    background_tasks: BackgroundTasks,
 ) -> TaskId:
-    logger.info(f"Received import request: {locator.json()}")
+    logging.info("Need to make this do a real thing...")
 
-    match locator.__root__:
-        case HFLocator() as hf:
-            # Store a task for this shit
-            task_id = component.taskdb.store_task(
-                Task.parse_obj(DownloadHFModelTask(locator=hf).dict())
-            )
-        case DiskLocator() as disk:
-            task_id = component.taskdb.store_task(
-                Task.parse_obj(DownloadDiskModelTask(locator=disk).dict()),
-            )
-        case _:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Invalid locator type {locator.json()}",
-            )
+    def import_hf(hf_locator: HFLocator) -> TaskId:
+        return uuid.uuid4()
 
-    return task_id
+    def import_disk(disk_locator: DiskLocator) -> TaskId:
+        return uuid.uuid4()
+
+    # Save a partial value that may complete at another point in time here to the DB.
+    # Save the import task state.
+    return L.match_locator(
+        locator,
+        hf=import_hf,
+        disk=import_disk,
+    )
 
 
-@router.get("/import/{task_id}")
-async def import_job_status(
-    task_id: TaskId, component: Annotated[AppComponent, Depends(AppComponent)]
-) -> TaskState:
-    return component.taskdb.get_task_state(task_id)
-
-
-@router.websocket("/{model}/{version}/complete")
+@router.websocket("/ws/v1/{model}/{version}/complete")
 async def completion_async(
     *,
     websocket: WebSocket,
@@ -164,6 +143,7 @@ async def completion_async(
     llama = Llama(model_path=found_model.model_params.model_path)
     try:
         msg = await websocket.receive_json()
+        print(f"MESSG: {msg}")
         request: CompletionInferenceRequest = CompletionInferenceRequest.parse_obj(msg)
         for chunk in llama.create_completion(
             request.prompt,
@@ -174,4 +154,4 @@ async def completion_async(
             await websocket.send_text(chunk["choices"][0]["text"])
         await websocket.close(1000)
     except WebSocketDisconnect:
-        logger.info("WebSocket disconnected from streaming session")
+        logging.info("WebSocket disconnected from streaming session")

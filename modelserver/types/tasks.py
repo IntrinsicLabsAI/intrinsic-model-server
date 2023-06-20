@@ -15,7 +15,7 @@ TaskId: TypeAlias = UUID
 class DownloadHFModelTask(BaseModel):
     type: Literal["taskv1/download-hf"] = "taskv1/download-hf"
     locator: HFLocator
-    cache_dir: str | None
+    cache_dir: str | None = None
 
 
 class DownloadDiskModelTask(BaseModel):

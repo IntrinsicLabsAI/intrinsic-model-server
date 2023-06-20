@@ -1,7 +1,7 @@
 import { Icon } from "@blueprintjs/core";
 import Dropdown from "../components/core/Dropdown";
 import { useParams } from "react-router-dom";
-import EditableCode from "../components/core/EditableCode";
+import EditableCode from "../components/EditableCode";
 import Widget from "../components/core/Widget";
 import InferenceRunner from "../components/InferenceRunner";
 import { useGetDescriptionQuery, useUpdateDescriptionMutation } from "../api/services/baseService";
@@ -48,7 +48,6 @@ export default function Model() {
             </OneColumnLayout>
             <TwoColumnLayout type="left">
                 <Column>
-                    <Widget title="Details">
                         <EditableCode
                             initialCode={markdown}
                             code={description}
@@ -62,7 +61,6 @@ export default function Model() {
                                 }
                             }
                         />
-                    </Widget>
                     <InferenceRunner model={modelName} />
                 </Column>
                 <Column>

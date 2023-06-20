@@ -6,6 +6,8 @@ from uuid import UUID
 from fastapi import HTTPException, status
 from pydantic import BaseModel, validator
 
+from ..loaders import Locator
+
 SEMVER_PATTERN = re.compile(r"(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)")
 
 
@@ -113,6 +115,18 @@ class ModelInfo(BaseModel):
     version: str | None
     model_type: ModelType
     model_params: CompletionModelParams
+
+
+class ModelInfoV2(BaseModel):
+    """
+    V2 of ModelInfoType that accepts an import argument.
+    """
+
+    name: str
+    version: str | None
+    model_type: ModelType
+    model_params: CompletionModelParams
+    locator: Locator
 
 
 class RegisteredModel(BaseModel):

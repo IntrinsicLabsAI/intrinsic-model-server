@@ -1,39 +1,26 @@
 import os
 from pathlib import Path
-from typing import Annotated
 
-from fastapi import Depends
-
-from modelserver.db import DataManager, PersistentDataManager
-from modelserver.db.tasks import PersistentTaskStore, TaskStore
+from .db import DataManager, PersistentDataManager
+from .loaders.disk import DiskModelImporter
+from .loaders.hf import HFModelImporter
 
 PWD = Path(os.curdir)
 
-"""
-Datastores
-"""
-
 persistent_db = PersistentDataManager(db_file=str(PWD / "v0.db"))
-task_store = PersistentTaskStore()
 
 
 def get_db() -> DataManager:
     return persistent_db
 
 
-def get_task_db() -> TaskStore:
-    return task_store
+default_disk_importer = DiskModelImporter()
+default_hf_importer = HFModelImporter()
 
 
-class AppComponent:
-    """
-    Main component that ties together all of the DI magic into a single injectable element.
-    """
+def get_disk_importer() -> DiskModelImporter:
+    return default_disk_importer
 
-    def __init__(
-        self,
-        db: Annotated[DataManager, Depends(get_db)],
-        taskdb: Annotated[TaskStore, Depends(get_task_db)],
-    ) -> None:
-        self.db = db
-        self.taskdb = taskdb
+
+def get_hf_importer() -> HFModelImporter:
+    return default_hf_importer

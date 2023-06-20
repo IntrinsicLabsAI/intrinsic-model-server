@@ -5,7 +5,7 @@ from uuid import UUID, uuid4
 
 from fastapi import HTTPException, status
 
-from modelserver.api.types import ModelInfo, RegisteredModel, SemVer
+from modelserver.api._types import ModelInfo, RegisteredModel, SemVer
 
 from .core import DataManager
 

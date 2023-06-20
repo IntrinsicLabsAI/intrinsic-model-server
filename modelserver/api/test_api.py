@@ -1,4 +1,4 @@
-from .types import SemVer
+from ._types import SemVer
 
 
 def test_semver() -> None:

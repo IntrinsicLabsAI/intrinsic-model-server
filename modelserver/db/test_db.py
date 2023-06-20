@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 from fastapi import HTTPException, status
 
-from ..api.types import CompletionModelParams, ModelInfo, ModelType, SemVer
+from ..api._types import CompletionModelParams, ModelInfo, ModelType, SemVer
 from .sqlite import PersistentDataManager
 
 

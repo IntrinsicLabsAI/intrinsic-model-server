@@ -5,7 +5,7 @@ from uuid import UUID, uuid4
 
 from fastapi import HTTPException, status
 
-from modelserver.types.api import ModelInfo, RegisteredModelInternal, SemVer
+from modelserver.api.types import ModelInfo, RegisteredModel, SemVer
 
 from .core import DataManager
 
@@ -27,12 +27,12 @@ class PersistentDataManager(DataManager):
         """
         )
 
-    def get_registered_models(self) -> list[RegisteredModelInternal]:
+    def get_registered_models(self) -> list[RegisteredModel]:
         with self.mutex:
             cur = self.conn.cursor()
             registered_models = []
             for row in cur.execute("SELECT json FROM models"):
-                registered_models.append(RegisteredModelInternal.parse_raw(row[0]))
+                registered_models.append(RegisteredModel.parse_raw(row[0]))
             return registered_models
 
     def register_model(self, model_info: ModelInfo) -> UUID:
@@ -67,13 +67,12 @@ class PersistentDataManager(DataManager):
                     )
                 else:
                     next_version = SemVer.of(0, 1, 0)
-            registered_model = RegisteredModelInternal(
+            registered_model = RegisteredModel(
                 model_type=model_info.model_type,
                 guid=uuid4(),
                 name=model_info.name,
                 version=next_version,
                 model_params=model_info.model_params,
-                import_metadata=model_info.import_metadata,
             )
             self.conn.execute(
                 "INSERT INTO models(id, name, version, json) VALUES (?, ?, ?, ?)",
@@ -89,7 +88,7 @@ class PersistentDataManager(DataManager):
 
     def get_model_by_name_and_version(
         self, model: str, version: str | None
-    ) -> RegisteredModelInternal:
+    ) -> RegisteredModel:
         with self.mutex:
             if version is None:
                 # Find the latest version that is the most recent
@@ -118,7 +117,7 @@ class PersistentDataManager(DataManager):
                     status_code=status.HTTP_404_NOT_FOUND,
                     detail=f"Unknown version for model (model={model}, version={version})",
                 )
-            return RegisteredModelInternal.parse_raw(row[0])
+            return RegisteredModel.parse_raw(row[0])
 
     def delete_model_by_id(self, model_id: UUID) -> None:
         with self.mutex:

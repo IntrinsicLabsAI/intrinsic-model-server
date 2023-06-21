@@ -2,7 +2,7 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import type { CompletionModelParams } from './CompletionModelParams';
+import type { ImportMetadata } from './ImportMetadata';
 import type { ModelType } from './ModelType';
 
 /**
@@ -19,6 +19,6 @@ export type RegisteredModel = {
     guid: string;
     name: string;
     version: string;
-    model_params: CompletionModelParams;
+    import_metadata?: ImportMetadata;
 };
 

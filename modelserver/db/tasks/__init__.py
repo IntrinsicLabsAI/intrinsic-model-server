@@ -1,3 +1,4 @@
+import logging
 import sqlite3
 
 sqlite3.threadsafety = 3
@@ -39,6 +40,8 @@ class TaskStore(ABC):
 
 @final
 class PersistentTaskStore(TaskStore):
+    logger = logging.getLogger(__name__)
+
     def __init__(self) -> None:
         super().__init__()
         self.db = sqlite3.connect(":memory:", check_same_thread=False)
@@ -47,12 +50,13 @@ class PersistentTaskStore(TaskStore):
         )
 
     def store_task(self, task_def: Task) -> TaskId:
+        self.logger.debug("Storing task_def %s", task_def.dict())
         new_id = uuid.uuid4()
         self.db.execute(
             "INSERT INTO tasks(id, type, def, state_type, state) VALUES (?, ?, ?, ?, ?)",
             (
                 str(new_id),
-                str(task_def.dict()["type"]),
+                str(task_def.__root__.dict()["type"]),
                 task_def.json(),
                 InProgressState(progress=0.0).type,
                 InProgressState(progress=0.0).json(),
@@ -66,7 +70,7 @@ class PersistentTaskStore(TaskStore):
             "UPDATE tasks SET state = ?, state_type = ? WHERE id = ?",
             (
                 updated.json(),
-                updated.dict()["type"],
+                updated.__root__.dict()["type"],
                 str(task_id),
             ),
         )

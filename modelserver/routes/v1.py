@@ -35,6 +35,7 @@ from ..types.tasks import (
     TaskState,
 )
 
+logger = logging.getLogger(__name__)
 router = APIRouter(dependencies=[Depends(get_db)], prefix="/v1")
 
 
@@ -119,17 +120,17 @@ async def import_model(
     locator: Annotated[Locator, Body()],
     component: Annotated[AppComponent, Depends(AppComponent)],
 ) -> TaskId:
-    logging.info(f"Received import request: {locator.json()}")
+    logger.info(f"Received import request: {locator.json()}")
 
     match locator.__root__:
         case HFLocator() as hf:
             # Store a task for this shit
             task_id = component.taskdb.store_task(
-                Task(**DownloadHFModelTask(locator=hf).dict())
+                Task.parse_obj(DownloadHFModelTask(locator=hf).dict())
             )
         case DiskLocator() as disk:
             task_id = component.taskdb.store_task(
-                Task(**DownloadDiskModelTask(locator=disk).dict()),
+                Task.parse_obj(DownloadDiskModelTask(locator=disk).dict()),
             )
         case _:
             raise HTTPException(
@@ -170,4 +171,4 @@ async def completion_async(
             await websocket.send_text(chunk["choices"][0]["text"])
         await websocket.close(1000)
     except WebSocketDisconnect:
-        logging.info("WebSocket disconnected from streaming session")
+        logger.info("WebSocket disconnected from streaming session")

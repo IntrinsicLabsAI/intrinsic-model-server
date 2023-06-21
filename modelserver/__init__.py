@@ -1,6 +1,28 @@
-import uvicorn
+import logging
+import sys
 
-from .app import app
+import colorlog
 
-if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8080)
+stdout = colorlog.StreamHandler(stream=sys.stdout)
+stdout.setFormatter(
+    colorlog.ColoredFormatter(
+        "%(log_color)s%(levelname)-8s%(reset)s %(log_color)s%(message)s",
+        datefmt=None,
+        reset=True,
+        log_colors={
+            "DEBUG": "cyan",
+            "INFO": "green",
+            "WARNING": "yellow",
+            "ERROR": "red",
+            "CRITICAL": "red",
+        },
+    ),
+)
+
+
+logging.basicConfig(
+    level=logging.DEBUG,
+    handlers=[
+        stdout,
+    ],
+)

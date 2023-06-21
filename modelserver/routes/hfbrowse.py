@@ -3,16 +3,14 @@ import os
 from typing import Annotated
 
 import fsspec
-from fastapi import APIRouter, Query, Response
-from fastapi.responses import RedirectResponse
+from fastapi import APIRouter, Query
 from huggingface_hub import HfFileSystem
-from huggingface_hub.constants import HUGGINGFACE_CO_URL_HOME, default_home
 
 from modelserver.types.api import HFFile, ListHFFilesResponse
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/hf")
+router = APIRouter(prefix="/hfbrowse")
 
 hfs = HfFileSystem()
 
@@ -49,11 +47,3 @@ async def ls_repo_files(
             )
         )
     return ListHFFilesResponse(repo=repo_id, files=hf_files)
-
-
-@router.get("/repo/{community}/{repo_name}")
-def redirect_to_repo(
-    community: str, repo_name: str, revision: Annotated[str | None, Query()] = None
-) -> RedirectResponse:
-    url = HUGGINGFACE_CO_URL_HOME + f"{community}/{repo_name}/tree/{revision}"
-    return RedirectResponse(url=url)

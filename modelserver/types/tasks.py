@@ -28,6 +28,14 @@ class Task(BaseModel):
         DownloadHFModelTask | DownloadDiskModelTask, Field(discriminator="type")
     ]
 
+    @classmethod
+    def from_disk(cls, task: DownloadDiskModelTask) -> "Task":
+        return Task(**task.dict())
+
+    @classmethod
+    def from_hf(cls, task: DownloadHFModelTask) -> "Task":
+        return Task(**task.dict())
+
 
 class InProgressState(BaseModel):
     type: Literal["in-progress"] = "in-progress"

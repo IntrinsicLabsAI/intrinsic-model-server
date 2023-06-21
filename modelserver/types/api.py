@@ -112,21 +112,9 @@ class CompletionModelParams(BaseModel):
 
 class ModelInfo(BaseModel):
     name: str
-    version: str | None
+    version: str | None = None
     model_type: ModelType
     model_params: CompletionModelParams
-
-
-class ModelInfoV2(BaseModel):
-    """
-    V2 of ModelInfoType that accepts an import argument.
-    """
-
-    name: str
-    version: str | None
-    model_type: ModelType
-    model_params: CompletionModelParams
-    locator: Locator
 
 
 class RegisteredModel(BaseModel):

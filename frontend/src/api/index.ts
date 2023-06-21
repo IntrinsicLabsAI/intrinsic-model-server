@@ -13,6 +13,7 @@ export type { DiskLocator } from './models/DiskLocator';
 export type { FailedTaskState } from './models/FailedTaskState';
 export type { FinishedTaskState } from './models/FinishedTaskState';
 export type { GetRegisteredModelsResponse } from './models/GetRegisteredModelsResponse';
+export type { HealthStatus } from './models/HealthStatus';
 export type { HFFile } from './models/HFFile';
 export type { HFLocator } from './models/HFLocator';
 export type { HTTPValidationError } from './models/HTTPValidationError';

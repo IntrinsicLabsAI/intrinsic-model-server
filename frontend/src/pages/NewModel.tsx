@@ -1,4 +1,4 @@
-import { useState } from "react"
+import React, { useState } from "react"
 import { useNavigate } from "react-router-dom";
 
 import { useRegisterModelMutation } from '../api/services/baseService'
@@ -9,13 +9,12 @@ import OneColumnLayout from "../components/layout/OneColumnLayout"
 import TextInput from "../components/form/TextInput"
 import ButtonInput from "../components/form/ButtonInput"
 
-export default function NewModel() {
+function DiskModelForm() {
     const [name, setName] = useState("");
     const [version, setVersion] = useState("");
-    const [modelType, /* setModelType */] = useState<ModelType>(ModelType.COMPLETION);
+    const [modelType, setModelType] = useState<ModelType>(ModelType.COMPLETION);
     const [modelPath, setModelPath] = useState<string>("");
     const [registerModelAction] = useRegisterModelMutation();
-    const [selection, setSelection] = useState("none");
 
     const navigate = useNavigate();
 
@@ -24,7 +23,7 @@ export default function NewModel() {
         navigate("/")
     };
 
-    const diskForm = (
+    return (
         <form>
             <div className="flex flex-row pt-4">
                 <div className="w-1/3">
@@ -50,6 +49,18 @@ export default function NewModel() {
             </div>
             <div className="flex flex-row pt-4">
                 <div className="w-1/3">
+                    <p className=" text-lg font-semibold ">Model Type</p>
+                </div>
+                <div className="w-2/3">
+                    <TextInput
+                        disabled
+                        placeholder="Compleation"
+                        setState={setModelType}
+                        name="model-type" />
+                </div>
+            </div>
+            <div className="flex flex-row pt-4">
+                <div className="w-1/3">
                     <p className=" text-lg font-semibold ">Model Path</p>
                 </div>
                 <div className="w-2/3">
@@ -63,7 +74,7 @@ export default function NewModel() {
                 <button
                     type="button"
                     className="inline-flex w-full justify-center rounded-md bg-primary-400 hover:bg-primary-600 px-3 py-2 text-sm font-semibold text-dark-400 shadow-sm sm:ml-3 sm:w-auto"
-                    // disabled={!!name || !!modelPath || !!modelType}
+                    disabled={!!name || !!modelPath || !!modelType}
                     onClick={() => {
                         registerHandler({
                             name: name,
@@ -79,6 +90,10 @@ export default function NewModel() {
             </div>
         </form>
     )
+}
+
+export default function NewModel() {
+    const [selection, setSelection] = useState("none");
 
     return (
         <Page>
@@ -110,10 +125,11 @@ export default function NewModel() {
                         setState={setSelection}
                     />
                 </div>
-                {selection == "none" && (<div>None Selected</div>)}
-                {selection == "disk" && (<>{diskForm}</>)}
-                {selection == "hugging-face" && (<p>Hugging Face</p>)}
-        </OneColumnLayout>
+
+                {selection == "none" && (<React.Fragment />)}
+                {selection == "disk" && (<DiskModelForm />)}
+                {selection == "hugging-face" && (<></>)}
+            </OneColumnLayout>
         </Page >
     )
 }

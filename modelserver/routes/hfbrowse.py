@@ -12,7 +12,7 @@ from modelserver.types.api import HFFile, ListHFFilesResponse
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/hfbrowse")
+router = APIRouter(prefix="/hf")
 
 hfs = HfFileSystem()
 

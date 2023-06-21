@@ -92,6 +92,58 @@ function DiskModelForm() {
     )
 }
 
+function HuggingFaceForm() {
+    const [selectedModel, setSelectedModel] = useState("");
+
+    return (
+        <form className=" mt-4 ">
+            <div>
+                <h3 className=" text-xl font-semibold ">Select a Model</h3>
+                <p className=" text-gray-400/80 ">
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor et al incididunt ut labore et dolore magna aliqua.
+                </p>
+                <div className="flex flex-row pt-4 gap-4">
+                    <div className="w-1/3">
+                        <p className=" font-semibold ">Curated Models</p>
+                        <p className=" text-gray-400/80 text-sm italic ">These models are known to be compatible with this Web Server</p>
+                    </div>
+                    <div className="w-2/3">
+                        <div className=" overflow-y-auto p-1 h-48">
+                            <ButtonInput
+                                cols="one"
+                                setState={setSelectedModel}
+                                options={[
+                                    {
+                                        title: "EleutherAI GPT Neo",
+                                        value: "EleutherAI GPT Neo"
+                                    },
+                                    {
+                                        title: "Vacuna 7B 1.13",
+                                        value: "Vacuna 7B 1.13"
+                                    },
+                                    {
+                                        title: "Vacuna 14B 1.13",
+                                        value: "Vacuna 14B 1.13"
+                                    },
+                                    {
+                                        title: "Duffy GPT 100B",
+                                        value: "Duffy GPT 100B"
+                                    }]} />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div className="mt-4">
+                <h3 className=" text-xl font-semibold ">Select File</h3>
+                <p className=" text-gray-400/80 ">
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor et al incididunt ut labore et dolore magna aliqua.
+                    Showing files for <span className=" text-primary-400 font-semibold ">{selectedModel}</span>.
+                </p>
+            </div>
+        </form>
+    )
+}
+
 export default function NewModel() {
     const [selection, setSelection] = useState("none");
 
@@ -128,7 +180,7 @@ export default function NewModel() {
 
                 {selection == "none" && (<React.Fragment />)}
                 {selection == "disk" && (<DiskModelForm />)}
-                {selection == "hugging-face" && (<></>)}
+                {selection == "hugging-face" && (<HuggingFaceForm />)}
             </OneColumnLayout>
         </Page >
     )

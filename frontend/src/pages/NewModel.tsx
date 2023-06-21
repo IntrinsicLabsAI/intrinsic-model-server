@@ -1,13 +1,16 @@
 import React, { useState } from "react"
 import { useNavigate } from "react-router-dom";
 
-import { useRegisterModelMutation } from '../api/services/baseService'
+import { useRegisterModelMutation, useInportModelMutation } from '../api/services/baseService'
 import { ModelInfo, ModelType } from '../api'
+import { useGetHFFilesQuery } from '../api/services/baseService'
 
 import Page from "../components/layout/Page"
 import OneColumnLayout from "../components/layout/OneColumnLayout"
 import TextInput from "../components/form/TextInput"
 import ButtonInput from "../components/form/ButtonInput"
+
+import { endorsedModels } from "../data/endorsedModels"
 
 function DiskModelForm() {
     const [name, setName] = useState("");
@@ -93,14 +96,18 @@ function DiskModelForm() {
 }
 
 function HuggingFaceForm() {
-    const [selectedModel, setSelectedModel] = useState("none");
+    const [selectedModel, setSelectedModel] = useState("");
     const [selectedFile, setSelectedFile] = useState("");
+
+    const { data, error, isLoading } = useGetHFFilesQuery(selectedModel, {skip: (selectedModel == "")})
+
+    const [registerModelAction] = useInportModelMutation();
 
     return (
         <form className=" mt-4 ">
             <div>
                 <h3 className=" text-xl font-semibold ">Select a Model</h3>
-                <p className=" text-gray-400/80 ">
+                <p className=" text-gray-400/80 "> 
                     Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor et al incididunt ut labore et dolore magna aliqua.
                 </p>
                 <div className="flex flex-row pt-4 gap-4">
@@ -109,32 +116,21 @@ function HuggingFaceForm() {
                         <p className=" text-gray-400/80 text-sm italic ">These models are known to be compatible with this Web Server</p>
                     </div>
                     <div className="w-2/3">
-                        <div className=" overflow-y-auto p-1 h-44">
+                        <div className=" overflow-y-auto p-1 max-h-40">
                             <ButtonInput
                                 cols="one"
                                 setState={setSelectedModel}
-                                options={[
-                                    {
-                                        title: "EleutherAI GPT Neo",
-                                        value: "EleutherAI GPT Neo"
-                                    },
-                                    {
-                                        title: "Vacuna 7B 1.13",
-                                        value: "Vacuna 7B 1.13"
-                                    },
-                                    {
-                                        title: "Mode File Three",
-                                        value: "Vacuna 14B 1.13"
-                                    },
-                                    {
-                                        title: "Duffy GPT 100B",
-                                        value: "Duffy GPT 100B"
-                                    }]} />
+                                options={endorsedModels.map((model) => ({
+                                    title: model.name,
+                                    description: model.description,
+                                    value: model.repo
+                                }))} />
                         </div>
                     </div>
                 </div>
             </div>
-            {selectedModel != "none" && (
+
+            {selectedModel != "" && (
                 <>
                     <div className="mt-4">
                         <h3 className=" text-xl font-semibold ">Select File</h3>
@@ -146,23 +142,11 @@ function HuggingFaceForm() {
                             <ButtonInput
                                     cols="four"
                                     setState={setSelectedFile}
-                                    options={[
-                                        {
-                                            title: "File One",
-                                            value: "File One"
-                                        },
-                                        {
-                                            title: "File Two",
-                                            value: "File Two"
-                                        },
-                                        {
-                                            title: "File Three",
-                                            value: "File Three"
-                                        },
-                                        {
-                                            title: "File Four",
-                                            value: "File Four"
-                                        }]} />
+                                    options={(!isLoading && data) ? data?.files.map((file) => ({
+                                        title: file.filename,
+                                        description: `${file.size_bytes}`,
+                                        value: file.committed_at
+                                    })):[{title: "Andrew Duffy", value: "is great"}]} />
                         </div>
                     </div>
                     <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
@@ -171,8 +155,12 @@ function HuggingFaceForm() {
                             className={`${selectedFile ? 
                                 " cursor-pointer inline-flex w-full justify-center rounded-md bg-primary-200 hover:bg-primary-400 px-3 py-2 text-sm font-semibold text-dark-400 shadow-sm sm:ml-3 sm:w-auto" : 
                                 " cursor-not-allowed inline-flex w-full justify-center rounded-md bg-dark-200 px-3 py-2 text-sm font-semibold text-gray-400/70 shadow-sm sm:ml-3 sm:w-auto"}`}
-                            disabled={!!selectedFile}
-                            onClick={() => {}}>
+                            onClick={() => {
+                                registerModelAction({
+                                    type: 'locatorv1/hf',
+                                    repo: selectedModel,
+                                    file: selectedFile,
+                            })}}>
                             Register New Model
                         </button>
                     </div>

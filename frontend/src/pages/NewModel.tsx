@@ -148,20 +148,20 @@ function HuggingFaceForm() {
                                     setState={setSelectedFile}
                                     options={[
                                         {
-                                            title: "Mode File One",
-                                            value: "Mode File One"
+                                            title: "File One",
+                                            value: "File One"
                                         },
                                         {
-                                            title: "Mode File Two",
-                                            value: "Mode File Two"
+                                            title: "File Two",
+                                            value: "File Two"
                                         },
                                         {
-                                            title: "Mode File Three",
-                                            value: "Mode File Three"
+                                            title: "File Three",
+                                            value: "File Three"
                                         },
                                         {
-                                            title: "Mode File Four",
-                                            value: "Mode File Four"
+                                            title: "File Four",
+                                            value: "File Four"
                                         }]} />
                         </div>
                     </div>

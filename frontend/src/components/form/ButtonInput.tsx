@@ -28,7 +28,7 @@ function SelectionButton(
                 " bg-primary-100 p-4 outline outline-primary-600 rounded cursor-pointer" : 
                 " p-4 outline outline-slate-400 rounded cursor-pointer"}`}
             onClick={() => setState(value)}>
-                <h3 className={`leading-none text-lg font-semibold ${state == value ? " text-dark-200 "  : "text-slate-200"} `}>{title}</h3>
+                <h3 className={`leading-none font-semibold ${state == value ? " text-dark-200 "  : "text-slate-200"} `}>{title}</h3>
                 {description && (<p className={` leading-tight pt-1 text-sm ${state == value ? " text-dark-200 "  : "text-slate-200"}`}>{description}</p>)}
         </div>
     )

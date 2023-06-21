@@ -26,3 +26,5 @@ logging.basicConfig(
         stdout,
     ],
 )
+
+from .app import app

@@ -53,14 +53,14 @@ export default function ButtonInput(
     }
 
     const gridOptions = {
-        one: "grid-cols-1",
-        two: "grid-cols-2",
-        three: "grid-cols-3",
-        four: "grid-cols-4",
+        one: "grid-cols-1 gap-2",
+        two: "grid-cols-2 gap-4",
+        three: "grid-cols-3 gap-4",
+        four: "grid-cols-4 gap-4",
     }
 
     return (
-        <div className={`grid ${!cols ? gridOptions["two"] : gridOptions[cols]} gap-4`}>
+        <div className={`grid ${!cols ? gridOptions["two"] : gridOptions[cols]}`}>
             {options.map((option) => (
                 <SelectionButton 
                     value={option.value} 

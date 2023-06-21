@@ -108,7 +108,7 @@ function HuggingFaceForm() {
                         <p className=" text-gray-400/80 text-sm italic ">These models are known to be compatible with this Web Server</p>
                     </div>
                     <div className="w-2/3">
-                        <div className=" overflow-y-auto p-1 h-48">
+                        <div className=" overflow-y-auto p-1 h-44">
                             <ButtonInput
                                 cols="one"
                                 setState={setSelectedModel}

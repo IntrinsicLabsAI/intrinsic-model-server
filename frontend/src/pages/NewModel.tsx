@@ -93,7 +93,8 @@ function DiskModelForm() {
 }
 
 function HuggingFaceForm() {
-    const [selectedModel, setSelectedModel] = useState("");
+    const [selectedModel, setSelectedModel] = useState("none");
+    const [selectedFile, setSelectedFile] = useState("");
 
     return (
         <form className=" mt-4 ">
@@ -122,7 +123,7 @@ function HuggingFaceForm() {
                                         value: "Vacuna 7B 1.13"
                                     },
                                     {
-                                        title: "Vacuna 14B 1.13",
+                                        title: "Mode File Three",
                                         value: "Vacuna 14B 1.13"
                                     },
                                     {
@@ -133,13 +134,50 @@ function HuggingFaceForm() {
                     </div>
                 </div>
             </div>
-            <div className="mt-4">
-                <h3 className=" text-xl font-semibold ">Select File</h3>
-                <p className=" text-gray-400/80 ">
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor et al incididunt ut labore et dolore magna aliqua.
-                    Showing files for <span className=" text-primary-400 font-semibold ">{selectedModel}</span>.
-                </p>
-            </div>
+            {selectedModel != "none" && (
+                <>
+                    <div className="mt-4">
+                        <h3 className=" text-xl font-semibold ">Select File</h3>
+                        <p className=" text-gray-400/80 ">
+                            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor et al incididunt ut labore et dolore magna aliqua.
+                            Showing files for <span className=" text-primary-400 font-semibold ">{selectedModel}</span>.
+                        </p>
+                        <div className="mt-4">
+                            <ButtonInput
+                                    cols="four"
+                                    setState={setSelectedFile}
+                                    options={[
+                                        {
+                                            title: "Mode File One",
+                                            value: "Mode File One"
+                                        },
+                                        {
+                                            title: "Mode File Two",
+                                            value: "Mode File Two"
+                                        },
+                                        {
+                                            title: "Mode File Three",
+                                            value: "Mode File Three"
+                                        },
+                                        {
+                                            title: "Mode File Four",
+                                            value: "Mode File Four"
+                                        }]} />
+                        </div>
+                    </div>
+                    <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+                        <button
+                            type="button"
+                            className={`${selectedFile ? 
+                                " cursor-pointer inline-flex w-full justify-center rounded-md bg-primary-200 hover:bg-primary-400 px-3 py-2 text-sm font-semibold text-dark-400 shadow-sm sm:ml-3 sm:w-auto" : 
+                                " cursor-not-allowed inline-flex w-full justify-center rounded-md bg-dark-200 px-3 py-2 text-sm font-semibold text-gray-400/70 shadow-sm sm:ml-3 sm:w-auto"}`}
+                            disabled={!!selectedFile}
+                            onClick={() => {}}>
+                            Register New Model
+                        </button>
+                    </div>
+                </>
+            )}
         </form>
     )
 }

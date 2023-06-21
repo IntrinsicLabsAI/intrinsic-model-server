@@ -16,7 +16,6 @@ from fastapi import (
 )
 from llama_cpp import Llama
 
-from modelserver.loaders import locators as L
 from modelserver.types.locator import DiskLocator, HFLocator, Locator
 
 from ..db import DataManager

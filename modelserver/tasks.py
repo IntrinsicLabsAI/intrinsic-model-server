@@ -1,14 +1,23 @@
 import logging
 import os
+import pdb
 import threading
 import time
+from datetime import datetime
 from typing import final
 
 from huggingface_hub import get_hf_file_metadata, hf_hub_download, hf_hub_url
 
 from modelserver.db.core import DataManager
 from modelserver.db.tasks import TaskStore
-from modelserver.types.api import CompletionModelParams, ModelInfo, ModelType
+from modelserver.types.api import (
+    CompletionModelParams,
+    DiskImportSource,
+    HFImportSource,
+    ImportMetadata,
+    ModelInfo,
+    ModelType,
+)
 from modelserver.types.tasks import (
     DownloadDiskModelTask,
     DownloadHFModelTask,
@@ -40,6 +49,10 @@ class Tasks:
                 model_params=CompletionModelParams(
                     model_path=task.locator.path,
                 ),
+                import_metadata=ImportMetadata(
+                    imported_at=datetime.utcnow(),
+                    source=DiskImportSource(source=task.locator),
+                ),
             )
         )
         self.taskdb.update_task(
@@ -55,25 +68,35 @@ class Tasks:
         self, task_id: TaskId, task: DownloadHFModelTask
     ) -> None:
         try:
+            locator = task.locator
             hfurl = hf_hub_url(
-                task.locator.repo,
-                task.locator.file,
-                revision=task.locator.revision,
+                locator.repo,
+                locator.file,
+                revision=locator.revision,
             )
-            meta = get_hf_file_metadata(hfurl)
-            # TODO(aduffy): find the linked commit from meta.commit_hash to determine when this file was created.
+            pdb.set_trace()
+            if locator.revision is None:
+                meta = get_hf_file_metadata(hfurl)
+                locator = locator.copy(update=dict(revision=meta.commit_hash))
+                self.logger.info(
+                    "Assigning commit hash for model pull: %s", meta.commit_hash
+                )
             localized = hf_hub_download(
                 task.locator.repo,
                 task.locator.file,
-                revision=task.locator.revision,
+                revision=locator.revision,
                 resume_download=True,
             )
             guid = self.db.register_model(
                 ModelInfo(
-                    name=os.path.basename(task.locator.repo),
+                    name=os.path.basename(locator.repo),
                     model_type=ModelType.completion,
                     model_params=CompletionModelParams(
                         model_path=localized,
+                    ),
+                    import_metadata=ImportMetadata(
+                        imported_at=datetime.utcnow(),
+                        source=HFImportSource(source=locator),
                     ),
                 )
             )

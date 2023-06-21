@@ -9,8 +9,10 @@ from fastapi import (
     BackgroundTasks,
     Body,
     Depends,
+    HTTPException,
     WebSocket,
     WebSocketDisconnect,
+    status,
 )
 from llama_cpp import Llama
 
@@ -26,7 +28,13 @@ from ..types.api import (
     HealthStatus,
     ModelInfo,
 )
-from ..types.tasks import TaskId
+from ..types.tasks import (
+    DownloadDiskModelTask,
+    DownloadHFModelTask,
+    Task,
+    TaskId,
+    TaskState,
+)
 
 router = APIRouter(dependencies=[Depends(get_db)], prefix="/v1")
 
@@ -111,23 +119,33 @@ async def get_model_description(
 async def import_model(
     locator: Annotated[Locator, Body()],
     component: Annotated[AppComponent, Depends(AppComponent)],
-    background_tasks: BackgroundTasks,
 ) -> TaskId:
     logging.info(f"Received import request: {locator.json()}")
 
-    def import_hf(hf_locator: HFLocator) -> TaskId:
-        return uuid.uuid4()
+    match locator.__root__:
+        case HFLocator() as hf:
+            # Store a task for this shit
+            task_id = component.taskdb.store_task(
+                Task(**DownloadHFModelTask(locator=hf).dict())
+            )
+        case DiskLocator() as disk:
+            task_id = component.taskdb.store_task(
+                Task(**DownloadDiskModelTask(locator=disk).dict()),
+            )
+        case _:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid locator type {locator.json()}",
+            )
 
-    def import_disk(disk_locator: DiskLocator) -> TaskId:
-        return uuid.uuid4()
+    return task_id
 
-    # Save a partial value that may complete at another point in time here to the DB.
-    # Save the import task state.
-    return L.match_locator(
-        locator,
-        hf=import_hf,
-        disk=import_disk,
-    )
+
+@router.get("/import/{task_id}")
+async def import_job_status(
+    task_id: TaskId, component: Annotated[AppComponent, Depends(AppComponent)]
+) -> TaskState:
+    return component.taskdb.get_task_state(task_id)
 
 
 @router.websocket("/{model}/{version}/complete")

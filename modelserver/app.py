@@ -1,11 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from modelserver.dependencies import persistent_db, task_store
 from modelserver.middleware import StaticReactRouterFiles
 from modelserver.routes import v1
-import logging
-
-logging.root.setLevel(logging.INFO)
+from modelserver.tasks import TaskWorker
 
 app = FastAPI(openapi_url="/openapi.yml")
 
@@ -26,3 +25,16 @@ app.mount(
     StaticReactRouterFiles(directory="frontend/dist", check_dir=False, html=True),
     name="frontend",
 )
+
+worker = TaskWorker(task_store, persistent_db)
+
+
+@app.on_event("startup")
+def on_startup() -> None:
+    worker.start()
+
+
+@app.on_event("shutdown")
+def on_shutdown() -> None:
+    # TODO(aduffy): gracefully kill worker
+    pass

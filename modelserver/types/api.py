@@ -1,5 +1,7 @@
 import re
+from datetime import datetime
 from enum import Enum
+from pathlib import Path
 from typing import Any, List, Type, TypeAlias
 from uuid import UUID
 
@@ -187,3 +189,27 @@ class GetRegisteredModelsResponse(BaseModel):
 
 class HealthStatus(BaseModel):
     status: str
+
+
+class ListHFFiles(BaseModel):
+    repo: str
+    subfolder: str | None
+
+    @validator("repo")
+    def validate_repo(cls, v: str) -> str:
+        REPO_PATTERN = re.compile(r"^[^\s/]+/[^\s/]$")
+        if REPO_PATTERN.match(v) is None:
+            raise ValueError(f"Invalid repo format {v}")
+        return v
+
+
+class HFFile(BaseModel):
+    filename: str
+    subfolder: str | None = None
+    size_bytes: int
+    committed_at: datetime
+
+
+class ListHFFilesResponse(BaseModel):
+    repo: str
+    files: list[HFFile]

@@ -1,18 +1,18 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { GetRegisteredModelsResponse, ModelInfo } from '..';
+import { GetRegisteredModelsResponse, ModelInfo, Locator, TaskState } from '..';
 import { isDevServer } from './util';
 
-export const baseServiceAPI = createApi({
+export const v1API = createApi({
   reducerPath: 'baseServiceAPI',
   tagTypes: [
     "models",
     "description",
   ],
-  baseQuery: fetchBaseQuery({ baseUrl: isDevServer() ? "http://0.0.0.0:8000/v1" : '/v1' }),
+  baseQuery: fetchBaseQuery({ baseUrl: isDevServer() ? "http://0.0.0.0:8000/v1" : "/v1" }),
   endpoints: (builder) => ({
     getModels: builder.query<GetRegisteredModelsResponse, void>({
       query: () => `models`,
-      providesTags: ["models"]
+      providesTags: ["models"],
     }),
     registerModel: builder.mutation<string, ModelInfo>({
       invalidatesTags: ["models"],
@@ -46,13 +46,29 @@ export const baseServiceAPI = createApi({
         },
       })
     }),
+    importModel: builder.mutation<string, Locator>({
+      invalidatesTags: ["models"],
+      query: (locator) => ({
+        url: "import",
+        body: locator,
+        method: "POST",
+      })
+    }),
+    getImportStatus: builder.query<TaskState, string>({
+      query: (importJobId) => ({
+        url: `import/${importJobId}`,
+        method: "GET",
+      }),
+    })
   }),
 });
 
 export const {
   useGetModelsQuery,
+  useGetDescriptionQuery,
+  useGetImportStatusQuery,
   useRegisterModelMutation,
   useDeleteModelMutation,
-  useGetDescriptionQuery,
   useUpdateDescriptionMutation,
-} = baseServiceAPI;
+  useImportModelMutation,
+} = v1API;

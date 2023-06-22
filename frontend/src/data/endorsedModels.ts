@@ -2,7 +2,7 @@ export const endorsedModels: Array<{ repo: string, name: string, description: st
     {
         repo: "vicuna/ggml-vicuna-7b-1.1",
         name: "Vicuna 7B (v1.1)",
-        description: "Vicuna is an open-source LLM trained by fine-tuning LLaMA on user-shared conversations collected from ShareGPT.",
+        description: "Vicuna is an open-source LLM trained by fine-tuning LLaMA on ShareGPT",
     },
     {
         repo: "TheBloke/vicuna-13b-v1.3-GGML",

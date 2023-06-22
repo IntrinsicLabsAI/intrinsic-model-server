@@ -133,19 +133,22 @@ function HuggingFaceForm() {
                     <div className="mt-4">
                         <h3 className=" text-xl font-semibold ">Select File</h3>
                         <p className=" text-gray-400/80 ">
-                            Showing files for <span className=" text-primary-400 font-semibold ">{selectedModel}</span>.
+                            Showing files available in HuggingFace for <span className=" text-primary-400 font-semibold ">{selectedModel}</span>. 
+                            The file you select will be the model imported to your web server.
+                            To import multiple models, repeat this process for each model.
                         </p>
                         <div className="mt-4">
                             {
                             (!isLoading && data) ?
                             (<InteractiveTable
+                                enableSelection
                                 onRowSelect={setSelectedFile}
-                                columns={["fileName", "fileSize", "fileDate"]} 
+                                columns={["File Name", "File Size", "Modification Date"]} 
                                 rows={data.files?.map((file) => ({
                                         row_key: file.filename,
-                                        fileName: file.filename,
-                                        fileSize: prettyBytes(file.size_bytes),
-                                        fileDate: DateTime.fromISO(file.committed_at).toLocaleString(DateTime.DATETIME_MED),
+                                        "File Name": file.filename,
+                                        "File Size": prettyBytes(file.size_bytes),
+                                        "Modification Date": DateTime.fromISO(file.committed_at).toLocaleString(DateTime.DATETIME_MED),
                                     }))} />) :
                             (<React.Fragment />)}
                         </div>

@@ -1,34 +1,28 @@
 from datetime import datetime
-from pathlib import Path
 
 import pytest
 from fastapi import HTTPException, status
+from sqlalchemy import create_engine
 
-from modelserver.types.locator import DiskLocator
 from modelserver.types.tasks import InProgressState, TaskState
 
-from ..types.api import (
-    CompletionModelParams,
-    DiskImportSource,
-    ImportMetadata,
-    ModelInfo,
-    ModelType,
-    SemVer,
-)
+from ..types.api import RegisterModelRequest, SemVer
 from .sqlite import PersistentDataManager
 
 
-def test_db(tmp_path: Path) -> None:
-    db_file = str(tmp_path / "store.db")
-    db = PersistentDataManager(db_file=db_file)
+def test_db() -> None:
+    engine = create_engine("sqlite+pysqlite:///:memory:")
+    db = PersistentDataManager(engine)
     assert db.get_registered_models() == []
 
     # 1: model registration
-    unversioned_model_info = ModelInfo.parse_obj(
+    unversioned_model_info = RegisterModelRequest.parse_obj(
         {
-            "name": "anewmodel",
+            "model": "anewmodel",
+            "version": "0.1.0",
             "model_type": "completion",
-            "model_params": {
+            "runtime": "ggml",
+            "internal_params": {
                 "type": "paramsv1/completion",
                 "model_path": "/path/to/model.bin",
             },
@@ -47,19 +41,18 @@ def test_db(tmp_path: Path) -> None:
 
     db.register_model(unversioned_model_info)
     assert len(db.get_registered_models()) == 1
-    assert db.get_model_by_name_and_version("anewmodel", "0.1.0") is not None
+    assert db.get_model_version_internal("anewmodel", "0.1.0") is not None
 
     versioned_model_info = unversioned_model_info.copy(
         update=dict(version=SemVer.from_str("0.2.0"))
     )
 
-    guid020 = db.register_model(versioned_model_info)
-    assert len(db.get_registered_models()) == 2
+    db.register_model(versioned_model_info)
+    models = db.get_registered_models()
+    assert len(db.get_registered_models()) == 1
+    assert len(models[0].versions) == 2
 
-    assert db.get_model_by_name_and_version("anewmodel", "0.2.0") is not None
-    assert db.get_model_by_name_and_version(
-        model="anewmodel", version=None
-    ).version == SemVer.from_str("0.2.0")
+    assert db.get_model_version_internal("anewmodel", "0.2.0") is not None
 
     # Ensure duplicative model registration fails with 409 CONFLICT exception
     with pytest.raises(HTTPException) as http_ex:
@@ -68,10 +61,10 @@ def test_db(tmp_path: Path) -> None:
 
     # Ensure model lookups fail with 404 exception
     with pytest.raises(HTTPException) as http_ex:
-        db.get_model_by_name_and_version("anewmodel", "0.3.0")
+        db.get_model_version_internal("anewmodel", "0.3.0")
     assert http_ex.value.status_code == status.HTTP_404_NOT_FOUND
 
-    db.delete_model_by_id(guid020)
+    db.delete_model_version("anewmodel", "0.2.0")
 
     assert len(db.get_registered_models()) == 1
 

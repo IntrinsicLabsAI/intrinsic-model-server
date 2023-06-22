@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Annotated
 
 from fastapi import Depends
+from sqlalchemy import create_engine
 
 from modelserver.db import DataManager, PersistentDataManager
 from modelserver.db.tasks import PersistentTaskStore, TaskStore
@@ -13,7 +14,9 @@ PWD = Path(os.curdir)
 Datastores
 """
 
-persistent_db = PersistentDataManager(db_file=str(PWD / "v0.db"))
+engine = create_engine("sqlite+pysqlite:///:memory:")
+# persistent_db = PersistentDataManager(db_file=str(PWD / "v0.db"))
+persistent_db = PersistentDataManager(engine)
 task_store = PersistentTaskStore()
 
 

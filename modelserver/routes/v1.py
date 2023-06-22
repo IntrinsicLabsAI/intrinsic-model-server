@@ -1,12 +1,10 @@
 import logging
 import time
-import uuid
 from typing import Annotated
 from uuid import UUID
 
 from fastapi import (
     APIRouter,
-    BackgroundTasks,
     Body,
     Depends,
     HTTPException,
@@ -24,9 +22,9 @@ from ..types.api import (
     CompletionInference,
     CompletionInferenceRequest,
     GetRegisteredModelsResponse,
-    HealthStatus,
-    ModelInfo,
+    ModelVersionInternal,
     RegisteredModel,
+    RegisterModelRequest,
 )
 from ..types.tasks import (
     DownloadDiskModelTask,
@@ -54,11 +52,20 @@ async def get_models(
 
 
 @router.post("/models")
-async def register_model(
-    model_info: ModelInfo, component: Annotated[AppComponent, Depends(AppComponent)]
-) -> UUID:
-    guid = component.db.register_model(model_info)
-    return guid
+async def register_model_internal(
+    register_params: RegisterModelRequest,
+    component: Annotated[AppComponent, Depends(AppComponent)],
+) -> None:
+    component.db.register_model(register_params)
+
+
+@router.get("/models/{model}/{version}")
+async def get_model_version_internal(
+    model: str,
+    version: str,
+    component: Annotated[AppComponent, Depends(AppComponent)],
+) -> ModelVersionInternal:
+    return component.db.get_model_version_internal(model, version)
 
 
 @router.post("/{model}/{version}/complete")
@@ -75,31 +82,34 @@ async def run_inference_sync(
     :param request: Request body for inference
     :return:
     """
-    found_model = component.db.get_model_by_name_and_version(model, version)
+    found_model = component.db.get_model_version_internal(model, version)
 
     # Generate the Llama context
     starttime = time.time()
-    llama = Llama(model_path=found_model.model_params.model_path)
+    llama = Llama(model_path=found_model.internal_params.model_path)
 
     res = llama.create_completion(
-        request.prompt, temperature=request.temperature, max_tokens=request.tokens
+        request.prompt,
+        temperature=request.temperature,
+        max_tokens=request.tokens,
+        stream=False,
     )
 
     completion = res["choices"][0]["text"]
     elapsed = time.time() - starttime
     return CompletionInference(
-        model_name=found_model.name,
+        model_name=model,
         model_version=found_model.version,
         elapsed_seconds=elapsed,
         completion=completion,
     )
 
 
-@router.delete("/{model_guid}")
+@router.delete("/{model}/{version}")
 async def delete_model_by_id(
-    model_guid: UUID, component: Annotated[AppComponent, Depends(AppComponent)]
+    model: str, version: str, component: Annotated[AppComponent, Depends(AppComponent)]
 ) -> None:
-    component.db.delete_model_by_id(model_guid)
+    component.db.delete_model_version(model, version)
 
 
 @router.put("/{model_name}/description")
@@ -160,8 +170,8 @@ async def completion_async(
     component: Annotated[AppComponent, Depends(AppComponent)],
 ) -> None:
     await websocket.accept()
-    found_model = component.db.get_model_by_name_and_version(model, version)
-    llama = Llama(model_path=found_model.model_params.model_path)
+    found_model = component.db.get_model_version_internal(model, version)
+    llama = Llama(model_path=found_model.internal_params.model_path)
     try:
         msg = await websocket.receive_json()
         request: CompletionInferenceRequest = CompletionInferenceRequest.parse_obj(msg)

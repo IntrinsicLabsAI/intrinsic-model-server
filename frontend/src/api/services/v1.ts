@@ -14,14 +14,6 @@ export const v1API = createApi({
       query: () => `models`,
       providesTags: ["models"],
     }),
-    registerModel: builder.mutation<string, ModelInfo>({
-      invalidatesTags: ["models"],
-      query: (modelInfo) => ({
-        url: "models",
-        body: modelInfo,
-        method: "POST",
-      })
-    }),
     deleteModel: builder.mutation<string, string>({
       invalidatesTags: ["models"],
       query: (modelGuid) => ({
@@ -67,7 +59,6 @@ export const {
   useGetModelsQuery,
   useGetDescriptionQuery,
   useGetImportStatusQuery,
-  useRegisterModelMutation,
   useDeleteModelMutation,
   useUpdateDescriptionMutation,
   useImportModelMutation,

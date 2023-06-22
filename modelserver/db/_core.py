@@ -1,19 +1,22 @@
 from abc import ABC, abstractmethod
-from uuid import UUID
 
-from modelserver.types.api import ModelInfo, RegisteredModel, RegisteredModelInternal
+from modelserver.types.api import (
+    ModelVersionInternal,
+    RegisteredModel,
+    RegisterModelRequest,
+)
 
 
 class DataManager(ABC):
     @abstractmethod
-    def get_registered_models(self) -> list[RegisteredModelInternal]:
+    def get_registered_models(self) -> list[RegisteredModel]:
         """
         Retrieve all models registered in the store.
         :return: The complete list of registered models
         """
 
     @abstractmethod
-    def register_model(self, model_info: ModelInfo) -> UUID:
+    def register_model(self, model_info: RegisterModelRequest) -> None:
         """
         Register a new model in the store.
         :param model_info: Registration info for the new model
@@ -21,18 +24,18 @@ class DataManager(ABC):
         """
 
     @abstractmethod
-    def get_model_by_name_and_version(
-        self, model: str, version: str | None
-    ) -> RegisteredModelInternal:
+    def get_model_version_internal(
+        self, model: str, version: str
+    ) -> ModelVersionInternal:
         """
-        Retrieve a single model using its name and version. If version isn't provided
+        Retrieve a single model using its name and version.
         :param model:
         :param version:
         :return:
         """
 
     @abstractmethod
-    def delete_model_by_id(self, model_id: UUID) -> None:
+    def delete_model_version(self, model: str, version: str) -> None:
         """
         Delete a model by its GUID.
         :param model_id: The GUID of the model

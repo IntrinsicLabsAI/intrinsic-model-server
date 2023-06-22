@@ -110,7 +110,7 @@ function HuggingFaceForm() {
                         <p className=" text-gray-400/80 text-sm italic ">These models are known to be compatible with this Web Server</p>
                     </div>
                     <div className="w-2/3">
-                        <div className=" overflow-y-auto p-1 max-h-40">
+                        <div className=" overflow-y-auto p-1">
                             <ButtonInput
                                 cols="one"
                                 onSelect={setSelectedModel}
@@ -124,7 +124,7 @@ function HuggingFaceForm() {
                 </div>
             </div>
 
-            {selectedModel != "" && (
+            {selectedModel !== undefined && (
                 <>
                     <div className="mt-4">
                         <h3 className=" text-xl font-semibold ">Select File</h3>
@@ -133,7 +133,7 @@ function HuggingFaceForm() {
                         </p>
                         <div className="mt-4">
                             <ButtonInput
-                                cols="four"
+                                cols="two"
                                 onSelect={setSelectedFile}
                                 options={(!isLoading && data) ? data.files?.map((file) => ({
                                     title: file.filename,

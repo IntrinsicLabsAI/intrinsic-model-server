@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react"
 import { useNavigate } from "react-router-dom";
+import prettyBytes from 'pretty-bytes';
 
 import { useImportModelMutation, useGetImportStatusQuery } from '../api/services/v1'
 import { useGetRepoFilesQuery } from "../api/services/hfService";
@@ -13,6 +14,8 @@ import ButtonInput from "../components/form/ButtonInput"
 import { endorsedModels } from "../data/endorsedModels"
 import { skipToken } from "@reduxjs/toolkit/dist/query";
 import InteractiveTable from "../components/core/InteractiveTable";
+
+import { DateTime } from "luxon";
 
 function DiskModelForm() {
     const [name, setName] = useState("");
@@ -141,8 +144,9 @@ function HuggingFaceForm() {
                                 rows={data.files?.map((file) => ({
                                         row_key: file.filename,
                                         fileName: file.filename,
-                                        fileSize: `${file.size_bytes}`,
-                                        fileDate: file.committed_at}))} />) :
+                                        fileSize: prettyBytes(file.size_bytes),
+                                        fileDate: DateTime.fromISO(file.committed_at).toLocaleString(DateTime.DATETIME_MED),
+                                    }))} />) :
                             (<React.Fragment />)}
                         </div>
                     </div>

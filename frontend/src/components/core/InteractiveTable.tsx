@@ -19,7 +19,7 @@ function InteractiveRow<T extends Record<string, string>>(
             <tr onClick={() => onRowSelect(row.row_key)} className=" cursor-pointer ">
                 {cols.map(rowValue => (
                     <td>
-                        <p className={` ${selectedRow == row.row_key ? " text-primary-400 font-semibold " : " " } `}>{rowValue}</p>
+                        <p className={` ${selectedRow == row.row_key ? " text-primary-400 " : " " } `}>{rowValue}</p>
                     </td>
                 ))}
             </tr>

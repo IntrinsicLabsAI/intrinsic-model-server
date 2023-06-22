@@ -1,3 +1,4 @@
+[![LICENSE](https://img.shields.io/github/license/intrinsiclabsai/intrinsic-model-server)](LICENSE)
 [![Python application](https://github.com/IntrinsicLabsAI/intrinsic-model-server/actions/workflows/python-app.yml/badge.svg)](https://github.com/IntrinsicLabsAI/intrinsic-model-server/actions/workflows/python-app.yml)
 [![Frontend build and lint](https://github.com/IntrinsicLabsAI/intrinsic-model-server/actions/workflows/frontend.yml/badge.svg)](https://github.com/IntrinsicLabsAI/intrinsic-model-server/actions/workflows/frontend.yml)
 [![Create and publish a Docker image](https://github.com/IntrinsicLabsAI/intrinsic-model-server/actions/workflows/docker.yml/badge.svg)](https://github.com/IntrinsicLabsAI/intrinsic-model-server/actions/workflows/docker.yml)

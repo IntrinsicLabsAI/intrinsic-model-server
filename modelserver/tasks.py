@@ -1,6 +1,5 @@
 import logging
 import os
-import pdb
 import threading
 import time
 from datetime import datetime
@@ -74,7 +73,6 @@ class Tasks:
                 locator.file,
                 revision=locator.revision,
             )
-            pdb.set_trace()
             if locator.revision is None:
                 meta = get_hf_file_metadata(hfurl)
                 locator = locator.copy(update=dict(revision=meta.commit_hash))

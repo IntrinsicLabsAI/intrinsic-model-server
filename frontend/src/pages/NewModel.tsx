@@ -12,6 +12,7 @@ import ButtonInput from "../components/form/ButtonInput"
 
 import { endorsedModels } from "../data/endorsedModels"
 import { skipToken } from "@reduxjs/toolkit/dist/query";
+import InteractiveTable from "../components/core/InteractiveTable";
 
 function DiskModelForm() {
     const [name, setName] = useState("");
@@ -132,14 +133,17 @@ function HuggingFaceForm() {
                             Showing files for <span className=" text-primary-400 font-semibold ">{selectedModel}</span>.
                         </p>
                         <div className="mt-4">
-                            <ButtonInput
-                                cols="two"
-                                onSelect={setSelectedFile}
-                                options={(!isLoading && data) ? data.files?.map((file) => ({
-                                    title: file.filename,
-                                    description: `${file.size_bytes}`,
-                                    value: file.filename,
-                                })) : [{ title: "Andrew Duffy", value: "is great" }]} />
+                            {
+                            (!isLoading && data) ?
+                            (<InteractiveTable
+                                onRowSelect={setSelectedFile}
+                                columns={["fileName", "fileSize", "fileDate"]} 
+                                rows={data.files?.map((file) => ({
+                                        row_key: file.filename,
+                                        fileName: file.filename,
+                                        fileSize: `${file.size_bytes}`,
+                                        fileDate: file.committed_at}))} />) :
+                            (<React.Fragment />)}
                         </div>
                     </div>
                     <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">

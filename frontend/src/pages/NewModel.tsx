@@ -193,7 +193,7 @@ function HuggingFaceForm() {
 }
 
 export default function NewModel() {
-    const [selection, setSelection] = useState("none");
+    const [selection, setSelection] = useState<string | undefined>();
 
     return (
         <Page>
@@ -226,9 +226,9 @@ export default function NewModel() {
                     />
                 </div>
 
-                {selection == "none" && (<React.Fragment />)}
-                {selection == "disk" && (<DiskModelForm />)}
-                {selection == "hugging-face" && (<HuggingFaceForm />)}
+                {!selection && (<React.Fragment />)}
+                {(selection && selection === "disk") && (<DiskModelForm />)}
+                {(selection && selection === "hugging-face") && (<HuggingFaceForm />)}
             </OneColumnLayout>
         </Page >
     )

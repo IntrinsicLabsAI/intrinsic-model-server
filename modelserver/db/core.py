@@ -1,12 +1,12 @@
 from abc import ABC, abstractmethod
 from uuid import UUID
 
-from modelserver.types.api import ModelInfo, RegisteredModel
+from modelserver.types.api import ModelInfo, RegisteredModel, RegisteredModelInternal
 
 
 class DataManager(ABC):
     @abstractmethod
-    def get_registered_models(self) -> list[RegisteredModel]:
+    def get_registered_models(self) -> list[RegisteredModelInternal]:
         """
         Retrieve all models registered in the store.
         :return: The complete list of registered models
@@ -23,7 +23,7 @@ class DataManager(ABC):
     @abstractmethod
     def get_model_by_name_and_version(
         self, model: str, version: str | None
-    ) -> RegisteredModel:
+    ) -> RegisteredModelInternal:
         """
         Retrieve a single model using its name and version. If version isn't provided
         :param model:

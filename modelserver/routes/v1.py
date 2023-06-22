@@ -26,6 +26,7 @@ from ..types.api import (
     GetRegisteredModelsResponse,
     HealthStatus,
     ModelInfo,
+    RegisteredModel,
 )
 from ..types.tasks import (
     DownloadDiskModelTask,
@@ -47,7 +48,9 @@ async def get_models(
     Retrieve all registered models in the namespace.
     :return: The list of registered models
     """
-    return GetRegisteredModelsResponse(models=component.db.get_registered_models())
+    in_models = component.db.get_registered_models()
+    out_models = [RegisteredModel(**m.dict()) for m in in_models]
+    return GetRegisteredModelsResponse(models=out_models)
 
 
 @router.post("/models")

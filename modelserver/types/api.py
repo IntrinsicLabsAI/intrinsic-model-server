@@ -2,13 +2,13 @@ import re
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, List, Type, TypeAlias
+from typing import Annotated, Any, List, Literal, Type, TypeAlias
 from uuid import UUID
 
 from fastapi import HTTPException, status
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, Field, validator
 
-from .locator import Locator
+from .locator import DiskLocator, HFLocator, Locator
 
 SEMVER_PATTERN = re.compile(r"(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)")
 
@@ -109,7 +109,24 @@ class CompletionModelParams(BaseModel):
     :param model_path: The disk path to the ggml model file used by llama-cpp for inference.
     """
 
+    type: Literal["paramsv1/completion"] = "paramsv1/completion"
+
     model_path: str
+
+
+class HFImportSource(BaseModel):
+    type: Literal["importv1/hf"] = "importv1/hf"
+    source: HFLocator
+
+
+class DiskImportSource(BaseModel):
+    type: Literal["importv1/disk"] = "importv1/disk"
+    source: DiskLocator
+
+
+class ImportMetadata(BaseModel):
+    imported_at: datetime
+    source: Annotated[HFImportSource | DiskImportSource, Field(discriminator="type")]
 
 
 class ModelInfo(BaseModel):
@@ -117,6 +134,7 @@ class ModelInfo(BaseModel):
     version: str | None = None
     model_type: ModelType
     model_params: CompletionModelParams
+    import_metadata: ImportMetadata
 
 
 class RegisteredModel(BaseModel):
@@ -134,13 +152,21 @@ class RegisteredModel(BaseModel):
     guid: UUID
     name: str
     version: SemVer
-    model_params: CompletionModelParams
+    import_metadata: ImportMetadata | None = None
 
     @validator("version")
     def validate_version(cls, v: str | SemVer) -> SemVer:
         if isinstance(v, str):
             return SemVer.from_str(v)
         return v
+
+
+class RegisteredModelInternal(RegisteredModel):
+    model_params: CompletionModelParams
+
+
+class ModelVerisonV2(BaseModel):
+    ...
 
 
 class CompletionInferenceRequest(BaseModel):

@@ -1,23 +1,23 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { GetRegisteredModelsResponse, ListHFFilesResponse, ModelInfo, HFLocator } from '..';
+import { GetRegisteredModelsResponse, ModelInfo, Locator, TaskState } from '..';
 import { isDevServer } from './util';
 
-export const baseServiceAPI = createApi({
+export const v1API = createApi({
   reducerPath: 'baseServiceAPI',
   tagTypes: [
     "models",
     "description",
   ],
-  baseQuery: fetchBaseQuery({ baseUrl: isDevServer() ? "http://0.0.0.0:8000" : '/' }),
+  baseQuery: fetchBaseQuery({ baseUrl: isDevServer() ? "http://0.0.0.0:8000/v1" : "/v1" }),
   endpoints: (builder) => ({
     getModels: builder.query<GetRegisteredModelsResponse, void>({
-      query: () => `v1/models`,
-      providesTags: ["models"]
+      query: () => `models`,
+      providesTags: ["models"],
     }),
     registerModel: builder.mutation<string, ModelInfo>({
       invalidatesTags: ["models"],
       query: (modelInfo) => ({
-        url: "v1/models",
+        url: "models",
         body: modelInfo,
         method: "POST",
       })
@@ -25,34 +25,20 @@ export const baseServiceAPI = createApi({
     deleteModel: builder.mutation<string, string>({
       invalidatesTags: ["models"],
       query: (modelGuid) => ({
-        url: `v1/${modelGuid}`,
+        url: `${modelGuid}`,
         method: "DELETE",
       }),
     }),
     getDescription: builder.query<string, string>({
       providesTags: (_result, _error, query) => [{ type: "description", id: query }],
       query: (modelName) => ({
-        url: `v1/${modelName}/description`,
+        url: `${modelName}/description`,
       }),
-    }),
-    getHFFiles: builder.query<ListHFFilesResponse, string>({
-      providesTags: (_result, _error, query) => [{ type: "description", id: query }],
-      query: (modelRepo) => ({
-        url: `/hfbrowse/ls/${modelRepo}`,
-      }),
-    }),
-    inportModel: builder.mutation<string, HFLocator>({
-      invalidatesTags: ["models"],
-      query: (HFLocator) => ({
-        url: "v1/import",
-        body: HFLocator,
-        method: "POST",
-      })
     }),
     updateDescription: builder.mutation<string | undefined, { modelName: string, description: string }>({
       invalidatesTags: (_result, _error, query) => [{ type: "description", id: query.modelName }],
       query: ({ modelName, description }) => ({
-        url: `v1/${modelName}/description`,
+        url: `${modelName}/description`,
         method: "PUT",
         body: description,
         headers: {
@@ -60,15 +46,29 @@ export const baseServiceAPI = createApi({
         },
       })
     }),
+    importModel: builder.mutation<string, Locator>({
+      invalidatesTags: ["models"],
+      query: (locator) => ({
+        url: "import",
+        body: locator,
+        method: "POST",
+      })
+    }),
+    getImportStatus: builder.query<TaskState, string>({
+      query: (importJobId) => ({
+        url: `import/${importJobId}`,
+        method: "GET",
+      }),
+    })
   }),
 });
 
 export const {
   useGetModelsQuery,
   useGetDescriptionQuery,
-  useGetHFFilesQuery,
+  useGetImportStatusQuery,
   useRegisterModelMutation,
   useDeleteModelMutation,
   useUpdateDescriptionMutation,
-  useInportModelMutation,
-} = baseServiceAPI;
+  useImportModelMutation,
+} = v1API;

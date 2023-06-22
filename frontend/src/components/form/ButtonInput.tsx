@@ -13,7 +13,7 @@ function SelectionButton(
         value,
         state,
         setState,
-    } : {
+    }: {
         title: string,
         description?: string,
         value: string,
@@ -22,25 +22,25 @@ function SelectionButton(
     }
 ) {
     return (
-        <div 
+        <div
             key={value}
-            className={`${state == value ? 
-                " bg-primary-100 p-4 outline outline-primary-600 rounded cursor-pointer" : 
+            className={`${state == value ?
+                " bg-primary-100 p-4 outline outline-primary-600 rounded cursor-pointer" :
                 " p-4 outline outline-slate-400 rounded cursor-pointer"}`}
             onClick={() => setState(value)}>
-                <h3 className={`leading-none font-semibold ${state == value ? " text-dark-200 "  : "text-slate-200"} `}>{title}</h3>
-                {description && (<p className={` leading-tight pt-1 text-sm ${state == value ? " text-dark-200 "  : "text-slate-200"}`}>{description}</p>)}
+            <h3 className={`leading-none font-semibold ${state == value ? " text-dark-200 " : "text-slate-200"} `}>{title}</h3>
+            {description && (<p className={` leading-tight pt-1 text-sm ${state == value ? " text-dark-200 " : "text-slate-200"}`}>{description}</p>)}
         </div>
     )
 }
 
 export default function ButtonInput(
     {
-        setState,
         options,
-        cols
-    } : {
-        setState: (newState: string) => void,
+        cols,
+        onSelect,
+    }: {
+        onSelect?: (newState: string) => void,
         options: selectionButtonInfo[],
         cols?: "one" | "two" | "three" | "four"
     }
@@ -49,7 +49,9 @@ export default function ButtonInput(
 
     const changeSelection = (newSelection: string) => {
         setSelection(newSelection)
-        setState(newSelection)
+        if (onSelect) {
+            onSelect(newSelection);
+        }
     }
 
     const gridOptions = {
@@ -62,12 +64,13 @@ export default function ButtonInput(
     return (
         <div className={`grid ${!cols ? gridOptions["two"] : gridOptions[cols]}`}>
             {options.map((option) => (
-                <SelectionButton 
-                    value={option.value} 
+                <SelectionButton
+                    key={option.value}
+                    value={option.value}
                     title={option.title}
                     description={option.description}
-                    state={selection} 
-                    setState={changeSelection}/>
+                    state={selection}
+                    setState={changeSelection} />
             ))}
         </div>
     )

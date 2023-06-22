@@ -4,7 +4,7 @@ import Widget from "./core/Widget"
 import CompletionLivePreview from "./CompletionLivePreview";
 import { Icon } from "@blueprintjs/core";
 import React from "react";
-import { useGetModelsQuery } from "../api/services/baseService";
+import { useGetModelsQuery } from "../api/services/v1";
 import { isValidSemVer, semverCompare } from "../utils/semver";
 
 
@@ -163,7 +163,7 @@ const InferenceRunner = React.memo(({
     model: string,
 }) => {
     const { data: allModels } = useGetModelsQuery();
-    
+
     const allVersions = useMemo(() => {
         return allModels === undefined
             ? []

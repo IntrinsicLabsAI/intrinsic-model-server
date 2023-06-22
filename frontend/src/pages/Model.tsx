@@ -4,7 +4,7 @@ import { useParams } from "react-router-dom";
 import EditableCode from "../components/EditableCode";
 import Widget from "../components/core/Widget";
 import InferenceRunner from "../components/InferenceRunner";
-import { useGetDescriptionQuery, useUpdateDescriptionMutation } from "../api/services/baseService";
+import { useGetDescriptionQuery, useUpdateDescriptionMutation } from "../api/services/v1";
 
 import Page from "../components/layout/Page";
 import OneColumnLayout from "../components/layout/OneColumnLayout";
@@ -19,7 +19,6 @@ export default function Model() {
 
     const { data: description } = useGetDescriptionQuery(modelName);
     const [updateDescriptionAction] = useUpdateDescriptionMutation();
-
     const markdown = `# ${modelName}`;
 
     return (
@@ -43,24 +42,24 @@ export default function Model() {
                             />
                         </div>
                     </div>
-                    
+
                 </Column>
             </OneColumnLayout>
             <TwoColumnLayout type="left">
                 <Column>
-                        <EditableCode
-                            initialCode={markdown}
-                            code={description}
-                            langage="markdown"
-                            setCode={
-                                (desc) => {
-                                    updateDescriptionAction({
-                                        modelName,
-                                        description: desc,
-                                    });
-                                }
+                    <EditableCode
+                        initialCode={markdown}
+                        code={description}
+                        langage="markdown"
+                        setCode={
+                            (desc) => {
+                                updateDescriptionAction({
+                                    modelName,
+                                    description: desc,
+                                });
                             }
-                        />
+                        }
+                    />
                     <InferenceRunner model={modelName} />
                 </Column>
                 <Column>

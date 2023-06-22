@@ -1,9 +1,9 @@
-import React, { useState } from "react"
+import React, { useMemo, useState } from "react"
 import { useNavigate } from "react-router-dom";
 
-import { useRegisterModelMutation, useInportModelMutation } from '../api/services/baseService'
-import { ModelInfo, ModelType } from '../api'
-import { useGetHFFilesQuery } from '../api/services/baseService'
+import { useImportModelMutation, useGetImportStatusQuery } from '../api/services/v1'
+import { useGetRepoFilesQuery } from "../api/services/hfService";
+import { DiskLocator, ModelType } from '../api'
 
 import Page from "../components/layout/Page"
 import OneColumnLayout from "../components/layout/OneColumnLayout"
@@ -11,19 +11,21 @@ import TextInput from "../components/form/TextInput"
 import ButtonInput from "../components/form/ButtonInput"
 
 import { endorsedModels } from "../data/endorsedModels"
+import { skipToken } from "@reduxjs/toolkit/dist/query";
 
 function DiskModelForm() {
     const [name, setName] = useState("");
-    const [version, setVersion] = useState("");
-    const [modelType, setModelType] = useState<ModelType>(ModelType.COMPLETION);
+    const [, setVersion] = useState("");
+    const [modelType,] = useState<ModelType>(ModelType.COMPLETION);
     const [modelPath, setModelPath] = useState<string>("");
-    const [registerModelAction] = useRegisterModelMutation();
+    const [importModelAction] = useImportModelMutation();
 
     const navigate = useNavigate();
 
-    const registerHandler = (modelInfo: ModelInfo) => {
-        registerModelAction(modelInfo)
-        navigate("/")
+    const importModelHandler = (locator: DiskLocator) => {
+        importModelAction(locator);
+        // TODO(aduffy): we should actually be redirecting to the model import status page to watch for progress
+        navigate("/");
     };
 
     return (
@@ -35,7 +37,7 @@ function DiskModelForm() {
                 <div className="w-2/3">
                     <TextInput
                         placeholder="Model Name"
-                        setState={setName}
+                        onChange={setName}
                         name="model-name" />
                 </div>
             </div>
@@ -45,21 +47,9 @@ function DiskModelForm() {
                 </div>
                 <div className="w-2/3">
                     <TextInput
-                        placeholder="0.0.1"
-                        setState={setVersion}
+                        placeholder="0.1.0"
+                        onChange={setVersion}
                         name="model-version" />
-                </div>
-            </div>
-            <div className="flex flex-row pt-4">
-                <div className="w-1/3">
-                    <p className=" text-lg font-semibold ">Model Type</p>
-                </div>
-                <div className="w-2/3">
-                    <TextInput
-                        disabled
-                        placeholder="Compleation"
-                        setState={setModelType}
-                        name="model-type" />
                 </div>
             </div>
             <div className="flex flex-row pt-4">
@@ -69,7 +59,7 @@ function DiskModelForm() {
                 <div className="w-2/3">
                     <TextInput
                         placeholder="location/of/model.bin"
-                        setState={setModelPath}
+                        onChange={setModelPath}
                         name="model-path" />
                 </div>
             </div>
@@ -78,16 +68,12 @@ function DiskModelForm() {
                     type="button"
                     className="inline-flex w-full justify-center rounded-md bg-primary-400 hover:bg-primary-600 px-3 py-2 text-sm font-semibold text-dark-400 shadow-sm sm:ml-3 sm:w-auto"
                     disabled={!!name || !!modelPath || !!modelType}
-                    onClick={() => {
-                        registerHandler({
-                            name: name,
-                            version: version || undefined,
-                            model_type: modelType,
-                            model_params: {
-                                model_path: modelPath,
-                            }
+                    onClick={() =>
+                        importModelHandler({
+                            "type": "locatorv1/disk",
+                            path: modelPath,
                         })
-                    }}>
+                    }>
                     Register New Model
                 </button>
             </div>
@@ -96,18 +82,26 @@ function DiskModelForm() {
 }
 
 function HuggingFaceForm() {
-    const [selectedModel, setSelectedModel] = useState("");
-    const [selectedFile, setSelectedFile] = useState("");
+    const [selectedModel, setSelectedModel] = useState<string | undefined>();
+    const [selectedFile, setSelectedFile] = useState<string | undefined>();
+    const submitAllowed = useMemo(() => selectedModel !== undefined && selectedFile !== undefined, [selectedModel, selectedFile]);
 
-    const { data, error, isLoading } = useGetHFFilesQuery(selectedModel, {skip: (selectedModel == "")})
+    const { data, isLoading } = useGetRepoFilesQuery(selectedModel ?? skipToken, { skip: selectedModel === undefined });
+    const [importModelMutation,] = useImportModelMutation();
 
-    const [registerModelAction] = useInportModelMutation();
+    const [importJob, setImportJob] = useState<string | undefined>();
+    const [, setImportError] = useState<string | undefined>();
+
+    const { data: importData, isLoading: importIsLoading } = useGetImportStatusQuery(importJob ?? skipToken, {
+        skip: !importJob,
+        pollingInterval: 3_000,
+    })
 
     return (
         <form className=" mt-4 ">
             <div>
                 <h3 className=" text-xl font-semibold ">Select a Model</h3>
-                <p className=" text-gray-400/80 "> 
+                <p className=" text-gray-400/80 ">
                     Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor et al incididunt ut labore et dolore magna aliqua.
                 </p>
                 <div className="flex flex-row pt-4 gap-4">
@@ -119,7 +113,7 @@ function HuggingFaceForm() {
                         <div className=" overflow-y-auto p-1 max-h-40">
                             <ButtonInput
                                 cols="one"
-                                setState={setSelectedModel}
+                                onSelect={setSelectedModel}
                                 options={endorsedModels.map((model) => ({
                                     title: model.name,
                                     description: model.description,
@@ -135,35 +129,52 @@ function HuggingFaceForm() {
                     <div className="mt-4">
                         <h3 className=" text-xl font-semibold ">Select File</h3>
                         <p className=" text-gray-400/80 ">
-                            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor et al incididunt ut labore et dolore magna aliqua.
                             Showing files for <span className=" text-primary-400 font-semibold ">{selectedModel}</span>.
                         </p>
                         <div className="mt-4">
                             <ButtonInput
-                                    cols="four"
-                                    setState={setSelectedFile}
-                                    options={(!isLoading && data) ? data?.files.map((file) => ({
-                                        title: file.filename,
-                                        description: `${file.size_bytes}`,
-                                        value: file.committed_at
-                                    })):[{title: "Andrew Duffy", value: "is great"}]} />
+                                cols="four"
+                                onSelect={setSelectedFile}
+                                options={(!isLoading && data) ? data.files?.map((file) => ({
+                                    title: file.filename,
+                                    description: `${file.size_bytes}`,
+                                    value: file.filename,
+                                })) : [{ title: "Andrew Duffy", value: "is great" }]} />
                         </div>
                     </div>
                     <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
                         <button
                             type="button"
-                            className={`${selectedFile ? 
-                                " cursor-pointer inline-flex w-full justify-center rounded-md bg-primary-200 hover:bg-primary-400 px-3 py-2 text-sm font-semibold text-dark-400 shadow-sm sm:ml-3 sm:w-auto" : 
+                            className={`${selectedFile ?
+                                " cursor-pointer inline-flex w-full justify-center rounded-md bg-primary-200 hover:bg-primary-400 px-3 py-2 text-sm font-semibold text-dark-400 shadow-sm sm:ml-3 sm:w-auto" :
                                 " cursor-not-allowed inline-flex w-full justify-center rounded-md bg-dark-200 px-3 py-2 text-sm font-semibold text-gray-400/70 shadow-sm sm:ml-3 sm:w-auto"}`}
+                            disabled={!submitAllowed}
                             onClick={() => {
-                                registerModelAction({
-                                    type: 'locatorv1/hf',
-                                    repo: selectedModel,
-                                    file: selectedFile,
-                            })}}>
+                                if (selectedModel && selectedFile) {
+                                    importModelMutation({
+                                        type: 'locatorv1/hf',
+                                        repo: selectedModel,
+                                        file: selectedFile,
+                                    })
+                                        .unwrap()
+                                        .then(importJobId => {
+                                            setImportJob(importJobId);
+                                        })
+                                        .catch(error => {
+                                            // What to do about the error, update that we have a failed to import thing?
+                                            setImportJob(undefined);
+                                            setImportError(error);
+                                        });
+                                }
+                            }}>
                             Register New Model
                         </button>
                     </div>
+                    {importJob &&
+                        (<div className="mt-5">
+                            <p className="text-gray-400/80">{importIsLoading && "loading..."} {importData ? JSON.stringify(importData) : ""}</p>
+                        </div>)
+                    }
                 </>
             )}
         </form>
@@ -200,7 +211,7 @@ export default function NewModel() {
                                 value: "hugging-face"
                             },
                         ]}
-                        setState={setSelection}
+                        onSelect={setSelection}
                     />
                 </div>
 

@@ -1,15 +1,15 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react';
 
-import { useGetModelsQuery } from '../api/services/baseService'
-import { GetRegisteredModelsResponse } from '../api'
+import { useGetModelsQuery } from '../api/services/v1';
+import { GetRegisteredModelsResponse } from '../api';
 
-import Callout from '../components/core/Callout'
-import ModelCardView from '../components/ModelCardView'
-import Page from '../components/layout/Page'
-import OneColumnLayout from '../components/layout/OneColumnLayout'
-import TwoColumnLayout from '../components/layout/TwoColumnLayout'
-import Widget from '../components/core/Widget'
-import Column from '../components/layout/Column'
+import Callout from '../components/core/Callout';
+import ModelCardView from '../components/ModelCardView';
+import Page from '../components/layout/Page';
+import OneColumnLayout from '../components/layout/OneColumnLayout';
+import TwoColumnLayout from '../components/layout/TwoColumnLayout';
+import Widget from '../components/core/Widget';
+import Column from '../components/layout/Column';
 import { Status, StatusChecker } from "../api/services/statusService";
 
 interface distinctModel {

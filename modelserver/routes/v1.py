@@ -51,23 +51,6 @@ async def get_models(
     return GetRegisteredModelsResponse(models=out_models)
 
 
-@router.post("/models")
-async def register_model_internal(
-    register_params: RegisterModelRequest,
-    component: Annotated[AppComponent, Depends(AppComponent)],
-) -> None:
-    component.db.register_model(register_params)
-
-
-@router.get("/models/{model}/{version}")
-async def get_model_version_internal(
-    model: str,
-    version: str,
-    component: Annotated[AppComponent, Depends(AppComponent)],
-) -> ModelVersionInternal:
-    return component.db.get_model_version_internal(model, version)
-
-
 @router.post("/{model}/{version}/complete")
 async def run_inference_sync(
     model: str,

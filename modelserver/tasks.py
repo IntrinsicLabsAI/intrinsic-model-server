@@ -91,7 +91,7 @@ class Tasks:
             )
             guid = self.db.register_model(
                 RegisterModelRequest(
-                    model=os.path.basename(locator.repo),
+                    model=f"{os.path.basename(locator.repo)}__{locator.file}",
                     version=SemVer.from_str("0.1.0"),
                     model_type=ModelType.completion,
                     runtime=ModelRuntime.ggml,

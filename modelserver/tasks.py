@@ -7,15 +7,17 @@ from typing import final
 
 from huggingface_hub import get_hf_file_metadata, hf_hub_download, hf_hub_url
 
-from modelserver.db.core import DataManager
+from modelserver.db._core import DataManager
 from modelserver.db.tasks import TaskStore
 from modelserver.types.api import (
     CompletionModelParams,
     DiskImportSource,
     HFImportSource,
     ImportMetadata,
-    ModelInfo,
+    ModelRuntime,
     ModelType,
+    RegisterModelRequest,
+    SemVer,
 )
 from modelserver.types.tasks import (
     DownloadDiskModelTask,
@@ -42,10 +44,12 @@ class Tasks:
         "Download" disk model, i.e. import it into our DB.
         """
         guid = self.db.register_model(
-            ModelInfo(
-                name=os.path.basename(task.locator.path),
+            RegisterModelRequest(
+                model=os.path.basename(task.locator.path),
+                version=SemVer.from_str("0.1.0"),
                 model_type=ModelType.completion,
-                model_params=CompletionModelParams(
+                runtime=ModelRuntime.ggml,
+                internal_params=CompletionModelParams(
                     model_path=task.locator.path,
                 ),
                 import_metadata=ImportMetadata(
@@ -86,15 +90,17 @@ class Tasks:
                 resume_download=True,
             )
             guid = self.db.register_model(
-                ModelInfo(
-                    name=os.path.basename(locator.repo),
+                RegisterModelRequest(
+                    model=f"{os.path.basename(locator.repo)}__{locator.file}",
+                    version=SemVer.from_str("0.1.0"),
                     model_type=ModelType.completion,
-                    model_params=CompletionModelParams(
-                        model_path=localized,
-                    ),
+                    runtime=ModelRuntime.ggml,
                     import_metadata=ImportMetadata(
                         imported_at=datetime.utcnow(),
                         source=HFImportSource(source=locator),
+                    ),
+                    internal_params=CompletionModelParams(
+                        model_path=localized,
                     ),
                 )
             )

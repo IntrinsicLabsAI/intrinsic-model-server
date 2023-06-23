@@ -4,13 +4,10 @@
 
 import type { CompletionModelParams } from './CompletionModelParams';
 import type { ImportMetadata } from './ImportMetadata';
-import type { ModelType } from './ModelType';
 
-export type ModelInfo = {
-    name: string;
-    version?: string;
-    model_type: ModelType;
-    model_params: CompletionModelParams;
+export type ModelVersionInternal = {
+    version: string;
     import_metadata: ImportMetadata;
+    internal_params: CompletionModelParams;
 };
 

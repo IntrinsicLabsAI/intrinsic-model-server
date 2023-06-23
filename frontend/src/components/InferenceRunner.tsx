@@ -164,18 +164,18 @@ const InferenceRunner = React.memo(({
 }) => {
     const { data: allModels } = useGetModelsQuery();
 
-    const allVersions = useMemo(() => {
-        return allModels === undefined
-            ? []
-            : allModels.models.filter(m => m.name === model).map(m => m.version);
-    }, [allModels, model]);
-
+    const versions = useMemo(
+        () =>
+            allModels
+                ? allModels.models.filter(m => m.name === model).flatMap(m => m.versions).map(v => v.version)
+                : [], [allModels, model]
+    );
     const [experiments, setExperiments] = useState<Experiment[]>([]);
 
     return (
         <Widget title="Inference Runner">
             <div>
-                <ConfigView model={model} versions={allVersions} onExperiment={(experiment) => {
+                <ConfigView model={model} versions={versions} onExperiment={(experiment) => {
                     setExperiments((oldExperiments) => [experiment, ...oldExperiments]);
                 }} />
 

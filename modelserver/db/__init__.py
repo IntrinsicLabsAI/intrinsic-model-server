@@ -1,4 +1,4 @@
-from .core import DataManager
+from ._core import DataManager
 from .sqlite import PersistentDataManager
 
 __all__ = [

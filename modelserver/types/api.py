@@ -1,14 +1,12 @@
 import re
 from datetime import datetime
 from enum import Enum
-from pathlib import Path
 from typing import Annotated, Any, List, Literal, Type, TypeAlias
-from uuid import UUID
 
 from fastapi import HTTPException, status
 from pydantic import BaseModel, Field, validator
 
-from .locator import DiskLocator, HFLocator, Locator
+from .locator import DiskLocator, HFLocator
 
 SEMVER_PATTERN = re.compile(r"(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)")
 
@@ -101,6 +99,33 @@ class ModelType(str, Enum):
 
     completion = "completion"
 
+    @classmethod
+    def from_str(cls, type_: str) -> "ModelType":
+        match type_:
+            case "completion":
+                return ModelType.completion
+            case _:
+                raise ValueError(f'No such ModelType "{type_}"')
+
+
+class ModelRuntime(str, Enum):
+    """
+    Enum type indicating the runtime used to execute the model.
+    """
+
+    ggml = "ggml"
+    # pytorch = "pytorch"
+    # hf_transformers = "hf_transformers"
+    # openai_api = "openai_api"
+
+    @classmethod
+    def from_str(cls, type_: str) -> "ModelRuntime":
+        match type_:
+            case "ggml":
+                return ModelRuntime.ggml
+            case _:
+                raise ValueError(f'No such ModelRuntime "{type_}"')
+
 
 class CompletionModelParams(BaseModel):
     """
@@ -129,30 +154,9 @@ class ImportMetadata(BaseModel):
     source: Annotated[HFImportSource | DiskImportSource, Field(discriminator="type")]
 
 
-class ModelInfo(BaseModel):
-    name: str
-    version: str | None = None
-    model_type: ModelType
-    model_params: CompletionModelParams
-    import_metadata: ImportMetadata
-
-
-class RegisteredModel(BaseModel):
-    """
-    A model that has been registered with the inference server.
-
-    :param model_type: The `ModelType` of the model
-    :param guid: A machine-readable name of the model that is based on some globally unique identifier (e.g. UUID)
-    :param name: The human-readable name for the model
-    :param version: The semantic version of the model
-    :param model_metadata: Various extra metadata used by the model
-    """
-
-    model_type: ModelType
-    guid: UUID
-    name: str
+class ModelVersion(BaseModel):
     version: SemVer
-    import_metadata: ImportMetadata | None = None
+    import_metadata: ImportMetadata
 
     @validator("version")
     def validate_version(cls, v: str | SemVer) -> SemVer:
@@ -161,12 +165,40 @@ class RegisteredModel(BaseModel):
         return v
 
 
-class RegisteredModelInternal(RegisteredModel):
-    model_params: CompletionModelParams
+class ModelVersionInternal(BaseModel):
+    version: SemVer
+    import_metadata: ImportMetadata
+    internal_params: CompletionModelParams
 
 
-class ModelVerisonV2(BaseModel):
-    ...
+class RegisterModelRequest(BaseModel):
+    model: str
+    version: SemVer
+    model_type: ModelType
+    runtime: ModelRuntime
+    import_metadata: ImportMetadata
+    internal_params: CompletionModelParams
+
+    @validator("version")
+    def validate_version(cls, v: str | SemVer) -> SemVer:
+        if isinstance(v, str):
+            return SemVer.from_str(v)
+        return v
+
+
+class RegisteredModel(BaseModel):
+    """
+    A model that has been registered with the inference server.
+
+    :param name: The human-readable name for the model
+    :param model_type: The `ModelType` of the model
+    :param versions: A list of `ModelVersion`s associated with this model, indexed in ascending order by semantic version.
+    """
+
+    name: str
+    model_type: ModelType
+    runtime: str
+    versions: list[ModelVersion]
 
 
 class CompletionInferenceRequest(BaseModel):

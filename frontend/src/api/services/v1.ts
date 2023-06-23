@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { GetRegisteredModelsResponse, ModelInfo, Locator, TaskState } from '..';
+import { GetRegisteredModelsResponse, Locator, TaskState } from '..';
 import { isDevServer } from './util';
 
 export const v1API = createApi({
@@ -13,14 +13,6 @@ export const v1API = createApi({
     getModels: builder.query<GetRegisteredModelsResponse, void>({
       query: () => `models`,
       providesTags: ["models"],
-    }),
-    registerModel: builder.mutation<string, ModelInfo>({
-      invalidatesTags: ["models"],
-      query: (modelInfo) => ({
-        url: "models",
-        body: modelInfo,
-        method: "POST",
-      })
     }),
     deleteModel: builder.mutation<string, string>({
       invalidatesTags: ["models"],
@@ -67,7 +59,6 @@ export const {
   useGetModelsQuery,
   useGetDescriptionQuery,
   useGetImportStatusQuery,
-  useRegisterModelMutation,
   useDeleteModelMutation,
   useUpdateDescriptionMutation,
   useImportModelMutation,

@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 
 import { useGetModelsQuery } from '../api/services/v1';
-import { GetRegisteredModelsResponse } from '../api';
 
 import Callout from '../components/core/Callout';
 import ModelCardView from '../components/ModelCardView';
@@ -12,48 +11,10 @@ import Widget from '../components/core/Widget';
 import Column from '../components/layout/Column';
 import { Status, StatusChecker } from "../api/services/statusService";
 
-interface distinctModel {
-  name: string,
-  maxVersion: string,
-  versions: string[]
-}
 
 export default function Home() {
-  // State for registering a new model
+  // All models
   const { data, error, isLoading } = useGetModelsQuery()
-
-  const getAllModels = function (data: GetRegisteredModelsResponse): distinctModel[] {
-
-    const distinctModelList = new Array<distinctModel>();
-
-    if (!data) { return distinctModelList }
-
-    for (const model of data.models) {
-      let flag = true;
-      distinctModelList.forEach((item, index) => {
-        if (item.name == model.name) {
-          flag = false;
-          if (item.maxVersion < model.version) {
-            const priorEntryVersions = distinctModelList[index].versions;
-            priorEntryVersions.push(model.version)
-            distinctModelList[index] = {
-              name: model.name,
-              maxVersion: model.version,
-              versions: priorEntryVersions
-            };
-          }
-        }
-      })
-      if (flag) {
-        distinctModelList.push({
-          name: model.name,
-          maxVersion: model.version,
-          versions: [model.version]
-        });
-      }
-    }
-    return distinctModelList;
-  };
 
   // Setup status checker in background.
   const [onlineState, setOnlineState] = useState<Status>("loading");
@@ -66,10 +27,9 @@ export default function Home() {
     };
   }, []);
 
-  let distinctModelList: distinctModel[] = [];
-
-  if (error) { console.log(error) }
-  if (!isLoading && data) { distinctModelList = getAllModels(data) }
+  if (error) {
+    console.log(error);
+  }
 
   return (
     <>
@@ -104,10 +64,10 @@ export default function Home() {
                   <h3 className=' text-xl font-semibold'>Completion Models</h3>
                 </div>
 
-                {distinctModelList.length > 0 ? (
+                {(data?.models.length ?? 0) > 0 ? (
                   <div className="grid grid-cols-2 gap-4 mt-4 mb-4">
                     {(!isLoading && data) ? (
-                      distinctModelList.map((model) => (
+                      data.models.map((model) => (
                         <div key={model.name} className=" w-full ">
                           <ModelCardView
                             modelName={model.name}

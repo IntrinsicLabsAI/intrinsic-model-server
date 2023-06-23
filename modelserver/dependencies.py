@@ -14,8 +14,8 @@ PWD = Path(os.curdir)
 Datastores
 """
 
-engine = create_engine("sqlite+pysqlite:///:memory:")
-# persistent_db = PersistentDataManager(db_file=str(PWD / "v0.db"))
+engine = create_engine("sqlite+pysqlite:///v0.db")
+
 persistent_db = PersistentDataManager(engine)
 task_store = PersistentTaskStore()
 

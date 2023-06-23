@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { GetRegisteredModelsResponse, ModelInfo, Locator, TaskState } from '..';
+import { GetRegisteredModelsResponse, Locator, TaskState } from '..';
 import { isDevServer } from './util';
 
 export const v1API = createApi({

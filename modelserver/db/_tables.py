@@ -72,10 +72,3 @@ model_versions_joined_table = model_version_table.join(
         model_version_table.c.version == import_metadata_table.c.model_version,
     ),
 )
-
-
-class ModelVersionJoinResult(NamedTuple):
-    model_id: str
-    version: str
-    source: str
-    imported_at: datetime

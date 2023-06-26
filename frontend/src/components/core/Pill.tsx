@@ -8,7 +8,7 @@ export default function Pill(
     }) {
 
     const colors = {
-        blue: "bg-blue-700",
+        blue: "bg-blue-500",
         purple: "bg-purple-400",
         primary: "bg-primary-400",
     }

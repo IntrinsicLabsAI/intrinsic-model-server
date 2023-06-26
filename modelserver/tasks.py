@@ -1,5 +1,6 @@
 import logging
 import os
+import pathlib
 import threading
 import time
 from datetime import datetime
@@ -89,9 +90,28 @@ class Tasks:
                 revision=locator.revision,
                 resume_download=True,
             )
-            guid = self.db.register_model(
+            # Validate the model to ensure that we're actually running it.
+            from .ggml import GGMLFile
+
+            ggml_file = GGMLFile(pathlib.Path(localized))
+            parsed_ggml = ggml_file.read_structure()
+            # Assert that the GGML file contains necessary tensor types for LLAMA style inference.
+            tok_embds = list(
+                filter(
+                    lambda tensor: tensor.name == "tok_embeddings.weight",
+                    parsed_ggml.tensors,
+                )
+            )
+            if len(tok_embds) == 0:
+                raise ValueError(
+                    "Invalid GGML file: must be LLaMa-formatted to be run with llama.cpp"
+                )
+
+            modelname = f"{os.path.basename(locator.repo)}__{locator.file}"
+
+            self.db.register_model(
                 RegisterModelRequest(
-                    model=f"{os.path.basename(locator.repo)}__{locator.file}",
+                    model=modelname,
                     version=SemVer.from_str("0.1.0"),
                     model_type=ModelType.completion,
                     runtime=ModelRuntime.ggml,
@@ -105,7 +125,12 @@ class Tasks:
                 )
             )
             self.taskdb.update_task(
-                task_id, TaskState.parse_obj(FinishedTaskState(info=str(guid)).dict())
+                task_id,
+                TaskState.parse_obj(
+                    FinishedTaskState(
+                        info=f"Successfully registered {modelname}"
+                    ).dict()
+                ),
             )
         except Exception as e:
             self.logger.error("Failed syncing model from HF Hub", exc_info=e)

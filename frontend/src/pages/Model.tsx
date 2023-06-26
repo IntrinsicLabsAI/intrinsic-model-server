@@ -1,22 +1,24 @@
-import { Icon } from "@blueprintjs/core";
-import Dropdown from "../components/core/Dropdown";
+import { useMemo, useState } from "react";
+import { useGetDescriptionQuery, useGetModelsQuery, useUpdateDescriptionMutation, isHuggingFaceSource } from "../api/services/v1";
+
+import Pill from "../components/core/Pill";
+import InferenceExploration from "../components/InferenceExploration";
 import { useParams } from "react-router-dom";
 import EditableCode from "../components/EditableCode";
 import Widget from "../components/core/Widget";
 import InferenceRunner from "../components/InferenceRunner";
-import { useGetDescriptionQuery, useGetModelsQuery, useUpdateDescriptionMutation, isHuggingFaceSource } from "../api/services/v1";
 
 import Page from "../components/layout/Page";
 import OneColumnLayout from "../components/layout/OneColumnLayout";
 import TwoColumnLayout from "../components/layout/TwoColumnLayout";
 import Column from "../components/layout/Column";
-import Pill from "../components/core/Pill";
-import { useMemo } from "react";
 
 export default function Model() {
     const { name } = useParams<"name">();
     // eslint-disable-next-line  @typescript-eslint/no-non-null-assertion
     const modelName = name!;
+
+    const [selectedTab, isSelectedTab] = useState("overview")
 
     const { registeredModel } = useGetModelsQuery(undefined, {
         selectFromResult: ({ data }) => ({ registeredModel: data?.models.find(m => m.name === modelName) })
@@ -54,75 +56,79 @@ export default function Model() {
         <Page>
             <OneColumnLayout>
                 <Column>
-                    <div className="flex flex-row h-full gap-4 bg-dark-200 p-4 justify-items-start rounded">
-                        <div className="w-8 h-8 bg-purple-600 rounded-sm">
-                            <div className="flex flex-col h-full items-center justify-center">
-                                <Icon icon="lengthen-text" size={20} color="#252A31" />
-                            </div>
+                    <div className=" bg-dark-200 p-4 rounded">
+                        <div className="flex flex-row h-full gap-4 justify-items-start pb-5">
+                            <h1 className=" leading-none text-3xl font-semibold">{modelName}</h1>
                         </div>
-                        <h1 className=" leading-none text-3xl font-semibold">{modelName}</h1>
-                        <div className="ml-auto">
-                            <Dropdown
-                                buttonText="Actions"
-                                items={[
-                                    { id: "delete", value: "Delete Model" },
-                                    { id: "new-version", value: "New Version" },
-                                ]}
-                            />
+                        <div className="flex flex-row h-full gap-4 justify-items-start">
+                            <div onClick={() => isSelectedTab("overview")}>
+                                <h3 className={ ` cursor-pointer leading-none text-md font-semibold ${selectedTab == "overview" ? " text-primary-400" : " "}` }>Overview</h3>
+                            </div>
+                            <div onClick={() => isSelectedTab("experiments")}>
+                                <h3 className={ ` cursor-pointer leading-none text-md font-semibold ${selectedTab == "experiments" ? " text-primary-400" : " "}` }>Experiments</h3>
+                            </div>
                         </div>
                     </div>
-
                 </Column>
             </OneColumnLayout>
-            <TwoColumnLayout type="left">
-                <Column>
-                    <EditableCode
-                        initialCode={markdown}
-                        code={description}
-                        langage="markdown"
-                        setCode={
-                            (desc) => {
-                                updateDescriptionAction({
-                                    modelName,
-                                    description: desc,
-                                });
+            {selectedTab == "overview" && (
+                <TwoColumnLayout type="left">
+                    <Column>
+                        <EditableCode
+                            initialCode={markdown}
+                            code={description}
+                            langage="markdown"
+                            setCode={
+                                (desc) => {
+                                    updateDescriptionAction({
+                                        modelName,
+                                        description: desc,
+                                    });
+                                }
                             }
+                        />
+
+                    </Column>
+                    <Column>
+                        <Widget title="About">{
+                            registeredModel &&
+                            (<div className="overflow-y-auto [&::-webkit-scrollbar]:hidden">
+                                <div className="flex flex-row items-center gap-4 pb-4" >
+                                    <p className=" w-1/3 font-semibol ">Model Type</p>
+                                    <Pill text={registeredModel.model_type}></Pill>
+                                </div>
+                                <div className="flex flex-row items-center gap-4 pb-4" >
+                                    <p className=" w-1/3 font-semibold">Source</p>
+                                    <a href={source?.link ?? "about:blank"} target="_blank">
+                                        <Pill text={source?.sourceDisplayName ?? ""}></Pill>
+                                    </a>
+                                </div>
+                                <div className="flex flex-row items-center gap-4 pb-4" >
+                                    <p className=" w-1/3 font-semibold">Lineage</p>
+                                    <Pill text="LLaMa"></Pill>
+                                </div>
+                                <div className="flex flex-row items-center gap-4 pb-4" >
+                                    <p className=" w-1/3 font-semibold">Format</p>
+                                    <Pill text={registeredModel.runtime}></Pill>
+                                </div>
+                            </div>)
                         }
-                    />
-                    <InferenceRunner model={modelName} />
-                </Column>
-                <Column>
-                    <Widget title="About">{
-                        registeredModel &&
-                        (<div className="overflow-y-auto [&::-webkit-scrollbar]:hidden">
-                            <div className="flex flex-row items-center gap-4 pb-4" >
-                                <p className=" w-1/3 font-semibol ">Model Type</p>
-                                <Pill text={registeredModel.model_type}></Pill>
+                        </Widget>
+                        <Widget title="History">
+                            <div className="overflow-y-auto [&::-webkit-scrollbar]:hidden">
+                                <p>Version history for the model</p>
                             </div>
-                            <div className="flex flex-row items-center gap-4 pb-4" >
-                                <p className=" w-1/3 font-semibold">Source</p>
-                                <a href={source?.link ?? "about:blank"} target="_blank">
-                                    <Pill text={source?.sourceDisplayName ?? ""}></Pill>
-                                </a>
-                            </div>
-                            <div className="flex flex-row items-center gap-4 pb-4" >
-                                <p className=" w-1/3 font-semibold">Lineage</p>
-                                <Pill text="LLaMa"></Pill>
-                            </div>
-                            <div className="flex flex-row items-center gap-4 pb-4" >
-                                <p className=" w-1/3 font-semibold">Format</p>
-                                <Pill text={registeredModel.runtime}></Pill>
-                            </div>
-                        </div>)
-                    }
-                    </Widget>
-                    <Widget title="History">
-                        <div className="overflow-y-auto [&::-webkit-scrollbar]:hidden">
-                            <p>Version history for the model</p>
-                        </div>
-                    </Widget>
-                </Column>
-            </TwoColumnLayout>
+                        </Widget>
+                    </Column>
+                </TwoColumnLayout>
+            )}
+            {selectedTab == "experiments" && (
+                <OneColumnLayout>
+                    <Column>
+                        <InferenceExploration model={modelName}/>
+                    </Column>
+                </OneColumnLayout>
+            )}
         </Page>
     )
 }

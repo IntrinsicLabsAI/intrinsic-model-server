@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react"
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import prettyBytes from 'pretty-bytes';
 
 import { useImportModelMutation, useGetImportStatusQuery } from '../api/services/v1'
@@ -135,7 +135,7 @@ function HuggingFaceForm() {
     const [importJob, setImportJob] = useState<string | undefined>();
     const [, setImportError] = useState<string | undefined>();
 
-    const { data: importData, isLoading: importIsLoading } = useGetImportStatusQuery(importJob ?? skipToken, {
+    const { data: importData } = useGetImportStatusQuery(importJob ?? skipToken, {
         skip: !importJob,
         pollingInterval: 3_000,
     })

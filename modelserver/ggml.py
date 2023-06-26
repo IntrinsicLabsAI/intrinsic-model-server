@@ -1,10 +1,9 @@
-from dataclasses import dataclass, asdict
 import functools
-from io import SEEK_CUR, BufferedReader
-import struct
 import pathlib
+import struct
+from dataclasses import asdict, dataclass
+from io import SEEK_CUR, BufferedReader
 from typing import List, Tuple, Union
-
 
 GGML_FORMATS = {
     b"lmgg": "ggml",

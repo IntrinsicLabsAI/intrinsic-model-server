@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { GetRegisteredModelsResponse, Locator, TaskState } from '..';
+import { DiskImportSource, GetRegisteredModelsResponse, HFImportSource, Locator, TaskState } from '..';
 import { isDevServer } from './util';
 
 export const v1API = createApi({
@@ -63,3 +63,13 @@ export const {
   useUpdateDescriptionMutation,
   useImportModelMutation,
 } = v1API;
+
+
+// Custom type guards
+export function isHuggingFaceSource(source: HFImportSource | DiskImportSource): source is HFImportSource {
+  return source.type === "importv1/hf"
+}
+
+export function isDiskSource(source: HFImportSource | DiskImportSource): source is DiskImportSource {
+  return source.type === "importv1/disk"
+}

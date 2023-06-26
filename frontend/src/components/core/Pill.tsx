@@ -1,16 +1,16 @@
 export default function Pill(
     {
         text,
-        color
+        color,
     }: {
         text: string,
-        color?: "blue" | "purple" | "primary"
+        color?: "blue" | "purple" | "primary",
     }) {
 
     const colors = {
-        blue: "bg-blue-200",
-        purple: "bg-purple-200",
-        primary: "bg-primary-200",
+        blue: "bg-blue-500",
+        purple: "bg-purple-400",
+        primary: "bg-primary-400",
     }
 
     return (

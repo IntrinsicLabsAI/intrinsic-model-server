@@ -1,7 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { v1API } from '../api/services/v1';
 import { huggingFaceServiceAPI } from '../api/services/hfService';
-import { appSlice } from "./appSlice";
+import { appSlice, wsMiddleware } from "./appSlice";
 
 export const store = configureStore({
   reducer: {
@@ -10,7 +10,7 @@ export const store = configureStore({
     app: appSlice.reducer,
   },
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(v1API.middleware, huggingFaceServiceAPI.middleware),
+    getDefaultMiddleware().concat(v1API.middleware, huggingFaceServiceAPI.middleware, wsMiddleware.middleware),
 });
 
 // Infer the `RootState` and `AppDispatch` types from the store itself

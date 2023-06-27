@@ -6,7 +6,6 @@ import InferenceExploration from "../components/InferenceExploration";
 import { useParams } from "react-router-dom";
 import EditableCode from "../components/EditableCode";
 import Widget from "../components/core/Widget";
-import InferenceRunner from "../components/InferenceRunner";
 
 import Page from "../components/layout/Page";
 import OneColumnLayout from "../components/layout/OneColumnLayout";
@@ -62,10 +61,10 @@ export default function Model() {
                         </div>
                         <div className="flex flex-row h-full gap-4 justify-items-start">
                             <div onClick={() => isSelectedTab("overview")}>
-                                <h3 className={ ` cursor-pointer leading-none text-md font-semibold ${selectedTab == "overview" ? " text-primary-400" : " "}` }>Overview</h3>
+                                <h3 className={` cursor-pointer leading-none text-md font-semibold ${selectedTab == "overview" ? " text-primary-400" : " "}`}>Overview</h3>
                             </div>
                             <div onClick={() => isSelectedTab("experiments")}>
-                                <h3 className={ ` cursor-pointer leading-none text-md font-semibold ${selectedTab == "experiments" ? " text-primary-400" : " "}` }>Experiments</h3>
+                                <h3 className={` cursor-pointer leading-none text-md font-semibold ${selectedTab == "experiments" ? " text-primary-400" : " "}`}>Experiments</h3>
                             </div>
                         </div>
                     </div>
@@ -125,7 +124,7 @@ export default function Model() {
             {selectedTab == "experiments" && (
                 <OneColumnLayout>
                     <Column>
-                        <InferenceExploration model={modelName}/>
+                        <InferenceExploration model={modelName} />
                     </Column>
                 </OneColumnLayout>
             )}

@@ -1,8 +1,7 @@
-import { useEffect, useMemo, useState } from "react"
+import { useMemo, useState } from "react"
 import React from "react";
 
 import { isValidSemVer, semverCompare } from "../utils/semver";
-import { createDefaultClient } from "../api/services/completion";
 import { useGetModelsQuery } from "../api/services/v1";
 
 import { Icon } from "@blueprintjs/core";
@@ -14,6 +13,8 @@ import TwoColumnLayout from "./layout/TwoColumnLayout";
 import Callout from "./core/Callout";
 import Pill from "./core/Pill";
 import OneColumnLayout from "./layout/OneColumnLayout";
+import { useDispatch, useSelector } from "../state/hooks";
+import { ExperimentState, startActiveExperiment } from "../state/appSlice";
 
 interface Experiment {
     id: number;
@@ -22,7 +23,6 @@ interface Experiment {
     temperature: number;
     tokenLimit: number;
     prompt: string;
-    cancel?: () => void;
 }
 
 const ExperimentInput = React.memo(({
@@ -170,47 +170,17 @@ const ExperimentView = React.memo((
 
 const Experiment = React.memo((
     {
-        experiment
-    }: {
-        experiment: Experiment
-    }) => {
-    const [tokens, setTokens] = useState("");
-    const [completed, setCompleted] = useState(false);
-
-    useEffect(() => {
-        const client = createDefaultClient(experiment.model, experiment.version);
-
-        async function startWebSocket() {
-            await client.connect();
-            client.completeAsync(
-                {
-                    prompt: experiment.prompt,
-                    temperature: experiment.temperature,
-                    tokens: experiment.tokenLimit,
-                },
-                (token) => setTokens(prev => prev + token),
-                () => {
-                    setCompleted(true);
-                },
-            )
-        }
-
-        // Kick off async task.
-        startWebSocket();
-
-        return () => {
-            client.disconnect();
-        }
-    }, [experiment.model, experiment.version, experiment.prompt, experiment.temperature, experiment.tokenLimit]);
-
-    const isRunning = useMemo(() => completed ? false : true, [completed]);
-
+        experiment,
+        active,
+        output,
+    }: ExperimentState
+) => {
     return (
         <ExperimentView
             key={experiment.id}
-            output={tokens}
+            output={output}
             experiment={experiment}
-            isRunning={isRunning} />
+            isRunning={active} />
     )
 })
 
@@ -219,14 +189,15 @@ export default function InferenceExploration({
 }: {
     model: string,
 }) {
-    const [experiments, setExperiments] = useState<Experiment[]>([]);
     const { data: allModels } = useGetModelsQuery();
+    const dispatch = useDispatch();
 
     const versions = useMemo(
         () =>
             allModels
                 ? allModels.models.filter(m => m.name === model).flatMap(m => m.versions).map(v => v.version)
                 : [], [allModels, model])
+    const experiments = useSelector(({ app }) => app.experiments);
 
     return (
         <>
@@ -247,7 +218,9 @@ export default function InferenceExploration({
                             model={model}
                             versions={versions}
                             runExperiment={(experiment) => {
-                                setExperiments((oldExperiments) => [experiment, ...oldExperiments])
+                                dispatch(startActiveExperiment({
+                                    ...experiment,
+                                }))
                             }} />
                     </Widget>
                 </Column>
@@ -266,7 +239,7 @@ export default function InferenceExploration({
                         <>
                             {experiments.map(experiment => (
                                 <div className="mb-5">
-                                    <Experiment experiment={experiment} />
+                                    <Experiment key={experiment.experiment.id} {...experiment} />
                                 </div>
                             ))}
                         </>

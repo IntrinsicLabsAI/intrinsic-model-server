@@ -6,7 +6,7 @@ import { useGetModelsQuery } from "../api/services/v1";
 
 import { Icon } from "@blueprintjs/core";
 
-import Widget from "./core/Widget";
+import Card from "./core/Card";
 import Dropdown from "./core/Dropdown";
 import Column from "./layout/Column";
 import TwoColumnLayout from "./layout/TwoColumnLayout";
@@ -34,21 +34,26 @@ const ExperimentInput = React.memo(({
     versions: string[],
     runExperiment: (experiment: Experiment) => void,
 }) => {
+    const [version, setVersion] = useState<string | undefined>();
+    const [prompt, setPrompt] = useState<string | undefined>();
 
     const maxVersion = useMemo(() => {
         if (versions.length === 0) return undefined;
 
-        return versions
+        const maxV = versions
             .sort(semverCompare)
             .reverse()[0];
+
+        if (!version) {
+            setVersion(maxV);
+        }
+
+        return maxV;
     }, [versions]);
 
     const [temperature, setTemperature] = useState(0.2);
     const [tokenLimit, setTokenLimit] = useState(100);
 
-
-    const [prompt, setPrompt] = useState<string | undefined>();
-    const [version, setVersion] = useState<string | undefined>(maxVersion);
     const effectiveVersion = useMemo(() => version || maxVersion, [version, maxVersion]);
 
     const isValidExperimentConfig = useMemo(() => {
@@ -58,21 +63,28 @@ const ExperimentInput = React.memo(({
     const dropdownItems = useMemo(() => versions.map(v => ({ id: v, value: v })), [versions]);
 
     return (
-        <>
+        <Card>
             <div className="flex flex-col w-full gap-4">
+                <div>
+                    <h2 className=" font-semibold text-xl">Run an experiment</h2>
+                    <p className=" text-gray-400/80">
+                        Run, iterate, and refine prompts before using the model in production.
+                        If generation is slow, try adding more resources to your server.
+                    </p>
+                </div>
 
-                <div className="flex flex-row w-full gap-4 justify-start">
-                    <h3 className=" font-semibold leading-none">Prompt</h3>
+                <div className="flex flex-col w-full gap-2">
+                    <h3 className=" font-semibold  ">Prompt</h3>
                     <textarea
-                        className="ml-auto w-[80%] bg-dark-200 focus:border-primary-100 focus:ring-0 focus:shadow-none rounded-sm h-40 text-gray-400"
+                        className=" bg-dark-200 focus:border-primary-100 focus:ring-0 focus:shadow-none rounded-sm h-56 text-gray-400"
                         value={prompt}
                         placeholder="Enter prompt..."
                         onChange={(evt) => setPrompt(evt.target.value)} />
                 </div>
 
-                <div className="flex flex-row w-full gap-4 justify-start">
+                <div className="flex flex-row w-full gap-4 justify-start pt-2">
                     <h3 className=" flex-grow font-semibold leading-none">Version</h3>
-                    <div className=" items-baseline w-[80%]">
+                    <div className=" items-baseline w-[70%]">
                         <Dropdown
                             buttonText="Model Version"
                             items={dropdownItems}
@@ -85,7 +97,7 @@ const ExperimentInput = React.memo(({
                 <div className="flex flex-row w-full gap-4 justify-start">
                     <h3 className=" font-semibold leading-none">Temperature</h3>
                     <input
-                        className="ml-auto w-[80%] focus:border-primary-100 focus:ring-0 focus:shadow-none rounded bg-dark-200 text-gray-400"
+                        className="ml-auto w-[70%] focus:border-primary-100 focus:ring-0 focus:shadow-none rounded bg-dark-200 text-gray-400"
                         type="number"
                         step={0.1}
                         min={0.0}
@@ -96,7 +108,7 @@ const ExperimentInput = React.memo(({
                 <div className="flex flex-row w-full gap-4 justify-start">
                     <h3 className=" font-semibold leading-none">Token Limit</h3>
                     <input
-                        className="ml-auto w-[80%] focus:border-primary-100 focus:ring-0 focus:shadow-none rounded bg-dark-200 text-gray-400"
+                        className="ml-auto w-[70%] focus:border-primary-100 focus:ring-0 focus:shadow-none rounded bg-dark-200 text-gray-400"
                         type="number"
                         value={tokenLimit}
                         onChange={(evt) => setTokenLimit(evt.target.valueAsNumber)} />
@@ -117,7 +129,7 @@ const ExperimentInput = React.memo(({
                     </button>
                 </div>
             </div>
-        </>
+        </Card>
     )
 })
 
@@ -213,16 +225,14 @@ export default function InferenceExploration({
             </OneColumnLayout>
             <TwoColumnLayout type="equal">
                 <Column>
-                    <Widget title="Run Experiment">
-                        <ExperimentInput
-                            model={model}
-                            versions={versions}
-                            runExperiment={(experiment) => {
-                                dispatch(startActiveExperiment({
-                                    ...experiment,
-                                }))
-                            }} />
-                    </Widget>
+                    <ExperimentInput
+                        model={model}
+                        versions={versions}
+                        runExperiment={(experiment) => {
+                            dispatch(startActiveExperiment({
+                                ...experiment,
+                            }))
+                        }} />
                 </Column>
                 <Column>
                     {experiments.length == 0 ? (

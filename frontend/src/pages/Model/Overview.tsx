@@ -50,17 +50,22 @@ export default function Overview() {
 
     const timelineEvents = [
         {
-            id: "1",
+            id: 2,
             name: "Initial Model Created",
-            description: "This was the initial release of your model.",
+            metadata: [
+                {value: "0.1.0", icon: "history" as BlueprintIcons_16Id},
+                {value: "Three Weeks Ago", icon: "calendar" as BlueprintIcons_16Id}
+            ],
             icon: "tag" as BlueprintIcons_16Id,
-            highlight: "v0.1.0"
         }, {
-            id: "2",
+            id: 1,
             name: "Model Created",
-            description: "New version of the model which was deployed.",
+            metadata: [
+                {value: "0.2.0", icon: "history" as BlueprintIcons_16Id},
+                {value: "Two Weeks Ago", icon: "calendar" as BlueprintIcons_16Id}
+            ],
             icon: "tag" as BlueprintIcons_16Id,
-            highlight: "v0.2.0"
+            highlight: "Latest"
         }];
 
     return (

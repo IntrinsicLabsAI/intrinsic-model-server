@@ -16,7 +16,7 @@ export default function Page(
                     </div>
                 </div>
             )}
-            <div className=" w-10/12 h-full pt-5 mx-auto ">
+            <div className=" w-10/12 pt-5 mx-auto ">
                 {children}
             </div>
         </div>

@@ -145,7 +145,7 @@ const ExperimentView = React.memo((
                 </div>
             </div>
             <div className="flex flex-row w-full items-center">
-                <p className="leading-snug">{experiment.prompt}</p>
+                <p className="leading-snug whitespace-pre">{experiment.prompt}</p>
             </div>
 
             {isExpanded && (

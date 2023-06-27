@@ -7,7 +7,7 @@ interface metadata {
     value: string,
 }
 
-interface timelineEvent {
+export interface timelineEvent {
     id: number,
     name: string,
     description?: string,

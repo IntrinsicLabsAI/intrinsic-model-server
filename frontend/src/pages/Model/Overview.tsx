@@ -9,7 +9,7 @@ import Widget from "../../components/core/Widget";
 
 import TwoColumnLayout from "../../components/layout/TwoColumnLayout";
 import Column from "../../components/layout/Column";
-import Timeline from "../../components/core/Timeline";
+import Timeline, { timelineEvent } from "../../components/core/Timeline";
 
 export default function Overview() {
     const { name } = useParams<"name">();
@@ -42,6 +42,34 @@ export default function Overview() {
                 sourceDisplayName: "File Upload",
             }
         }
+    }, [registeredModel]);
+
+    const modelHistory = useMemo(() => {
+        if (registeredModel === undefined) return [];
+
+        let history:timelineEvent[] = [];
+
+        registeredModel.versions.forEach((version, index) => {
+            if (index == 0) {
+                history.push({
+                    id: index,
+                    name: "Initial Model Registration",
+                    icon: "tag" as BlueprintIcons_16Id,
+                    ...(index == registeredModel.versions.length -1) && {highlight: "Latest"},
+                    metadata: [{value: version.version, icon: "history" as BlueprintIcons_16Id}]
+                })
+            } else {
+                history.push({
+                    id: index,
+                    name: "Model Updated",
+                    icon: "tag" as BlueprintIcons_16Id,
+                    metadata: [{value: version.version, icon: "history" as BlueprintIcons_16Id}]
+                })
+            }
+        })
+
+        return history;
+
     }, [registeredModel]);
 
     const { data: description } = useGetDescriptionQuery(modelName);
@@ -113,7 +141,7 @@ export default function Overview() {
                 </Widget>
                 <Widget title="History">
                     <div className="overflow-y-auto [&::-webkit-scrollbar]:hidden">
-                        <Timeline events={timelineEvents}/>
+                        <Timeline events={modelHistory}/>
                     </div>
                 </Widget>
             </Column>

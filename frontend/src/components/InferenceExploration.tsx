@@ -145,7 +145,7 @@ const ExperimentView = React.memo((
                 </div>
             </div>
             <div className="flex flex-row w-full items-center">
-                <p className="leading-snug whitespace-pre">{experiment.prompt}</p>
+                <p className="leading-snug whitespace-pre-wrap">{experiment.prompt}</p>
             </div>
 
             {isExpanded && (
@@ -158,7 +158,7 @@ const ExperimentView = React.memo((
                         <Pill icon="lengthen-text" text={`${experiment.tokenLimit}`} color="purple" />
                     </div>
                     <div className="flex flex-row w-full items-center">
-                        <p className="leading-snug font-mono text-sm whitespace-pre-line">
+                        <p className="leading-snug font-mono text-sm whitespace-pre-wrap">
                             {output}
                         </p>
                     </div>

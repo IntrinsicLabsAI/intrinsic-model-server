@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useGetDescriptionQuery, useGetModelsQuery, useUpdateDescriptionMutation, isHuggingFaceSource } from "../../api/services/v1";
 
-import { BlueprintIcons_16Id } from "@blueprintjs/icons/src/generated-icons/16px/blueprint-icons-16.ts"
+import { BlueprintIcons_16Id } from "@blueprintjs/icons/src/generated/16px/blueprint-icons-16.ts"
 import Pill from "../../components/core/Pill";
 import { useParams } from "react-router-dom";
 import EditableCode from "../../components/EditableCode";

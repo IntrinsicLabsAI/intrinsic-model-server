@@ -53,12 +53,14 @@ export default function Overview() {
             id: "1",
             name: "Initial Model Created",
             description: "This was the initial release of your model.",
-            icon: "tag" as BlueprintIcons_16Id
+            icon: "tag" as BlueprintIcons_16Id,
+            highlight: "v0.1.0"
         }, {
             id: "2",
             name: "Model Created",
             description: "New version of the model which was deployed.",
-            icon: "tag" as BlueprintIcons_16Id
+            icon: "tag" as BlueprintIcons_16Id,
+            highlight: "v0.2.0"
         }];
 
     return (

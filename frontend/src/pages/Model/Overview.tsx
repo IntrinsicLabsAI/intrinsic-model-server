@@ -76,26 +76,6 @@ export default function Overview() {
     const [updateDescriptionAction] = useUpdateDescriptionMutation();
     const markdown = `# ${modelName}`;
 
-    const timelineEvents = [
-        {
-            id: 2,
-            name: "Initial Model Created",
-            metadata: [
-                {value: "0.1.0", icon: "history" as BlueprintIcons_16Id},
-                {value: "Three Weeks Ago", icon: "calendar" as BlueprintIcons_16Id}
-            ],
-            icon: "tag" as BlueprintIcons_16Id,
-        }, {
-            id: 1,
-            name: "Model Created",
-            metadata: [
-                {value: "0.2.0", icon: "history" as BlueprintIcons_16Id},
-                {value: "Two Weeks Ago", icon: "calendar" as BlueprintIcons_16Id}
-            ],
-            icon: "tag" as BlueprintIcons_16Id,
-            highlight: "Latest"
-        }];
-
     return (
         <TwoColumnLayout type="left">
             <Column>

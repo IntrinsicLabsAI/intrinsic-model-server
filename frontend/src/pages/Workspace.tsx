@@ -12,7 +12,7 @@ export default function Workspace() {
     return (
         <div className='bg-dark-300 '>
             <header className=' sticky top-0 z-50'>
-                <div className='flex flex-row h-16 p-4 items-center bg-dark-200 gap-2'>
+                <div className='flex flex-row h-16 p-4 items-center bg-dark-100 gap-2'>
                     <Link to="/">
                         <p className="text-lg font-semibold">Model Server</p>
                     </Link>

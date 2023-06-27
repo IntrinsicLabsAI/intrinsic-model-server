@@ -47,7 +47,7 @@ export default function Overview() {
     const modelHistory = useMemo(() => {
         if (registeredModel === undefined) return [];
 
-        let history:timelineEvent[] = [];
+        const history:timelineEvent[] = [];
 
         registeredModel.versions.forEach((version, index) => {
             if (index == 0) {

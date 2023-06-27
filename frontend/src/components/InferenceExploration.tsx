@@ -236,7 +236,7 @@ export default function InferenceExploration({
                 </Column>
                 <Column>
                     {experiments.length == 0 ? (
-                        <div className="flex flex-col h-full w-3/4 mx-auto items-center justify-center">
+                        <div className="flex flex-col h-5/6 w-3/4 mx-auto items-center justify-center">
                             <div className="rounded outline outline-gray-400 p-8 justify-center">
                                 <h3 className=" text-lg text-center font-semibold">Start an Experiment</h3>
                                 <p className="text-center text-gray-400/60">

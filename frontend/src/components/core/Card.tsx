@@ -7,7 +7,7 @@ export default function Card(
     }
 ) {
     return (
-        <div className=" w-full h-full p-4 rounded bg-dark-500/80 ">
+        <div className=" w-full p-4 rounded bg-dark-500/80 ">
             {children}
         </div>
     )

@@ -37,6 +37,12 @@ const ExperimentInput = React.memo(({
     const [version, setVersion] = useState<string | undefined>();
     const [prompt, setPrompt] = useState<string | undefined>();
 
+    const setVersionFromMemo = (ver: string) => {
+        if (!version) {
+            setVersion(ver);
+        }
+    }
+
     const maxVersion = useMemo(() => {
         if (versions.length === 0) return undefined;
 
@@ -44,9 +50,7 @@ const ExperimentInput = React.memo(({
             .sort(semverCompare)
             .reverse()[0];
 
-        if (!version) {
-            setVersion(maxV);
-        }
+        setVersionFromMemo(maxV);
 
         return maxV;
     }, [versions]);

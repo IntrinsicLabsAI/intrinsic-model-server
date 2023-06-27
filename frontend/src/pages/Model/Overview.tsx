@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { useGetDescriptionQuery, useGetModelsQuery, useUpdateDescriptionMutation, isHuggingFaceSource } from "../../api/services/v1";
 
+import { BlueprintIcons_16Id } from "@blueprintjs/icons/src/generated-icons/16px/blueprint-icons-16.ts"
 import Pill from "../../components/core/Pill";
 import { useParams } from "react-router-dom";
 import EditableCode from "../../components/EditableCode";
@@ -8,6 +9,7 @@ import Widget from "../../components/core/Widget";
 
 import TwoColumnLayout from "../../components/layout/TwoColumnLayout";
 import Column from "../../components/layout/Column";
+import Timeline from "../../components/core/Timeline";
 
 export default function Overview() {
     const { name } = useParams<"name">();
@@ -45,6 +47,19 @@ export default function Overview() {
     const { data: description } = useGetDescriptionQuery(modelName);
     const [updateDescriptionAction] = useUpdateDescriptionMutation();
     const markdown = `# ${modelName}`;
+
+    const timelineEvents = [
+        {
+            id: "1",
+            name: "Initial Model Created",
+            description: "This was the initial release of your model.",
+            icon: "tag" as BlueprintIcons_16Id
+        }, {
+            id: "2",
+            name: "Model Created",
+            description: "New version of the model which was deployed.",
+            icon: "tag" as BlueprintIcons_16Id
+        }];
 
     return (
         <TwoColumnLayout type="left">
@@ -91,7 +106,7 @@ export default function Overview() {
                 </Widget>
                 <Widget title="History">
                     <div className="overflow-y-auto [&::-webkit-scrollbar]:hidden">
-                        <p>Version history for the model</p>
+                        <Timeline events={timelineEvents}/>
                     </div>
                 </Widget>
             </Column>

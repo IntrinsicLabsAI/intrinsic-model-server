@@ -215,9 +215,9 @@ export default function InferenceExploration({
         <>
             <OneColumnLayout>
                 <Callout>
-                    <h3 className=" text-lg font-semibold text-dark-500 leading-none ">Model Experiments</h3>
+                    <h3 className=" text-lg font-semibold text-dark-500 leading-none ">Compleation Experiments</h3>
                     <p className=" text-dark-500 leading-tight mt-2 ">
-                        This allows you to run experiments with models that are deployed to the server.
+                        This space allows you to run experiments with models that are deployed to the server.
                         Use this space to explore what is possible and refine your understanding of the boundaries of your model.
                         Experiments do not persist beyond your current session.
                     </p>

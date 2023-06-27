@@ -37,12 +37,6 @@ const ExperimentInput = React.memo(({
     const [version, setVersion] = useState<string | undefined>();
     const [prompt, setPrompt] = useState<string | undefined>();
 
-    const setVersionFromMemo = (ver: string) => {
-        if (!version) {
-            setVersion(ver);
-        }
-    }
-
     const maxVersion = useMemo(() => {
         if (versions.length === 0) return undefined;
 
@@ -50,10 +44,12 @@ const ExperimentInput = React.memo(({
             .sort(semverCompare)
             .reverse()[0];
 
-        setVersionFromMemo(maxV);
+        if (!version) {
+            setVersion(maxV);
+        }
 
         return maxV;
-    }, [versions]);
+    }, [versions, version]);
 
     const [temperature, setTemperature] = useState(0.2);
     const [tokenLimit, setTokenLimit] = useState(100);

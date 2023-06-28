@@ -25,7 +25,7 @@ class DataManager(ABC):
 
     @abstractmethod
     def get_model_version_internal(
-        self, model: str, version: str
+        self, model_name: str, version: str
     ) -> ModelVersionInternal:
         """
         Retrieve a single model using its name and version.
@@ -48,6 +48,14 @@ class DataManager(ABC):
         Insert or update a description for a given model
         :param model_name: Name of the model, e.g. "vicuna-7b"
         :param description: Description in Markdown format
+        """
+
+    @abstractmethod
+    def set_model_name(
+        self, old_model_name: str, new_model_name: str, description: str
+    ) -> None:
+        """
+        Rename the model from the old name to the new name.
         """
 
     @abstractmethod

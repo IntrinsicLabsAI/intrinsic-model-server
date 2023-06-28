@@ -1,5 +1,4 @@
-from datetime import datetime
-from typing import NamedTuple, TypedDict
+from typing import TypedDict
 
 from sqlalchemy import Column, DateTime, ForeignKey, MetaData, String, Table, and_
 from sqlalchemy.dialects.sqlite import JSON
@@ -26,6 +25,7 @@ model_table = Table(
     "model",
     metadata_obj,
     Column("id", String, primary_key=True),
+    Column("name", String, unique=True),
     Column("model_type", String),
     Column("runtime", String, primary_key=True),
     Column("description", String),
@@ -59,16 +59,20 @@ model_params_table = Table(
 """
 Special table that contains all joined attributes of model_version_table, import_metadata_table and model_params_table.
 """
-model_versions_joined_table = model_version_table.join(
-    model_params_table,
-    and_(
-        model_version_table.c.model_id == model_params_table.c.model_id,
-        model_version_table.c.version == model_params_table.c.model_version,
-    ),
-).join(
-    import_metadata_table,
-    and_(
-        model_version_table.c.model_id == import_metadata_table.c.model_id,
-        model_version_table.c.version == import_metadata_table.c.model_version,
-    ),
+model_versions_joined_table = (
+    model_version_table.join(
+        model_params_table,
+        and_(
+            model_version_table.c.model_id == model_params_table.c.model_id,
+            model_version_table.c.version == model_params_table.c.model_version,
+        ),
+    )
+    .join(
+        import_metadata_table,
+        and_(
+            model_version_table.c.model_id == import_metadata_table.c.model_id,
+            model_version_table.c.version == import_metadata_table.c.model_version,
+        ),
+    )
+    .join(model_table, model_version_table.c.model_id == model_table.c.id)
 )

@@ -13,6 +13,7 @@ import type { ModelVersion } from './ModelVersion';
  * :param versions: A list of `ModelVersion`s associated with this model, indexed in ascending order by semantic version.
  */
 export type RegisteredModel = {
+    id: string;
     name: string;
     model_type: ModelType;
     runtime: string;

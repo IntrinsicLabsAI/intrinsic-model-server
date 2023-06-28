@@ -18,7 +18,7 @@ export default function Experiments() {
     return (
         <OneColumnLayout>
             <Column>
-                <InferenceExploration model={modelName} modelId={registeredModel} />
+                {registeredModel && <InferenceExploration model={registeredModel} />}
             </Column>
         </OneColumnLayout>
     )

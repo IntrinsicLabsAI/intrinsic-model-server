@@ -1,8 +1,8 @@
 import { useMemo, useState } from "react"
 import React from "react";
+import { RegisteredModel } from "../api";
 
 import { isValidSemVer, semverCompare } from "../utils/semver";
-import { useGetModelsQuery } from "../api/services/v1";
 
 import { Icon } from "@blueprintjs/core";
 
@@ -21,7 +21,7 @@ const ExperimentInput = React.memo(({
     versions,
     runExperiment,
 }: {
-    model: string,
+    model: RegisteredModel,
     versions: string[],
     runExperiment: (experiment: Experiment) => void,
 }) => {
@@ -106,7 +106,8 @@ const ExperimentInput = React.memo(({
                     <button className="px-3 py-1.5 bg-primary-100 rounded hover:bg-primary-500 ml-auto disabled:opacity-25 disabled:bg-gray-400" onClick={() => {
                         runExperiment({
                             id: Math.random(), // TODO(aduffy): Do better.
-                            model: model,
+                            model: model.name,
+                            modelId: model.id,
                             version: effectiveVersion!, // eslint-disable-line @typescript-eslint/no-non-null-assertion
                             temperature: temperature,
                             tokenLimit: tokenLimit,
@@ -179,18 +180,13 @@ const ExperimentView = React.memo((
 export default function InferenceExploration({
     model,
 }: {
-    model: string,
+    model: RegisteredModel,
 }) {
-    const { data: allModels } = useGetModelsQuery();
     const dispatch = useDispatch();
 
-    const versions = useMemo(
-        () =>
-            allModels
-                ? allModels.models.filter(m => m.name === model).flatMap(m => m.versions).map(v => v.version)
-                : [], [allModels, model])
+    const versions = useMemo(() => model.versions.map(v => v.version), [model]);
 
-    const experiments = useSelector(({ app }) => app.experiments);
+    const experiments = useSelector(({ app }) => app[model.id]?.experiments ?? [] );
 
     return (
         <>

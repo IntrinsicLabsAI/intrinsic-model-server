@@ -5,7 +5,6 @@ import threading
 import time
 from datetime import datetime
 from typing import final
-from uuid import uuid4
 
 from huggingface_hub import get_hf_file_metadata, hf_hub_download, hf_hub_url
 
@@ -93,10 +92,11 @@ class Tasks:
                 resume_download=True,
             )
             # Validate the model to ensure that we're actually running it.
-            from .ggml import GGMLFile
+            from .ggml import GGMLFile, check_compatible_with_latest_llamacpp
 
             ggml_file = GGMLFile(pathlib.Path(localized))
             parsed_ggml = ggml_file.read_structure()
+            check_compatible_with_latest_llamacpp(parsed_ggml)
             # Assert that the GGML file contains necessary tensor types for LLAMA style inference.
             tok_embds = list(
                 filter(

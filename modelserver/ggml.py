@@ -189,7 +189,7 @@ class GGMLFile:
     def read_magic(self, fp: BufferedReader) -> Tuple[str, Union[int, None]]:
         magic = fp.read(4)
         if len(magic) < 4:
-            return ("unknown", None)
+            return ("unknown", -1)
         format = GGML_FORMATS.get(magic, "unknown")
 
         if format == "ggml":
@@ -277,3 +277,43 @@ class GGMLFile:
 class GGMLParseError(Exception):
     def __init__(self, reason: str) -> None:
         super().__init__(reason)
+
+
+class GGMLCompatibilityError(Exception):
+    def __init__(self, reason: str) -> None:
+        super().__init__(reason)
+
+
+def check_compatible_with_latest_llamacpp(ggml_parsed: GGMLFileFields) -> None:
+    versions = [
+        ("ggml", None),  # v0
+        ("ggmf", 1),  # v1
+        ("ggjt", 1),  # v2
+        ("ggjt", 2),  # v3
+        ("ggjt", 3),  # v4
+    ]
+    version_tuple = (ggml_parsed.fmt, ggml_parsed.version)
+    try:
+        version_idx = versions.index(version_tuple)
+    except ValueError:
+        version_idx = -1
+
+    if version_idx < 3:
+        if ggml_parsed.ftype not in [
+            "LLAMA_FTYPE_ALL_F32",
+            "LLAMA_FTYPE_MOSTLY_F16",
+            "LLAMA_FTYPE_MOSTLY_Q8_0",
+        ]:
+            raise GGMLCompatibilityError(
+                f"quant type {ggml_parsed.ftype} is no longer supported from version {ggml_parsed.fmt}v{ggml_parsed.version}, upgrade your GGML file"
+            )
+
+    if version_idx < 4:
+        if ggml_parsed.ftype not in [
+            "LLAMA_FTYPE_MOSTLY_Q4_0",
+            "LLAMA_FTYPE_MOSTLY_Q4_1",
+            "LLAMA_FTYPE_MOSTLY_Q8_0",
+        ]:
+            raise GGMLCompatibilityError(
+                f"quant type {ggml_parsed.ftype} is no longer supported from version {ggml_parsed.fmt}v{ggml_parsed.version}, upgrade your GGML file"
+            )

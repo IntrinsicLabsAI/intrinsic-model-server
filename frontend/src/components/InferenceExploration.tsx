@@ -189,6 +189,7 @@ export default function InferenceExploration({
             allModels
                 ? allModels.models.filter(m => m.name === model).flatMap(m => m.versions).map(v => v.version)
                 : [], [allModels, model])
+
     const experiments = useSelector(({ app }) => app.experiments);
 
     return (

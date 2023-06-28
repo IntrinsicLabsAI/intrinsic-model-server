@@ -14,16 +14,7 @@ import Callout from "./core/Callout";
 import Pill from "./core/Pill";
 import OneColumnLayout from "./layout/OneColumnLayout";
 import { useDispatch, useSelector } from "../state/hooks";
-import { ExperimentState, startActiveExperiment } from "../state/appSlice";
-
-interface Experiment {
-    id: number;
-    model: string;
-    version: string;
-    temperature: number;
-    tokenLimit: number;
-    prompt: string;
-}
+import { Experiment, startActiveExperiment } from "../state/appSlice";
 
 const ExperimentInput = React.memo(({
     model,
@@ -38,18 +29,15 @@ const ExperimentInput = React.memo(({
     const [prompt, setPrompt] = useState<string | undefined>();
 
     const maxVersion = useMemo(() => {
-        if (versions.length === 0) return undefined;
+        if (versions.length === 0) {
+            return undefined;
+        }
 
-        const maxV = versions
+        return versions
             .sort(semverCompare)
             .reverse()[0];
 
-        if (!version) {
-            setVersion(maxV);
-        }
-
-        return maxV;
-    }, [versions, version]);
+    }, [versions]);
 
     const [temperature, setTemperature] = useState(0.2);
     const [tokenLimit, setTokenLimit] = useState(100);
@@ -119,7 +107,7 @@ const ExperimentInput = React.memo(({
                         runExperiment({
                             id: Math.random(), // TODO(aduffy): Do better.
                             model: model,
-                            version: version!, // eslint-disable-line @typescript-eslint/no-non-null-assertion
+                            version: effectiveVersion!, // eslint-disable-line @typescript-eslint/no-non-null-assertion
                             temperature: temperature,
                             tokenLimit: tokenLimit,
                             prompt: prompt!, // eslint-disable-line @typescript-eslint/no-non-null-assertion
@@ -136,18 +124,26 @@ const ExperimentInput = React.memo(({
 const ExperimentView = React.memo((
     {
         experiment,
+        isFailed,
         isRunning,
         output
     }: {
         experiment: Experiment,
+        isFailed: boolean,
         isRunning: boolean,
         output: string
     }) => {
 
     const [isExpanded, setIsExpanded] = useState(true);
 
+    const outlineColor = {
+        running: "outline-dark-500",
+        finished: "outline-primary-400/80",
+        failed: "outline-red-500"
+    }
+
     return (
-        <div className={`rounded p-3 outline ${isRunning ? "outline-dark-500" : "outline-primary-400/80"} `}>
+        <div className={`rounded p-3 mb-5 outline ${isRunning &&  outlineColor["running"]} ${isFailed &&  outlineColor["failed"]} ${(!isRunning && !isFailed) &&  outlineColor["finished"]} `}>
             <div className="flex flex-row w-full items-center gap-2">
                 <p className=" font-semibold text-lg "> Experiment Prompt </p>
                 <div className=" ml-auto hover:bg-gray-300/40 p-2 rounded mb-auto" onClick={() => setIsExpanded(!isExpanded)}>
@@ -177,22 +173,6 @@ const ExperimentView = React.memo((
                 </>
             )}
         </div>
-    )
-})
-
-const Experiment = React.memo((
-    {
-        experiment,
-        active,
-        output,
-    }: ExperimentState
-) => {
-    return (
-        <ExperimentView
-            key={experiment.id}
-            output={output}
-            experiment={experiment}
-            isRunning={active} />
     )
 })
 
@@ -248,9 +228,12 @@ export default function InferenceExploration({
                     ) : (
                         <>
                             {experiments.map(experiment => (
-                                <div className="mb-5">
-                                    <Experiment key={experiment.experiment.id} {...experiment} />
-                                </div>
+                                <ExperimentView
+                                    key={experiment.experiment.id}
+                                    output={experiment.output}
+                                    experiment={experiment.experiment}
+                                    isRunning={experiment.active}
+                                    isFailed={experiment.failed || false} />
                             ))}
                         </>
                     )}

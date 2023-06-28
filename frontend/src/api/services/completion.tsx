@@ -4,7 +4,7 @@ import { CompletionInferenceRequest } from "../models/CompletionInferenceRequest
 export class CompletionClient {
     private ws?: WebSocket;
 
-    constructor(private baseUrl: string) {}
+    constructor(private baseUrl: string) { }
 
     connect(): Promise<void> {
         return new Promise((resolve, reject) => {
@@ -28,15 +28,19 @@ export class CompletionClient {
         }
     }
 
-    completeAsync(msg: CompletionInferenceRequest, onToken: (token: string) => void, onCompleted: () => void) {
+    completeAsync(msg: CompletionInferenceRequest, onToken: (token: string) => void, onCompleted: () => void, onError: (error: string) => void) {
         if (!this.ws) {
             throw Error("WebSocket used before initialized");
         }
-        this.ws.onmessage = ({data}) => {
+        this.ws.onmessage = ({ data }) => {
             onToken(data);
         }
         this.ws.onclose = () => {
             onCompleted();
+        }
+        this.ws.onerror = (evt) => {
+            console.log(evt);
+            this.ws?.close();
         }
         this.ws.send(JSON.stringify(msg));
     }

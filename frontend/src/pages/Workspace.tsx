@@ -1,6 +1,6 @@
 import { Outlet, Link } from 'react-router-dom';
 import { useNavigate } from "react-router-dom";
-import Menu from '../components/core/Menu';
+import DropdownMenu from '../components/core/DropdownMenu';
 
 export default function Workspace() {
     const navigate = useNavigate();
@@ -17,8 +17,9 @@ export default function Workspace() {
                         <p className="text-lg font-semibold">Model Server</p>
                     </Link>
                     <div className='ml-auto'>
-                        <Menu 
-                            buttonText="Actions"
+                        <DropdownMenu 
+                            type='icon'
+                            buttonIcon='cube-add'
                             onSelectionChange={actionsButton}
                             items={[
                                 { id: "new-model", value: "Add New Model" },

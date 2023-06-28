@@ -105,8 +105,8 @@ export default function Home() {
                 }
                 {onlineState === "online" && (
                   <div className='flex flex-row items-center gap-2'>
-                    <div className="w-4 h-4 bg-primary-600 rounded-full"></div>
-                    <p className=' text-lg font-bold text-primary-400'>Online</p>
+                    <div className="w-1 h-1 bg-primary-600 rounded-full"></div>
+                    <p className=' text-sm font-bold text-primary-400'>Online</p>
                   </div>
                 )}
                 {onlineState === "offline" && (

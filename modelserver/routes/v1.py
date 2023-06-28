@@ -111,6 +111,14 @@ async def get_model_description(
     return db.get_model_description(model_name)
 
 
+@router.post("/{model_name}/name")
+async def rename_model(
+    model_name: str,
+    component: Annotated[AppComponent, Depends(AppComponent)],
+) -> None:
+    component.db.upsert_model_description
+
+
 @router.post("/import")
 async def import_model(
     locator: Annotated[Locator, Body()],

@@ -5,6 +5,7 @@ import threading
 import time
 from datetime import datetime
 from typing import final
+from uuid import uuid4
 
 from huggingface_hub import get_hf_file_metadata, hf_hub_download, hf_hub_url
 
@@ -44,9 +45,10 @@ class Tasks:
         """
         "Download" disk model, i.e. import it into our DB.
         """
-        guid = self.db.register_model(
+        model_name = os.path.basename(task.locator.path)
+        self.db.register_model(
             RegisterModelRequest(
-                model=os.path.basename(task.locator.path),
+                model=model_name,
                 version=SemVer.from_str("0.1.0"),
                 model_type=ModelType.completion,
                 runtime=ModelRuntime.ggml,
@@ -63,7 +65,7 @@ class Tasks:
             task_id,
             TaskState(
                 **FinishedTaskState(
-                    info=str(guid),
+                    info=model_name,
                 ).dict()
             ),
         )

@@ -1,11 +1,10 @@
 import json
-import pdb
 from typing import final
 from uuid import UUID, uuid4
 
 from fastapi import HTTPException, status
-from sqlalchemy import Engine, and_, delete, select, update
-from sqlalchemy.dialects.sqlite import Insert, insert
+from sqlalchemy import Engine, and_, delete, or_, select, update
+from sqlalchemy.dialects.sqlite import Insert
 from sqlalchemy.exc import IntegrityError, NoResultFound
 
 from modelserver.types.api import (
@@ -45,7 +44,7 @@ class PersistentDataManager(DataManager):
             # Find the list of models, inner-joined across all products here
             model_rows = conn.execute(model_table.select()).fetchall()
             for model_row in model_rows:
-                model_id, model_type, runtime, description = model_row
+                model_id, model_name, model_type, runtime, description = model_row
                 model_version_rows = conn.execute(
                     select(
                         model_version_table.c.version,
@@ -72,9 +71,11 @@ class PersistentDataManager(DataManager):
                             ),
                         )
                     )
+
                 registered_models.append(
                     RegisteredModel(
-                        name=model_id,
+                        id=model_id,
+                        name=model_name,
                         model_type=ModelType.from_str(model_type),
                         runtime=ModelRuntime.from_str(runtime),
                         versions=versions,
@@ -84,9 +85,20 @@ class PersistentDataManager(DataManager):
 
     def register_model(self, register_params: RegisterModelRequest) -> None:
         with self.engine.connect() as conn:
+            existing_model = conn.execute(
+                select(model_table.c.id)
+                .select_from(model_table)
+                .where(model_table.c.name == register_params.model)
+            ).fetchone()
+            if existing_model is None:
+                model_uuid = str(uuid4())
+            else:
+                model_uuid = existing_model[0]
+
             # Insert a Model row if one does not already exist.
             model_row = {
-                "id": register_params.model,
+                "id": model_uuid,
+                "name": register_params.model,
                 "model_type": register_params.model_type,
                 "runtime": register_params.runtime,
                 "description": "",
@@ -98,17 +110,17 @@ class PersistentDataManager(DataManager):
             # Insert a version object. We don't apply a conflict handler because we want
             # it to fail if there is already a row with this version.
             model_version_row = {
-                "model_id": register_params.model,
+                "model_id": model_uuid,
                 "version": str(register_params.version),
             }
             import_metadata_row = {
-                "model_id": register_params.model,
+                "model_id": model_uuid,
                 "model_version": str(register_params.version),
                 "source": register_params.import_metadata.source.json(),
                 "imported_at": register_params.import_metadata.imported_at,
             }
             model_params_row = {
-                "model_id": register_params.model,
+                "model_id": model_uuid,
                 "model_version": str(register_params.version),
                 "params": register_params.internal_params.json(),
             }
@@ -134,7 +146,7 @@ class PersistentDataManager(DataManager):
     def get_model_version_internal(
         self, model: str, version: str
     ) -> ModelVersionInternal:
-        model_cond = model_version_table.c.model_id == model
+        model_cond = or_(model_table.c.id == model, model_table.c.name == model)
         version_cond = (
             model_version_table.c.version == version if version is not None else True
         )
@@ -215,3 +227,13 @@ class PersistentDataManager(DataManager):
             if description_row is None:
                 return None
             return str(description_row[0])
+
+    def set_model_name(
+        self, old_model_name: str, new_model_name: str, description: str
+    ) -> None:
+        with self.engine.connect() as conn:
+            conn.execute(
+                update(model_table)
+                .values(name=new_model_name)
+                .where(model_table.c.name == old_model_name)
+            )

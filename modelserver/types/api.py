@@ -4,7 +4,7 @@ from enum import Enum
 from typing import Annotated, Any, List, Literal, Type, TypeAlias
 
 from fastapi import HTTPException, status
-from pydantic import BaseModel, Field, validator
+from pydantic import UUID4, BaseModel, Field, validator
 
 from .locator import DiskLocator, HFLocator
 
@@ -195,6 +195,7 @@ class RegisteredModel(BaseModel):
     :param versions: A list of `ModelVersion`s associated with this model, indexed in ascending order by semantic version.
     """
 
+    id: UUID4
     name: str
     model_type: ModelType
     runtime: str

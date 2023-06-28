@@ -28,7 +28,7 @@ export class CompletionClient {
         }
     }
 
-    completeAsync(msg: CompletionInferenceRequest, onToken: (token: string) => void, onCompleted: () => void, onError: (error: string) => void) {
+    completeAsync(msg: CompletionInferenceRequest, onToken: (token: string) => void, onCompleted: () => void) {
         if (!this.ws) {
             throw Error("WebSocket used before initialized");
         }
@@ -37,10 +37,6 @@ export class CompletionClient {
         }
         this.ws.onclose = () => {
             onCompleted();
-        }
-        this.ws.onerror = (evt) => {
-            console.log(evt);
-            this.ws?.close();
         }
         this.ws.send(JSON.stringify(msg));
     }

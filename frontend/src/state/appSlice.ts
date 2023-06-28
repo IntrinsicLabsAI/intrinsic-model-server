@@ -96,10 +96,6 @@ wsMiddleware.startListening({
                             listenerApi.dispatch(completeExperiment(id));
                             resolve(undefined);
                         },
-                        () => {
-                            listenerApi.dispatch(failExperiment(id));
-                            resolve(undefined);
-                        },
                     )
                 });
             } catch (e) {

@@ -18,7 +18,7 @@ export default function Experiments() {
     return (
         <OneColumnLayout>
             <Column>
-                <InferenceExploration model={modelName} />
+                <InferenceExploration model={modelName} modelId={registeredModel} />
             </Column>
         </OneColumnLayout>
     )

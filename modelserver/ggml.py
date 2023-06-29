@@ -308,7 +308,7 @@ def check_compatible_with_latest_llamacpp(ggml_parsed: GGMLFileFields) -> None:
             )
 
     if version_idx < 4:
-        if ggml_parsed.ftype not in [
+        if ggml_parsed.ftype in [
             "LLAMA_FTYPE_MOSTLY_Q4_0",
             "LLAMA_FTYPE_MOSTLY_Q4_1",
             "LLAMA_FTYPE_MOSTLY_Q8_0",

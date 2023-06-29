@@ -17,7 +17,7 @@ export default function Button(
     return (
         <>
             {type === 'icon' && (
-                <div className=' cursor-pointer flex flex-row gap-2 p-2 hover:bg-slate-400/20 rounded items-center'>
+                <div onClick={onAction} className=' cursor-pointer flex flex-row gap-2 p-2 hover:bg-slate-400/20 rounded items-center'>
                     {buttonIcon &&<Icon icon={buttonIcon} size={20} color={"#53b79a"} />}
                     {buttonText && <p className='text-primary-600 leading-none font-medium'>{buttonText}</p>}
                 </div>

@@ -21,6 +21,7 @@ export default function Workspace() {
                         <Button
                             type='icon'
                             buttonIcon="manual"
+                            onAction={() => window.open("http://127.0.0.1:8000/docs", "_blank")}
                         />
                     </div>
                     <DropdownMenu

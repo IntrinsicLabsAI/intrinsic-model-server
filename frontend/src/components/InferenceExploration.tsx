@@ -152,10 +152,12 @@ const ExperimentView = React.memo((
     const manageSavedExperiments = () => {
         if(isRunning) {
             console.log("ERROR: You cannot save a running experiment.")
+            return
         }
 
         if(isFailed) {
             console.log("ERROR: You cannot save a failed experiment.")
+            return
         }
 
         if(!isSaved) {

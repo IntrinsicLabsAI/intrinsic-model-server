@@ -1,5 +1,3 @@
-import { useEffect, useState } from 'react';
-
 import { useGetModelsQuery } from '../api/services/v1';
 
 import Callout from '../components/core/Callout';
@@ -9,27 +7,13 @@ import OneColumnLayout from '../components/layout/OneColumnLayout';
 import TwoColumnLayout from '../components/layout/TwoColumnLayout';
 import Widget from '../components/core/Widget';
 import Column from '../components/layout/Column';
-import { Status, StatusChecker } from "../api/services/statusService";
-
+import { featureUpdates } from '../data/featureUpdates';
+import Card from '../components/core/Card';
+import { Icon } from '@blueprintjs/core';
 
 export default function Home() {
   // All models
-  const { data, error, isLoading } = useGetModelsQuery()
-
-  // Setup status checker in background.
-  const [onlineState, setOnlineState] = useState<Status>("loading");
-  useEffect(() => {
-    // Create and mount a status checker on the beginning of page load.
-    const checker = new StatusChecker(setOnlineState);
-    checker.start();
-    return () => {
-      checker.stop();
-    };
-  }, []);
-
-  if (error) {
-    console.log(error);
-  }
+  const { data, isLoading } = useGetModelsQuery()
 
   return (
     <>
@@ -92,29 +76,22 @@ export default function Home() {
           </Column>
 
           <Column>
-            <Widget title="Server Status">
-              <div className='flex flex-col items-center'>
-                <p className=' text-white font-semibold '>Current Status</p>
-                {
-                  onlineState === "loading" && (
-                    <div className='flex flex-row items-center gap-2'>
-                      <div className="w-4 h-4 bg-amber-600 rounded-full"></div>
-                      <p className=' text-lg font-bold text-amber-400'>Connecting</p>
-                    </div>
-                  )
-                }
-                {onlineState === "online" && (
-                  <div className='flex flex-row items-center gap-2'>
-                    <div className="w-4 h-4 bg-primary-600 rounded-full"></div>
-                    <p className=' text-lg font-bold text-primary-400'>Online</p>
+            <Widget title="Feature Updates">
+              <div>
+                {featureUpdates.sort((a, b) => a.id-b.id).map((update) => (
+                  <div className=" pb-2 " key={update.id}>
+                    <Card>
+                      <div className="flex flex-col w-full gap-1">
+                        <h3 className=' text-xl font-medium '>{update.title}</h3>
+                        <div className='flex flex-row gap-1.5 items-center'>
+                          <Icon icon="time" size={14} color="#82BEC7" />
+                          <p className=' text-sm font-medium leading-none text-blue-500'>{update.date.toDateString()}</p>
+                        </div>
+                        <p className=' pt-2 whitespace-pre-wrap '>{update.description}</p>
+                      </div>
+                    </Card>
                   </div>
-                )}
-                {onlineState === "offline" && (
-                  <div className='flex flex-row items-center gap-2'>
-                    <div className="w-4 h-4 bg-red-500 rounded-full"></div>
-                    <p className=' text-lg font-bold text-red-600'>Offline</p>
-                  </div>
-                )}
+                  ))}
               </div>
             </Widget>
           </Column>

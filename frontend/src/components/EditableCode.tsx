@@ -28,9 +28,9 @@ const EditableCode = React.memo(({
 
     const markdownWidgetButton = (
         <div
-            onClick={() => setEditing(!editing)} 
+            onClick={() => setEditing(!editing)}
             className="p-1.5 rounded cursor-pointer hover:bg-slate-200/40">
-            {editing ? 
+            {editing ?
                 (<Icon icon="tick" size={14} color="#F6F7F9" />) :
                 (<Icon icon="edit" size={14} color="#F6F7F9" />)}
         </div>
@@ -40,24 +40,26 @@ const EditableCode = React.memo(({
         <Widget title="Details" header={markdownWidgetButton}>
             <div className={`overflow-y-auto [&::-webkit-scrollbar]:hidden h-full ${className || ""}`}>
                 <>
-                    { editing ? (<CodeEditor 
-                                    style={{
-                                        fontSize: 14,
-                                        backgroundColor: "",
-                                        minHeight: "300px",}} 
-                                    value={code} 
-                                    placeholder={initialCode} 
-                                    onChange={(evt) => {setCode(evt.target.value);}} 
-                                    language={langage} />) :
-                                (<ReactMarkdown
-                                    components={{
-                                        h1: ({ node, ...props }) => (<p className="text-2xl font-semibold leading-tight" {...props} />),
-                                        h2: ({ node, ...props }) => (<p className="text-xl font-semibold leading-tight" {...props} />),
-                                        h3: ({ node, ...props }) => (<p className="text-lg font-semibold leading-tight" {...props} />),
-                                        p: ({ node, ...props }) =>  (<p className="text-md whitespace-pre-line" {...props} />),}}
-                                    children={code || "Nothing"}
-                                    disallowedElements={["img", "script"]}
-                                    className="prose"/>)}
+                    {editing ? (<CodeEditor
+                        style={{
+                            fontSize: 14,
+                            backgroundColor: "",
+                            minHeight: "300px",
+                        }}
+                        value={code}
+                        placeholder={initialCode}
+                        onChange={(evt) => { setCode(evt.target.value); }}
+                        language={langage} />) :
+                        (<ReactMarkdown
+                            components={{
+                                h1: ({ node, ...props }) => (<p className="text-2xl font-semibold leading-tight" {...props} />),
+                                h2: ({ node, ...props }) => (<p className="text-xl font-semibold leading-tight" {...props} />),
+                                h3: ({ node, ...props }) => (<p className="text-lg font-semibold leading-tight" {...props} />),
+                                p: ({ node, ...props }) => (<p className="text-md whitespace-pre-line" {...props} />),
+                            }}
+                            children={code || "Nothing"}
+                            disallowedElements={["img", "script"]}
+                            className=" prose max-w-none" />)}
                 </>
             </div>
         </Widget>

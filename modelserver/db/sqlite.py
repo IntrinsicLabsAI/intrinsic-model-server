@@ -212,7 +212,7 @@ class PersistentDataManager(DataManager):
         with self.engine.connect() as conn:
             conn.execute(
                 update(model_table)
-                .where(model_table.c.id == model_name)
+                .where(model_table.c.name == model_name)
                 .values(description=description)
             )
             conn.commit()
@@ -222,18 +222,17 @@ class PersistentDataManager(DataManager):
             description_row = conn.execute(
                 select(model_table.c.description)
                 .select_from(model_table)
-                .where(model_table.c.id == model_name)
+                .where(model_table.c.name == model_name)
             ).one_or_none()
             if description_row is None:
                 return None
             return str(description_row[0])
 
-    def set_model_name(
-        self, old_model_name: str, new_model_name: str, description: str
-    ) -> None:
+    def set_model_name(self, old_model_name: str, new_model_name: str) -> None:
         with self.engine.connect() as conn:
             conn.execute(
                 update(model_table)
                 .values(name=new_model_name)
                 .where(model_table.c.name == old_model_name)
             )
+            conn.commit()

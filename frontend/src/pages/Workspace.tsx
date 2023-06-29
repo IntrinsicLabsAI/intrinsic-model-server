@@ -30,7 +30,7 @@ export default function Workspace() {
             <header className=' sticky top-0 z-50'>
                 <div className='flex flex-row h-16 p-4 items-center bg-dark-100 gap-2'>
                     <Link to="/">
-                        <p className="text-lg font-semibold">Model Server</p>
+                        <p className="text-lg font-semibold">Intrinsic Server</p>
                     </Link>
                     <div className='ml-auto'>
                         <Button

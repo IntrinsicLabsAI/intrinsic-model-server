@@ -32,7 +32,7 @@ export const appSlice = createSlice({
     initialState,
     reducers: {
         startActiveExperiment: (state, action: PayloadAction<Experiment>) => {
-            if(!state.hasOwnProperty(action.payload.modelId)) {
+            if(!Object.prototype.hasOwnProperty.call(state, action.payload.modelId)) {
                 state[action.payload.modelId] = { experiments: [] }
             }
 
@@ -44,7 +44,7 @@ export const appSlice = createSlice({
         },
         addOutputToken: (state, action: PayloadAction<{ modelId: string, id: ExperimentId, token: string }>) => {
             // Prevent taking new output tokens if modelId is not known to system
-            if (!state.hasOwnProperty(action.payload.modelId)) {
+            if(!Object.prototype.hasOwnProperty.call(state, action.payload.modelId)) {
                 return;
             }
             const { id, token } = action.payload;
@@ -57,7 +57,7 @@ export const appSlice = createSlice({
         },
         completeExperiment: (state, action: PayloadAction<{modelId: string, id: ExperimentId}>) => {
             // Prevents running action if modelId is not known to system
-            if (!state.hasOwnProperty(action.payload.modelId)) {
+            if(!Object.prototype.hasOwnProperty.call(state, action.payload.modelId)) {
                 return;
             }
             const experiment = state[action.payload.modelId].experiments.find(ex => ex.experiment.id === action.payload.id);
@@ -70,7 +70,7 @@ export const appSlice = createSlice({
         },
         failExperiment: (state, action: PayloadAction<{modelId: string, id: ExperimentId}>) => {
             // Prevents running action if modelId is not known to system
-            if (!state.hasOwnProperty(action.payload.modelId)) {
+            if(!Object.prototype.hasOwnProperty.call(state, action.payload.modelId)) {
                 return;
             }
 

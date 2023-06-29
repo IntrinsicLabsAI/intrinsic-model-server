@@ -1,5 +1,3 @@
-import { useEffect, useState } from 'react';
-
 import { useGetModelsQuery } from '../api/services/v1';
 
 import Callout from '../components/core/Callout';

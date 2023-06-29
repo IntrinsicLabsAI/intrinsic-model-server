@@ -9,24 +9,11 @@ import OneColumnLayout from '../components/layout/OneColumnLayout';
 import TwoColumnLayout from '../components/layout/TwoColumnLayout';
 import Widget from '../components/core/Widget';
 import Column from '../components/layout/Column';
-import { Status, StatusChecker } from "../api/services/statusService";
 
 
 export default function Home() {
   // All models
   const { data, isLoading } = useGetModelsQuery()
-
-  // Setup status checker in background.
-  const [onlineState, setOnlineState] = useState<Status>("loading");
-  
-  useEffect(() => {
-    // Create and mount a status checker on the beginning of page load.
-    const checker = new StatusChecker(setOnlineState);
-    checker.start();
-    return () => {
-      checker.stop();
-    };
-  }, []);
 
   return (
     <>
@@ -90,29 +77,7 @@ export default function Home() {
 
           <Column>
             <Widget title="Server Status">
-              <div className='flex flex-col items-center'>
-                <p className=' text-white font-semibold '>Current Status</p>
-                {
-                  onlineState === "loading" && (
-                    <div className='flex flex-row items-center gap-2'>
-                      <div className="w-4 h-4 bg-amber-600 rounded-full"></div>
-                      <p className=' text-lg font-bold text-amber-400'>Connecting</p>
-                    </div>
-                  )
-                }
-                {onlineState === "online" && (
-                  <div className='flex flex-row items-center gap-2'>
-                    <div className="w-4 h-4 bg-primary-600 rounded-full"></div>
-                    <p className=' text-lg font-bold text-primary-400'>Online</p>
-                  </div>
-                )}
-                {onlineState === "offline" && (
-                  <div className='flex flex-row items-center gap-2'>
-                    <div className="w-4 h-4 bg-red-500 rounded-full"></div>
-                    <p className=' text-lg font-bold text-red-600'>Offline</p>
-                  </div>
-                )}
-              </div>
+              <></>
             </Widget>
           </Column>
         </TwoColumnLayout >

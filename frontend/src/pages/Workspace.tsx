@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import DropdownMenu from '../components/core/DropdownMenu';
 import Button from '../components/core/Button';
 import { Status, StatusChecker } from "../api/services/statusService";
+import { baseURL } from '../utils/prod';
 
 export default function Workspace() {
 
@@ -36,7 +37,7 @@ export default function Workspace() {
                         <Button
                             type='icon'
                             buttonIcon="manual"
-                            onAction={() => window.open("http://127.0.0.1:8000/docs", "_blank")}
+                            onAction={() => window.open(`${baseURL()}/docs`, "_blank")}
                         />
                     </div>
                     <DropdownMenu

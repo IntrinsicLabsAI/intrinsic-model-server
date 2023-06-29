@@ -16,6 +16,8 @@ import OneColumnLayout from "./layout/OneColumnLayout";
 import { useDispatch, useSelector } from "../state/hooks";
 import { Experiment, startActiveExperiment } from "../state/appSlice";
 
+import { useAddExperimentMutation, useDeleteExperimentMutation } from "../api/services/v1";
+
 const ExperimentInput = React.memo(({
     model,
     versions,
@@ -127,15 +129,53 @@ const ExperimentView = React.memo((
         experiment,
         isFailed,
         isRunning,
-        output
+        output,
+        modelId,
+        type
     }: {
         experiment: Experiment,
         isFailed: boolean,
         isRunning: boolean,
-        output: string
+        output: string,
+        modelId: string,
+        type: string,
     }) => {
-
+    
+    const propIsSaved = (type === "saved") ? true : false
     const [isExpanded, setIsExpanded] = useState(true);
+    const [isSaved, setIsSaved] = useState(propIsSaved);
+
+    const [ addExperimentAction ] = useAddExperimentMutation();
+    const [ deleteExperimentAction ] = useDeleteExperimentMutation();
+
+    const manageSavedExperiments = () => {
+        if(isRunning) {
+            console.log("ERROR: You cannot save a running experiment.")
+        }
+
+        if(isFailed) {
+            console.log("ERROR: You cannot save a failed experiment.")
+        }
+
+        if(!isSaved) {
+            // save experiment
+            addExperimentAction({
+                model_id: modelId,
+                model_version: experiment.version,
+                temperature: experiment.temperature,
+                tokens: experiment.tokenLimit,
+                prompt: experiment.prompt,
+                output: output,
+            });
+
+            setIsSaved(true);
+        } else {
+            // delete saved experiment
+            deleteExperimentAction(`${experiment.id}`)
+
+            setIsSaved(false);
+        }
+    }
 
     const outlineColor = {
         running: "outline-dark-500",
@@ -145,13 +185,21 @@ const ExperimentView = React.memo((
 
     return (
         <div className={`rounded p-3 mb-5 outline ${isRunning &&  outlineColor["running"]} ${isFailed &&  outlineColor["failed"]} ${(!isRunning && !isFailed) &&  outlineColor["finished"]} `}>
-            <div className="flex flex-row w-full items-center gap-2">
+            <div className="flex flex-row w-full items-center">
                 <p className=" font-semibold text-lg "> Experiment Prompt </p>
-                <div className=" ml-auto hover:bg-gray-300/40 p-2 rounded mb-auto" onClick={() => setIsExpanded(!isExpanded)}>
+
+                <div className=" ml-auto hover:bg-gray-300/40 p-2 rounded mb-auto" onClick={manageSavedExperiments}>
+                    {isSaved ?  (<Icon icon="star" size={14} color="#6cc0a6" />) :
+                                (<Icon icon="star-empty" size={14} color="#F6F7F9" />)
+                    }
+                </div>
+
+                <div className=" hover:bg-gray-300/40 p-2 rounded mb-auto" onClick={() => setIsExpanded(!isExpanded)}>
                     {isExpanded ? (<Icon icon="collapse-all" size={14} color="#F6F7F9" />) :
                         (<Icon icon="expand-all" size={14} color="#F6F7F9" />)
                     }
                 </div>
+
             </div>
             <div className="flex flex-row w-full items-center">
                 <p className="leading-snug whitespace-pre-wrap">{experiment.prompt}</p>
@@ -186,7 +234,9 @@ export default function InferenceExploration({
 
     const versions = useMemo(() => model.versions.map(v => v.version), [model]);
 
-    const experiments = useSelector(({ app }) => app[model.id]?.experiments ?? [] );
+    const new_experiments = useSelector(({ app }) => app[model.id]?.experiments ?? [] );
+    const saved_experiments = useSelector(({ app }) => app[model.id]?.saved_experiments ?? [] );
+    const experiments = [...new_experiments, ...saved_experiments];
 
     return (
         <>
@@ -226,6 +276,8 @@ export default function InferenceExploration({
                         <>
                             {experiments.map(experiment => (
                                 <ExperimentView
+                                    type={experiment.type || ""}
+                                    modelId={model.id}
                                     key={experiment.experiment.id}
                                     output={experiment.output}
                                     experiment={experiment.experiment}

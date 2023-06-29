@@ -1,5 +1,6 @@
 import { createListenerMiddleware, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { createDefaultClient } from "../api/services/completion";
+import { SavedExperimentOut } from "../api";
 
 
 export type ExperimentId = number;
@@ -16,6 +17,7 @@ export interface Experiment {
 
 export interface ExperimentState {
     experiment: Experiment;
+    type?: string;
     output: string;
     active: boolean;
     failed?: boolean;
@@ -23,6 +25,7 @@ export interface ExperimentState {
 
 export interface ModelState {
     experiments: ExperimentState[],
+    saved_experiments: ExperimentState[]
 }
 
 const initialState: Record<string, ModelState> = { };
@@ -33,7 +36,7 @@ export const appSlice = createSlice({
     reducers: {
         startActiveExperiment: (state, action: PayloadAction<Experiment>) => {
             if(!Object.prototype.hasOwnProperty.call(state, action.payload.modelId)) {
-                state[action.payload.modelId] = { experiments: [] }
+                state[action.payload.modelId] = { experiments: [], saved_experiments: [] }
             }
 
             state[action.payload.modelId].experiments.unshift({
@@ -82,11 +85,36 @@ export const appSlice = createSlice({
             // End experiment and mark as failed
             experiment.active = false;
             experiment.failed = true;
-        },       
-    },
+        },
+        addSavedExperiments: (state, action: PayloadAction<{modelName: string, modelID: string, experiments: SavedExperimentOut[]}>) => {
+            if(!Object.prototype.hasOwnProperty.call(state, action.payload.modelID)) {
+                state[action.payload.modelID] = { experiments: [], saved_experiments: [] }
+            }
+
+            action.payload.experiments.forEach((exResponse) => {
+                state[action.payload.modelID].saved_experiments.push({
+                    experiment: {
+                        id: Number(exResponse.experiment_id),
+                        model: action.payload.modelName,
+                        modelId: exResponse.model_id,
+                        version: exResponse.model_version,
+                        temperature: exResponse.temperature,
+                        tokenLimit: exResponse.tokens,
+                        prompt: exResponse.prompt
+                    },
+                    type: "saved",
+                    active: false,
+                    failed: false,
+                    output: exResponse.output,
+                })
+            })
+
+            console.log(state[action.payload.modelID].saved_experiments)
+        },
+    }
 });
 
-export const { startActiveExperiment, addOutputToken, completeExperiment, failExperiment } = appSlice.actions;
+export const { startActiveExperiment, addOutputToken, completeExperiment, failExperiment, addSavedExperiments } = appSlice.actions;
 
 // TODO(aduffy): move to own file?
 export const wsMiddleware = createListenerMiddleware();

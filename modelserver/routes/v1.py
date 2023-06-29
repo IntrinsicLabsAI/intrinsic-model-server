@@ -23,6 +23,7 @@ from ..types.api import (
     CompletionInference,
     CompletionInferenceRequest,
     GetRegisteredModelsResponse,
+    GetSavedExperimentsResponse,
     ModelVersionInternal,
     RegisteredModel,
     RegisterModelRequest,
@@ -206,8 +207,10 @@ async def save_experiment(
 async def get_experiments_for_model(
     model_name: str,
     component: Annotated[AppComponent, Depends(AppComponent)],
-) -> list[SavedExperimentOut]:
-    return component.db.get_experiments(model_name)
+) -> GetSavedExperimentsResponse:
+    return GetSavedExperimentsResponse(
+        experiments=component.db.get_experiments(model_name)
+    )
 
 
 @router.delete(

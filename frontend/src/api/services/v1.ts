@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { DiskImportSource, GetRegisteredModelsResponse, HFImportSource, Locator, TaskState } from '..';
+import { GetSavedExperimentsResponse, SavedExperimentIn, DiskImportSource, GetRegisteredModelsResponse, HFImportSource, Locator, TaskState } from '..';
 import { isDevServer } from './util';
 
 export const v1API = createApi({
@@ -7,6 +7,7 @@ export const v1API = createApi({
   tagTypes: [
     "models",
     "description",
+    "experiments"
   ],
   baseQuery: fetchBaseQuery({ baseUrl: isDevServer() ? "http://0.0.0.0:8000/v1" : "/v1" }),
   endpoints: (builder) => ({
@@ -62,7 +63,28 @@ export const v1API = createApi({
         url: `import/${importJobId}`,
         method: "GET",
       }),
-    })
+    }),
+    getExperiments: builder.query<GetSavedExperimentsResponse, string>({
+      query: (modelName) => ({
+        url: `experiments-by-model/${modelName}`,
+        providesTags: ["experiments"],
+      }),
+    }),
+    addExperiment: builder.mutation<string, SavedExperimentIn>({
+      invalidatesTags: ["experiments"],
+      query: (experiment) => ({
+        url: "experiments",
+        body: experiment,
+        method: "POST",
+      })
+    }),
+    deleteExperiment: builder.mutation<string, string>({
+      invalidatesTags: ["experiments"],
+      query: (experiment_id) => ({
+        url: `experiments/${experiment_id}`,
+        method: "DELETE",
+      })
+    }),
   }),
 });
 
@@ -71,6 +93,9 @@ export const {
   useGetDescriptionQuery,
   useGetImportStatusQuery,
   useDeleteModelMutation,
+  useGetExperimentsQuery,
+  useAddExperimentMutation,
+  useDeleteExperimentMutation,
   useUpdateDescriptionMutation,
   useUpdateModelNameMutation,
   useImportModelMutation,

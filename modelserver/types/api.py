@@ -292,3 +292,7 @@ class SavedExperimentOut(BaseModel):
     prompt: str
     output: str
     created_at: datetime
+
+
+class GetSavedExperimentsResponse(BaseModel):
+    experiments: list[SavedExperimentOut]

@@ -14,10 +14,11 @@ import { Status, StatusChecker } from "../api/services/statusService";
 
 export default function Home() {
   // All models
-  const { data, error, isLoading } = useGetModelsQuery()
+  const { data, isLoading } = useGetModelsQuery()
 
   // Setup status checker in background.
   const [onlineState, setOnlineState] = useState<Status>("loading");
+  
   useEffect(() => {
     // Create and mount a status checker on the beginning of page load.
     const checker = new StatusChecker(setOnlineState);
@@ -26,10 +27,6 @@ export default function Home() {
       checker.stop();
     };
   }, []);
-
-  if (error) {
-    console.log(error);
-  }
 
   return (
     <>

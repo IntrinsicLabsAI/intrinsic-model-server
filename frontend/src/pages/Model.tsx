@@ -39,7 +39,8 @@ function ModelHeader() {
     const options = [
         {
             id: "editModelName",
-            value: "Rename this model"
+            value: "Rename Model",
+            icon: "edit" as BlueprintIcons_16Id
         }
     ]
 

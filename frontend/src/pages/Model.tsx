@@ -10,7 +10,6 @@ function ModelHeader() {
     const { name } = useParams<"name">();
     // eslint-disable-next-line  @typescript-eslint/no-non-null-assertion
     const modelName = name!;
-
     const navigate = useNavigate();
     const [currentTab, setCurrentTab] = useState(useLocation().pathname);
     const [isOpen, setIsOpen] = useState(false);
@@ -45,7 +44,7 @@ function ModelHeader() {
     ]
 
     const menuOptions = (key: string) => {
-        if(key === "editModelName") { setIsOpen(true) }
+        if (key === "editModelName") { setIsOpen(true) }
     }
 
     return (

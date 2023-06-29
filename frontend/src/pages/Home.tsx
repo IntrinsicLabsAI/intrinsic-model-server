@@ -7,7 +7,9 @@ import OneColumnLayout from '../components/layout/OneColumnLayout';
 import TwoColumnLayout from '../components/layout/TwoColumnLayout';
 import Widget from '../components/core/Widget';
 import Column from '../components/layout/Column';
-
+import { featureUpdates } from '../data/featureUpdates';
+import Card from '../components/core/Card';
+import { Icon } from '@blueprintjs/core';
 
 export default function Home() {
   // All models
@@ -74,8 +76,23 @@ export default function Home() {
           </Column>
 
           <Column>
-            <Widget title="Server Status">
-              <></>
+            <Widget title="Feature Updates">
+              <div>
+                {featureUpdates.sort((a, b) => a.id-b.id).map((update) => (
+                  <div className=" pb-2 " key={update.id}>
+                    <Card>
+                      <div className="flex flex-col w-full gap-1">
+                        <h3 className=' text-xl font-medium '>{update.title}</h3>
+                        <div className='flex flex-row gap-1.5 items-center'>
+                          <Icon icon="time" size={14} color="#82BEC7" />
+                          <p className=' text-sm font-medium leading-none text-blue-500'>{update.date.toDateString()}</p>
+                        </div>
+                        <p className=' pt-2 whitespace-pre-wrap '>{update.description}</p>
+                      </div>
+                    </Card>
+                  </div>
+                  ))}
+              </div>
             </Widget>
           </Column>
         </TwoColumnLayout >

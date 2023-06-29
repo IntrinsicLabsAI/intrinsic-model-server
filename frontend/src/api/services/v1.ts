@@ -38,6 +38,17 @@ export const v1API = createApi({
         },
       })
     }),
+    updateModelName: builder.mutation<string | undefined, { modelName: string, name: string }>({
+      invalidatesTags: ["models"],
+      query: ({ modelName, name }) => ({
+        url: `${modelName}/name`,
+        method: "POST",
+        body: name,
+        headers: {
+          "Content-Type": "text/plain"
+        },
+      })
+    }),
     importModel: builder.mutation<string, Locator>({
       invalidatesTags: ["models"],
       query: (locator) => ({
@@ -61,6 +72,7 @@ export const {
   useGetImportStatusQuery,
   useDeleteModelMutation,
   useUpdateDescriptionMutation,
+  useUpdateModelNameMutation,
   useImportModelMutation,
 } = v1API;
 

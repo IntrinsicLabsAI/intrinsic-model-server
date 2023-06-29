@@ -51,9 +51,7 @@ class DataManager(ABC):
         """
 
     @abstractmethod
-    def set_model_name(
-        self, old_model_name: str, new_model_name: str, description: str
-    ) -> None:
+    def set_model_name(self, old_model_name: str, new_model_name: str) -> None:
         """
         Rename the model from the old name to the new name.
         """

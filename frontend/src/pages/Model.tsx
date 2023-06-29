@@ -8,6 +8,9 @@ import ChangeNameModal from "./Model/ChangeNameModal";
 
 function ModelHeader() {
     const { name } = useParams<"name">();
+    // eslint-disable-next-line  @typescript-eslint/no-non-null-assertion
+    const modelName = name!;
+
     const navigate = useNavigate();
     const [currentTab, setCurrentTab] = useState(useLocation().pathname);
     const [isOpen, setIsOpen] = useState(false);
@@ -47,7 +50,7 @@ function ModelHeader() {
 
     return (
         <>
-            <ChangeNameModal isOpen={isOpen} setIsOpen={setIsOpen} />
+            <ChangeNameModal isOpen={isOpen} setIsOpen={setIsOpen} modelName={modelName} />
             <div className=" flex flex-col justify-between">
                 <div className="flex flex-row items-center">
                     <h2 className=" font-semibold text-xl mr-auto">{name}</h2>

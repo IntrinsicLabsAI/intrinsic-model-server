@@ -228,12 +228,11 @@ class PersistentDataManager(DataManager):
                 return None
             return str(description_row[0])
 
-    def set_model_name(
-        self, old_model_name: str, new_model_name: str, description: str
-    ) -> None:
+    def set_model_name(self, old_model_name: str, new_model_name: str) -> None:
         with self.engine.connect() as conn:
             conn.execute(
                 update(model_table)
                 .values(name=new_model_name)
                 .where(model_table.c.name == old_model_name)
             )
+            conn.commit()

@@ -4,6 +4,8 @@ from modelserver.types.api import (
     ModelVersionInternal,
     RegisteredModel,
     RegisterModelRequest,
+    SavedExperimentIn,
+    SavedExperimentOut,
 )
 
 
@@ -62,4 +64,25 @@ class DataManager(ABC):
         Retrieve the description for a model
         :param model_name: Name of the model, e.g. "vicuna-7b"
         :return: The Markdown-formatted description for the model, or null if none is found.
+        """
+
+    @abstractmethod
+    def get_experiments(self, model_name: str) -> list[SavedExperimentOut]:
+        """
+        Returns a list of experiments, ordered ascending by their created_at date.
+        """
+
+    @abstractmethod
+    def save_experiment(
+        self, saved_experiment: SavedExperimentIn
+    ) -> SavedExperimentOut:
+        """
+        Save an experiment to a collection for the user to browse later.
+        """
+
+    @abstractmethod
+    def delete_experiment(self, experiment_id: str) -> None:
+        """
+        Delete the experiment by ID.
+        :param experiment_id: The ID of the saved experiment
         """

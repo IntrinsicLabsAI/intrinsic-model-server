@@ -220,7 +220,6 @@ class GGMLFile:
     def read_tensor_descriptors(self, fp: BufferedReader) -> List[GGMLTensorDescriptor]:
         tensor_descs: List[GGMLTensorDescriptor] = []
         while len(fp.peek(4)[:4]) == 4:
-            # import pdb; pdb.set_trace()
             n_dims = self.read_u32(fp)
             if not (n_dims == 1 or n_dims == 2):
                 raise GGMLParseError(f"Invalid n_dims {n_dims}, must be in (1, 2)")

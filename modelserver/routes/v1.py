@@ -8,6 +8,7 @@ from fastapi import (
     Body,
     Depends,
     HTTPException,
+    Response,
     WebSocket,
     WebSocketDisconnect,
     status,
@@ -25,6 +26,8 @@ from ..types.api import (
     ModelVersionInternal,
     RegisteredModel,
     RegisterModelRequest,
+    SavedExperimentIn,
+    SavedExperimentOut,
 )
 from ..types.tasks import (
     DownloadDiskModelTask,
@@ -88,14 +91,22 @@ async def run_inference_sync(
     )
 
 
-@router.delete("/{model}/{version}")
+@router.delete(
+    "/{model}/{version}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    response_class=Response,
+)
 async def delete_model_by_id(
     model: str, version: str, component: Annotated[AppComponent, Depends(AppComponent)]
 ) -> None:
     component.db.delete_model_version(model, version)
 
 
-@router.put("/{model_name}/description")
+@router.put(
+    "/{model_name}/description",
+    status_code=status.HTTP_204_NO_CONTENT,
+    response_class=Response,
+)
 async def update_model_description(
     model_name: str,
     description: Annotated[str, Body(media_type="text/plain")],
@@ -111,7 +122,11 @@ async def get_model_description(
     return db.get_model_description(model_name)
 
 
-@router.post("/{model_name}/name")
+@router.post(
+    "/{model_name}/name",
+    status_code=status.HTTP_204_NO_CONTENT,
+    response_class=Response,
+)
 async def rename_model(
     model_name: str,
     new_name: Annotated[str, Body(media_type="text/plain")],
@@ -177,3 +192,31 @@ async def completion_async(
         await websocket.close(1000)
     except WebSocketDisconnect:
         logger.info("WebSocket disconnected from streaming session")
+
+
+@router.post("/experiments")
+async def save_experiment(
+    experiment: SavedExperimentIn,
+    component: Annotated[AppComponent, Depends(AppComponent)],
+) -> SavedExperimentOut:
+    return component.db.save_experiment(experiment)
+
+
+@router.get("/experiments-by-model/{model_name}")
+async def get_experiments_for_model(
+    model_name: str,
+    component: Annotated[AppComponent, Depends(AppComponent)],
+) -> list[SavedExperimentOut]:
+    return component.db.get_experiments(model_name)
+
+
+@router.delete(
+    "/experiments/{experiment_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    response_class=Response,
+)
+async def delete_experiment(
+    experiment_id: str,
+    component: Annotated[AppComponent, Depends(AppComponent)],
+) -> None:
+    component.db.delete_experiment(experiment_id)

@@ -1,6 +1,17 @@
 from typing import TypedDict
 
-from sqlalchemy import Column, DateTime, ForeignKey, MetaData, String, Table, and_
+from sqlalchemy import (
+    Column,
+    DateTime,
+    Float,
+    ForeignKey,
+    ForeignKeyConstraint,
+    Integer,
+    MetaData,
+    String,
+    Table,
+    and_,
+)
 from sqlalchemy.dialects.sqlite import JSON
 
 """
@@ -26,33 +37,59 @@ model_table = Table(
     metadata_obj,
     Column("id", String, primary_key=True),
     Column("name", String, unique=True),
-    Column("model_type", String),
-    Column("runtime", String, primary_key=True),
-    Column("description", String),
+    Column("model_type", String, nullable=False),
+    Column("runtime", String, nullable=False),
+    Column("description", String, nullable=False),
 )
 
 model_version_table = Table(
     "model_version",
     metadata_obj,
-    Column("model_id", ForeignKey("model.id"), primary_key=True),
+    Column("model_id", String, primary_key=True),
     Column("version", String, primary_key=True),
+    ForeignKeyConstraint(["model_id"], ["model.id"]),
 )
 
 import_metadata_table = Table(
     "import_metadata",
     metadata_obj,
-    Column("model_id", ForeignKey("model_version.model_id"), primary_key=True),
-    Column("model_version", ForeignKey("model_version.version"), primary_key=True),
+    Column("model_id", String, primary_key=True),
+    Column("model_version", String, primary_key=True),
     Column("source", JSON, nullable=False),
     Column("imported_at", DateTime, nullable=False),
+    ForeignKeyConstraint(
+        ["model_id", "model_version"],
+        ["model_version.model_id", "model_version.version"],
+    ),
 )
 
 model_params_table = Table(
     "model_params",
     metadata_obj,
-    Column("model_id", ForeignKey("model_version.model_id"), primary_key=True),
-    Column("model_version", ForeignKey("model_version.version"), primary_key=True),
+    Column("model_id", String, primary_key=True),
+    Column("model_version", String, primary_key=True),
     Column("params", JSON, nullable=False),
+    ForeignKeyConstraint(
+        ["model_id", "model_version"],
+        ["model_version.model_id", "model_version.version"],
+    ),
+)
+
+saved_experiments_table = Table(
+    "saved_experiments",
+    metadata_obj,
+    Column("id", String, primary_key=True),
+    Column("model_id", String, nullable=False),
+    Column("model_version", String, nullable=False),
+    Column("temperature", Float, nullable=False),
+    Column("tokens", Integer, nullable=False),
+    Column("prompt", String, nullable=False),
+    Column("output", String, nullable=False),
+    Column("created_at", DateTime, nullable=False),
+    ForeignKeyConstraint(
+        ["model_id", "model_version"],
+        ["model_version.model_id", "model_version.version"],
+    ),
 )
 
 

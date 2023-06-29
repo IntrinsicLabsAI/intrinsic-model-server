@@ -1,11 +1,16 @@
 import json
-from typing import final
+from datetime import datetime
+from typing import Any, Mapping, Optional, final
 from uuid import UUID, uuid4
 
 from fastapi import HTTPException, status
-from sqlalchemy import Engine, and_, delete, or_, select, update
+from sqlalchemy import Engine, and_, delete, event, or_, select, update
 from sqlalchemy.dialects.sqlite import Insert
+from sqlalchemy.engine.interfaces import DBAPIConnection, Dialect
+from sqlalchemy.engine.url import URL
 from sqlalchemy.exc import IntegrityError, NoResultFound
+from sqlalchemy.log import _EchoFlagType
+from sqlalchemy.pool import ConnectionPoolEntry, Pool
 
 from modelserver.types.api import (
     CompletionModelParams,
@@ -16,6 +21,8 @@ from modelserver.types.api import (
     ModelVersionInternal,
     RegisteredModel,
     RegisterModelRequest,
+    SavedExperimentIn,
+    SavedExperimentOut,
     SemVer,
 )
 
@@ -27,13 +34,30 @@ from ._tables import (
     model_table,
     model_version_table,
     model_versions_joined_table,
+    saved_experiments_table,
 )
+
+
+def wrap_with_fk_enforcement(engine: Engine) -> Engine:
+    """
+    See https://docs.sqlalchemy.org/en/20/dialects/sqlite.html#foreign-key-support
+    """
+
+    def on_connect(
+        dbapi_con: DBAPIConnection, _con_record: ConnectionPoolEntry
+    ) -> None:
+        cursor = dbapi_con.cursor()
+        cursor.execute("pragma foreign_keys=ON")
+        cursor.close()
+
+    event.listen(engine, "connect", on_connect)
+    return engine
 
 
 @final
 class PersistentDataManager(DataManager):
     def __init__(self, engine: Engine):
-        self.engine = engine
+        self.engine = wrap_with_fk_enforcement(engine)
 
         # CREATE IF NOT EXISTS for all tables defined in _tables module
         metadata_obj.create_all(engine)
@@ -234,5 +258,100 @@ class PersistentDataManager(DataManager):
                 update(model_table)
                 .values(name=new_model_name)
                 .where(model_table.c.name == old_model_name)
+            )
+            conn.commit()
+
+    def get_experiments(self, model_name: str) -> list[SavedExperimentOut]:
+        """
+        Returns a list of experiments, ordered ascending by their created_at date.
+        """
+        with self.engine.connect() as conn:
+            rows = conn.execute(
+                select(
+                    saved_experiments_table.c.id,
+                    saved_experiments_table.c.model_id,
+                    saved_experiments_table.c.model_version,
+                    saved_experiments_table.c.temperature,
+                    saved_experiments_table.c.tokens,
+                    saved_experiments_table.c.prompt,
+                    saved_experiments_table.c.output,
+                    saved_experiments_table.c.created_at,
+                )
+                .select_from(
+                    saved_experiments_table.join(
+                        model_table,
+                        model_table.c.id == saved_experiments_table.c.model_id,
+                    )
+                )
+                .where(model_table.c.name == model_name)
+            ).fetchall()
+
+            experiments: list[SavedExperimentOut] = []
+            for row in rows:
+                (
+                    experiment_id,
+                    model_id,
+                    model_version,
+                    temperature,
+                    tokens,
+                    prompt,
+                    output,
+                    created_at,
+                ) = row
+                experiments.append(
+                    SavedExperimentOut(
+                        experiment_id=experiment_id,
+                        model_id=model_id,
+                        model_version=SemVer.from_str(model_version),
+                        temperature=temperature,
+                        tokens=tokens,
+                        prompt=prompt,
+                        output=output,
+                        created_at=created_at,
+                    )
+                )
+            return experiments
+
+    def save_experiment(
+        self, saved_experiment: SavedExperimentIn
+    ) -> SavedExperimentOut:
+        """
+        Save an experiment to a collection for the user to browse later.
+        """
+        with self.engine.connect() as conn:
+            freshid = str(uuid4())
+            row = {
+                "id": freshid,
+                "model_id": saved_experiment.model_id,
+                "model_version": saved_experiment.model_version,
+                "temperature": saved_experiment.temperature,
+                "tokens": saved_experiment.tokens,
+                "prompt": saved_experiment.prompt,
+                "output": saved_experiment.output,
+                "created_at": datetime.utcnow(),
+            }
+            conn.execute(Insert(saved_experiments_table).values(**row))
+            conn.commit()
+            return SavedExperimentOut(
+                experiment_id=freshid,
+                model_id=saved_experiment.model_id,
+                model_version=saved_experiment.model_version,
+                temperature=saved_experiment.temperature,
+                tokens=saved_experiment.tokens,
+                prompt=saved_experiment.prompt,
+                output=saved_experiment.output,
+                created_at=datetime.utcnow(),
+            )
+
+    def delete_experiment(self, experiment_id: str) -> None:
+        """
+        Delete the experiment by ID.
+        :param experiment_id: The ID of the saved experiment
+        """
+        with self.engine.connect() as conn:
+            conn.execute(
+                delete(saved_experiments_table).where(
+                    saved_experiments_table.c.id == experiment_id
+                )
             )
             conn.commit()

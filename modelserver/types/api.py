@@ -272,3 +272,23 @@ class HFFile(BaseModel):
 class ListHFFilesResponse(BaseModel):
     repo: str
     files: list[HFFile]
+
+
+class SavedExperimentIn(BaseModel):
+    model_id: str
+    model_version: SemVer
+    temperature: float
+    tokens: int
+    prompt: str
+    output: str
+
+
+class SavedExperimentOut(BaseModel):
+    experiment_id: str
+    model_id: str
+    model_version: SemVer
+    temperature: float
+    tokens: int
+    prompt: str
+    output: str
+    created_at: datetime

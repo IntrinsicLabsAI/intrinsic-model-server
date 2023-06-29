@@ -212,7 +212,7 @@ class PersistentDataManager(DataManager):
         with self.engine.connect() as conn:
             conn.execute(
                 update(model_table)
-                .where(model_table.c.id == model_name)
+                .where(model_table.c.name == model_name)
                 .values(description=description)
             )
             conn.commit()
@@ -222,7 +222,7 @@ class PersistentDataManager(DataManager):
             description_row = conn.execute(
                 select(model_table.c.description)
                 .select_from(model_table)
-                .where(model_table.c.id == model_name)
+                .where(model_table.c.name == model_name)
             ).one_or_none()
             if description_row is None:
                 return None

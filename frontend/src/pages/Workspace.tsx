@@ -1,6 +1,7 @@
 import { Outlet, Link } from 'react-router-dom';
 import { useNavigate } from "react-router-dom";
 import DropdownMenu from '../components/core/DropdownMenu';
+import Button from '../components/core/Button';
 
 export default function Workspace() {
     const navigate = useNavigate();
@@ -17,15 +18,19 @@ export default function Workspace() {
                         <p className="text-lg font-semibold">Model Server</p>
                     </Link>
                     <div className='ml-auto'>
-                        <DropdownMenu 
+                        <Button
                             type='icon'
-                            buttonIcon='cube-add'
-                            onSelectionChange={actionsButton}
-                            items={[
-                                { id: "new-model", value: "Add New Model" },
-                            ]}
+                            buttonIcon="manual"
                         />
                     </div>
+                    <DropdownMenu
+                        type='icon'
+                        buttonIcon='cube-add'
+                        onSelectionChange={actionsButton}
+                        items={[
+                            { id: "new-model", value: "Add New Model" },
+                        ]}
+                    />
                 </div>
             </header>
             <main className=' isolate h-[calc(100vh-4rem)] overflow-auto '>

@@ -107,7 +107,7 @@ const ExperimentInput = React.memo(({
                 <div className="flex flex-row w-full gap-4 justify-start">
                     <button className="px-3 py-1.5 bg-primary-100 rounded hover:bg-primary-500 ml-auto disabled:opacity-25 disabled:bg-gray-400" onClick={() => {
                         runExperiment({
-                            id: Math.random(), // TODO(aduffy): Do better.
+                            id: String(Math.random()), // TODO(aduffy): Do better.
                             model: model.name,
                             modelId: model.id,
                             version: effectiveVersion!, // eslint-disable-line @typescript-eslint/no-non-null-assertion
@@ -141,7 +141,8 @@ const ExperimentView = React.memo((
         type: string,
     }) => {
     
-    const propIsSaved = (type === "saved") ? true : false
+    const propIsSaved = (type === "saved") ? true : false;
+
     const [isExpanded, setIsExpanded] = useState(true);
     const [isSaved, setIsSaved] = useState(propIsSaved);
 
@@ -171,7 +172,7 @@ const ExperimentView = React.memo((
             setIsSaved(true);
         } else {
             // delete saved experiment
-            deleteExperimentAction(`${experiment.id}`)
+            deleteExperimentAction(experiment.id)
 
             setIsSaved(false);
         }

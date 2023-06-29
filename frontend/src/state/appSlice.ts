@@ -3,7 +3,7 @@ import { createDefaultClient } from "../api/services/completion";
 import { SavedExperimentOut } from "../api";
 
 
-export type ExperimentId = number;
+export type ExperimentId = string;
 
 export interface Experiment {
     id: ExperimentId;
@@ -94,7 +94,7 @@ export const appSlice = createSlice({
             action.payload.experiments.forEach((exResponse) => {
                 state[action.payload.modelID].saved_experiments.push({
                     experiment: {
-                        id: Number(exResponse.experiment_id),
+                        id: exResponse.experiment_id,
                         model: action.payload.modelName,
                         modelId: exResponse.model_id,
                         version: exResponse.model_version,
@@ -108,8 +108,6 @@ export const appSlice = createSlice({
                     output: exResponse.output,
                 })
             })
-
-            console.log(state[action.payload.modelID].saved_experiments)
         },
     }
 });

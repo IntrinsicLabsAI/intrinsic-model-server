@@ -4,7 +4,7 @@ import prettyBytes from 'pretty-bytes';
 
 import { useImportModelMutation } from '../api/services/v1'
 import { useGetRepoFilesQuery } from "../api/services/hfService";
-import { DiskLocator, FailedTaskState, FinishedTaskState, ModelType, TaskState } from '../api'
+import { DiskLocator, ModelType } from '../api'
 
 import Page from "../components/layout/Page"
 import OneColumnLayout from "../components/layout/OneColumnLayout"
@@ -220,12 +220,4 @@ export default function NewModel() {
             </OneColumnLayout>
         </Page >
     )
-}
-
-function isFailedTask(taskState: TaskState): taskState is FailedTaskState {
-    return taskState.type === "failed";
-}
-
-function isFinishedTask(taskState: TaskState): taskState is FinishedTaskState {
-    return taskState.type === "finished";
 }

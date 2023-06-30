@@ -41,6 +41,7 @@ from ..types.tasks import (
 logger = logging.getLogger(__name__)
 router = APIRouter(dependencies=[Depends(get_db)], prefix="/v1")
 
+
 @router.delete(
     "/experiments/{experiment_id}",
     status_code=status.HTTP_204_NO_CONTENT,
@@ -51,7 +52,8 @@ async def delete_experiment(
     component: Annotated[AppComponent, Depends(AppComponent)],
 ) -> None:
     component.db.delete_experiment(experiment_id)
-    
+
+
 @router.get("/models")
 async def get_models(
     component: Annotated[AppComponent, Depends(AppComponent)]
@@ -132,6 +134,7 @@ async def get_model_description(
 ) -> str | None:
     return db.get_model_description(model_name)
 
+
 @router.post(
     "/{model_name}/name",
     status_code=status.HTTP_204_NO_CONTENT,
@@ -191,7 +194,8 @@ async def completion_async(
     llama = Llama(model_path=found_model.internal_params.model_path)
     try:
         msg = await websocket.receive_json()
-        request: CompletionInferenceRequest = CompletionInferenceRequest.parse_obj(msg)
+        request: CompletionInferenceRequest = CompletionInferenceRequest.parse_obj(
+            msg)
         for chunk in llama.create_completion(
             request.prompt,
             max_tokens=request.tokens,

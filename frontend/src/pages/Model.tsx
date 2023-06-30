@@ -96,14 +96,16 @@ export default function Model() {
 
     // Loading Saved Experiments for Model
     const { data, isLoading } = useGetExperimentsQuery(modelName);
-      
+    
+    const checkRun = (data !== undefined && !isLoading);
+
     useEffect(() => {
         dispatch(addSavedExperiments({
             modelName: modelName,
             modelID: registeredModel?.id || "",
             experiments: data?.experiments || []
         }))
-    }, [(data !== undefined && !isLoading)]);
+    }, [checkRun]);
 
     return (
         <Page header={<ModelHeader modelName={modelName}/>}>

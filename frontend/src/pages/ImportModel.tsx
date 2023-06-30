@@ -6,6 +6,7 @@ import Column from "../components/layout/Column";
 import Callout from "../components/core/Callout";
 import Button from "../components/core/Button";
 import Card from "../components/core/Card";
+import { useNavigate } from "react-router-dom";
 
 function ProgressBar({
     status,
@@ -18,10 +19,13 @@ function ProgressBar({
         <div className=" mt-4">
             <div className="h-1 w-full bg-gray-200/40">
                 {status === "in-progress" && (
-                    <div className="h-1 bg-blue-700 animate-pulse" style={{ width: `${progress}%` }} />
+                    <div className="h-1 bg-purple-400 animate-pulse" style={{ width: `${progress}%` }} />
                 )}
                 {status === "failed" && (
                     <div className="h-1 bg-red-500 animate-pulse" style={{ width: `100%` }} />
+                )}
+                {status === "finished" && (
+                    <div className="h-1 bg-primary-500 animate-pulse" style={{ width: `100%` }} />
                 )}
             </div>
         </div>
@@ -33,6 +37,7 @@ export default function ImportModel() {
     // eslint-disable-next-line  @typescript-eslint/no-non-null-assertion
     const importJob = importid!;
 
+    const navigate = useNavigate()
     const { data } = useGetImportStatusQuery(importJob, { pollingInterval: 3_000 })
 
     return (
@@ -44,7 +49,11 @@ export default function ImportModel() {
                             <h1 className=" font-semibold text-2xl leading-none pb-1">Importing Model from HuggingFace</h1>
                             <h3 className=" text-gray-400/60 pb-3">Import Job: {importJob}</h3>
                         </div>
-                        <Button buttonText="View Model" type="text" disabled={data?.type === "finished" ? false : true } />
+                        <Button 
+                            onAction={() => navigate("/")}
+                            buttonText="View Model" 
+                            type="text" 
+                            disabled={data?.type === "finished" ? false : true } />
                     </div>
                     <>
                         {data?.type === "in-progress" && (
@@ -105,7 +114,6 @@ export default function ImportModel() {
                                     <p className="font-semibold animate-none mt-2">The model import has compleated</p>
                                     <p className="animate-none pt-2 leading-tight">
                                         Your model is now available to use and available via API to all users of the server.
-                                        {data?.info}
                                     </p>
                                     <p className=" font-mono pt-2 text-sm font-semibold text-center ">{data?.info}</p>
                                 </>

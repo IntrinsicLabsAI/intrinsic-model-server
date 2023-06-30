@@ -65,10 +65,9 @@ class Tasks:
             TaskState.parse_obj(
                 FinishedTaskState(
                     info=model_name,
-                    metadata={
-                        model_id: model_id,
-                        version: version,
-                    },
+                    metadata=dict(
+                        model_name=model_name, model_id=model_id, version=version
+                    ),
                 ).dict()
             ),
         )
@@ -135,7 +134,9 @@ class Tasks:
                 TaskState.parse_obj(
                     FinishedTaskState(
                         info=f"Successfully registered {modelname}",
-                        metadata=dict(model_id=model_id, version=version),
+                        metadata=dict(
+                            model_name=modelname, model_id=model_id, version=version
+                        ),
                     ).dict()
                 ),
             )

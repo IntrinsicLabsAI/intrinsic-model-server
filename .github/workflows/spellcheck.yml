@@ -18,6 +18,5 @@ jobs:
     - uses: actions/checkout@v3
     - name: Scan code for common spelling errors
       run: |
-        grep -ri compleat frontend && exit 1
-        grep -ri compleat docs && exit 1
-
+        grep -n -ri compleat frontend && exit 1
+        grep -n -ri compleat docs && exit 1

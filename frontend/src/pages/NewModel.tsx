@@ -2,7 +2,7 @@ import React, { useMemo, useState } from "react"
 import { useNavigate } from "react-router-dom";
 import prettyBytes from 'pretty-bytes';
 
-import { useImportModelMutation, useGetImportStatusQuery } from '../api/services/v1'
+import { useImportModelMutation } from '../api/services/v1'
 import { useGetRepoFilesQuery } from "../api/services/hfService";
 import { DiskLocator, FailedTaskState, FinishedTaskState, ModelType, TaskState } from '../api'
 
@@ -16,45 +16,6 @@ import { skipToken } from "@reduxjs/toolkit/dist/query";
 import InteractiveTable from "../components/core/InteractiveTable";
 
 import { DateTime } from "luxon";
-
-function ProgressBar({
-    progress,
-    failMessage,
-    successMessage,
-}: {
-    progress: number,
-    failMessage?: string,
-    successMessage?: string,
-}) {
-    if (successMessage) {
-        return (
-            <div>
-                <div className="h-1 w-full bg-green-400" />
-                <p className="font-mono font-bold text-lg mt-2">{successMessage}</p>
-            </div>
-        );
-    }
-
-    if (failMessage) {
-        return (
-            <div>
-                <div className="h-1 w-full bg-red-600" />
-                <p className="font-mono font-bold text-lg mt-2">{failMessage}</p>
-            </div>
-        );
-    }
-
-    return (
-        <div>
-            <div className="h-1 w-full bg-gray-100 animate-pulse">
-                <div className="h-1 bg-blue-700" style={{
-                    width: `${Math.round(100 * progress)}%`
-                }} />
-            </div>
-            <p className="text-lg font-bold animate-none mt-2">Loading from HuggingFace Hub...</p>
-        </div>
-    );
-}
 
 function DiskModelForm() {
     const [name, setName] = useState("");
@@ -132,13 +93,9 @@ function HuggingFaceForm() {
     const { data, isLoading } = useGetRepoFilesQuery(selectedModel ?? skipToken, { skip: selectedModel === undefined });
     const [importModelMutation,] = useImportModelMutation();
 
-    const [importJob, setImportJob] = useState<string | undefined>();
     const [, setImportError] = useState<string | undefined>();
 
-    const { data: importData } = useGetImportStatusQuery(importJob ?? skipToken, {
-        skip: !importJob,
-        pollingInterval: 3_000,
-    })
+    const navigate = useNavigate();
 
     return (
         <form className=" mt-4 ">
@@ -205,14 +162,11 @@ function HuggingFaceForm() {
                                         type: 'locatorv1/hf',
                                         repo: selectedModel,
                                         file: selectedFile,
-                                    })
-                                        .unwrap()
+                                    }).unwrap()
                                         .then(importJobId => {
-                                            setImportJob(importJobId);
+                                            navigate(`/import/${importJobId}`)
                                         })
                                         .catch(error => {
-                                            // What to do about the error, update that we have a failed to import thing?
-                                            setImportJob(undefined);
                                             setImportError(error);
                                         });
                                 }
@@ -220,13 +174,6 @@ function HuggingFaceForm() {
                             Register New Model
                         </button>
                     </div>
-                    {importJob &&
-                        <div className="mt-4">
-                            <ProgressBar progress={0.25}
-                                failMessage={importData && isFailedTask(importData) ? importData.error : undefined}
-                                successMessage={importData && isFinishedTask(importData) ? (importData.info ?? "Import successful") : undefined} />
-                        </div>
-                    }
                 </>
             )}
         </form>

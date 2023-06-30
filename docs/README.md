@@ -54,40 +54,74 @@ Let's get started registering and using models! We're going to walk you through 
 
 We'll be using the [Vicuna7B quanitized model](https://huggingface.co/vicuna/ggml-vicuna-7b-1.1/blob/main/ggml-vic7b-q5_0.bin). This is a model trained by UC Berkeley and instruction-tuned so that it is more aligned to question-answering interactions similar to ChatGPT.
 
-First, download the `ggml-vic7b-q5_0.bin` file and place it somewhere on disk. If you're running via the Docker container, be sure to [upload it into the container](https://docs.docker.com/engine/reference/commandline/cp/). Be sure to save the path where you placed the file.
-
 There are two ways to register a model with the server. Thanks to the magic of FastAPI, we have an easy to use OpenAPI that you can import into your favorite client like Postman, or use the included Swagger runnable API docs at http://localhost:8000/docs for a web-based client to run this example.
 
-### API Registration
-POST a model registration payload to the server, replacing the PATH/TO/themodel with the path from the previous step:
+### Import a model via the API
+
+The server provides an OpenAPI endpoint for importing new models. Importing a model allows you to provide a link to a remotely managed HuggingFace model file, or a path to a file on the local filesystem.
 
 ```shell
-curl -XPOST localhost:8000/v1/models -H 'Content-Type: application/json' -d '
-{
-  "name": "vicuna-7b",
-  "model_type": "completion",
-  "model_params": {
-    "model_path": "PATH/TO/ggml-vic7b-q5_0.bin"
-  }
+curl -X 'POST' 'http://localhost:8000/v1/imports' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "type": "locatorv1/hf",
+  "repo": "vicuna/ggml-vicuna-7b-1.1",
+  "file": "ggml-vic7b-q5_0.bin"
 }'
 ```
+```json
+"6ab01cbf-c5c5-4f2f-974a-d163a207bd2c"
+```
 
-Validate that the model is registered now:
+You should receive a 200 OK response, with a body containing the UUID of a new import job.
+
+You can poll the Import Job Status endpoint for the success/error result of the import:
+
+```
+curl 'http://localhost:8000/v1/imports/6ab01cbf-c5c5-4f2f-974a-d163a207bd2c'
+```
+```json
+{
+  "type": "finished",
+  "info": "Successfully registered ggml-vicuna-7b-1.1__ggml-vic7b-q5_0.bin",
+  "metadata": {
+    "model_id": "646f3b1b-f81e-4d38-a87f-a15a58ed19d6",
+    "version": "0.1.0"
+  }
+}
+```
+
+We can see the full set of model information that was extracted via the import process:
+
 
 ```shell
 curl localhost:8000/v1/models
-
-
+```
+```json
 {
   "models": [
     {
+      "id": "646f3b1b-f81e-4d38-a87f-a15a58ed19d6",
+      "name": "ggml-vicuna-7b-1.1__ggml-vic7b-q5_0.bin",
       "model_type": "completion",
-      "guid": "7925b050-84b8-45ec-b4f4-067356f3ea62",
-      "name": "vicuna-7b",
-      "version": "0.1.0",
-      "model_params": {
-        "model_path": "/Users/aduffy/Documents/llama-models/ggml-vic7b-q5_0/model.bin"
-      }
+      "runtime": "ggml",
+      "versions": [
+        {
+          "version": "0.1.0",
+          "import_metadata": {
+            "imported_at": "2023-06-30T18:18:26.686689",
+            "source": {
+              "type": "importv1/hf",
+              "source": {
+                "type": "locatorv1/hf",
+                "repo": "vicuna/ggml-vicuna-7b-1.1",
+                "file": "ggml-vic7b-q5_0.bin",
+                "revision": "8ea1e83a4f96d60802c2f155036859bb9fbd5349"
+              }
+            }
+          }
+        }
+      ]
     }
   ]
 }
@@ -97,20 +131,20 @@ curl localhost:8000/v1/models
 Now you can use the model to run inference:
 
 ```shell
-curl -XPOST localhost:8000/v1/vicuna-7b/0.1.0/complete \
-  -H 'Content-Type: application/json' \
-  -d '{
-  "prompt": "This is what a pirate would say at the DMV:\n",
-  "tokens": 128,
-  "temperature": 0.3
-}'
-
-
+curl -XPOST localhost:8000/v1/models/ggml-vicuna-7b-1.1__ggml-vic7b-q5_0.bin/versions/0.1.0/complete \
+      -H 'Content-Type: application/json' \
+      -d '{
+            "prompt": "This is what a pirate would say at the DMV:",
+            "tokens": 128,
+            "temperature": 0.3
+          }'
+```
+```json
 {
-  "model_name": "vicuna-7b",
+  "model_name": "ggml-vicuna-7b-1.1__ggml-vic7b-q5_0.bin",
   "model_version": "0.1.0",
-  "elapsed_seconds": 2.2878549098968506,
-  "completion": "\"Ahoy, matey! I be here to renew me driver's license and register me vessel. Arrrr!\""
+  "elapsed_seconds": 5.513493061065674,
+  "completion": "\"Ahoy, matey! I be here to renew me driver's license and take the test if need be. But don't ye worry about that, I be a seasoned sailor when it comes to these land-based tasks. Just show me where to sign and I'll be on my way.\""
 }
 ```
 

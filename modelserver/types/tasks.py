@@ -44,7 +44,8 @@ class InProgressState(BaseModel):
 
 class FinishedTaskState(BaseModel):
     type: Literal["finished"] = "finished"
-    info: str | None
+    info: str | None = None
+    metadata: dict[str, str] = {}
 
 
 class FailedTaskState(BaseModel):

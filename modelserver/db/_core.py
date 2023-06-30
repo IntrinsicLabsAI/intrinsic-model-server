@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from uuid import UUID
 
 from modelserver.types.api import (
     ModelVersionInternal,
@@ -6,6 +7,7 @@ from modelserver.types.api import (
     RegisterModelRequest,
     SavedExperimentIn,
     SavedExperimentOut,
+    SemVer,
 )
 
 
@@ -18,7 +20,7 @@ class DataManager(ABC):
         """
 
     @abstractmethod
-    def register_model(self, model_info: RegisterModelRequest) -> None:
+    def register_model(self, model_info: RegisterModelRequest) -> tuple[str, SemVer]:
         """
         Register a new model in the store.
         :param model_info: Registration info for the new model

@@ -23,7 +23,6 @@ export interface ExperimentState {
 
 export interface ModelState {
     currentExperiments: ExperimentState[],
-    savedExperiments: ExperimentState[]
 }
 
 const initialState: Record<string, ModelState> = {};
@@ -34,7 +33,7 @@ export const appSlice = createSlice({
     reducers: {
         addActiveExperiment: (state, action: PayloadAction<Experiment>) => {
             if (!Object.prototype.hasOwnProperty.call(state, action.payload.modelId)) {
-                state[action.payload.modelId] = { currentExperiments: [], savedExperiments: [] }
+                state[action.payload.modelId] = { currentExperiments: [] }
             }
 
             state[action.payload.modelId].currentExperiments.unshift({
@@ -46,7 +45,7 @@ export const appSlice = createSlice({
         addCompletedExperiment: (state, action: PayloadAction<ExperimentState>) => {
             const { experiment, output } = action.payload;
             if (!Object.prototype.hasOwnProperty.call(state, experiment.modelId)) {
-                state[experiment.modelId] = { currentExperiments: [], savedExperiments: [] }
+                state[experiment.modelId] = { currentExperiments: [] }
             }
 
             state[experiment.modelId].currentExperiments.unshift({

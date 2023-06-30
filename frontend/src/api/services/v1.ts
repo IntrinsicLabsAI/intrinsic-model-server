@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { DiskImportSource, GetRegisteredModelsResponse, HFImportSource, Locator, TaskState } from '..';
+import { GetSavedExperimentsResponse, SavedExperimentIn, DiskImportSource, GetRegisteredModelsResponse, HFImportSource, Locator, TaskState } from '..';
 import { isDevServer } from './util';
 
 export const v1API = createApi({
@@ -7,6 +7,7 @@ export const v1API = createApi({
   tagTypes: [
     "models",
     "description",
+    "experiments",
   ],
   baseQuery: fetchBaseQuery({ baseUrl: isDevServer() ? "http://0.0.0.0:8000/v1" : "/v1" }),
   endpoints: (builder) => ({
@@ -30,7 +31,7 @@ export const v1API = createApi({
     updateDescription: builder.mutation<string | undefined, { modelName: string, description: string }>({
       invalidatesTags: (_result, _error, query) => [{ type: "description", id: query.modelName }],
       query: ({ modelName, description }) => ({
-        url: `${modelName}/description`,
+        url: `models/${modelName}/description`,
         method: "PUT",
         body: description,
         headers: {
@@ -41,7 +42,7 @@ export const v1API = createApi({
     updateModelName: builder.mutation<string | undefined, { modelName: string, name: string }>({
       invalidatesTags: ["models"],
       query: ({ modelName, name }) => ({
-        url: `${modelName}/name`,
+        url: `models/${modelName}/name`,
         method: "POST",
         body: name,
         headers: {
@@ -52,17 +53,39 @@ export const v1API = createApi({
     importModel: builder.mutation<string, Locator>({
       invalidatesTags: ["models"],
       query: (locator) => ({
-        url: "import",
+        url: "imports",
         body: locator,
         method: "POST",
       })
     }),
     getImportStatus: builder.query<TaskState, string>({
       query: (importJobId) => ({
-        url: `import/${importJobId}`,
+        url: `imports/${importJobId}`,
         method: "GET",
       }),
-    })
+    }),
+    getSavedExperiments: builder.query<GetSavedExperimentsResponse, string>({
+      providesTags: (_result, _error, modelName) => [{ type: "experiments", id: modelName }],
+      query: (modelName) => ({
+        url: `experiments-by-model/${modelName}`,
+        providesTags: ["experiments"],
+      }),
+    }),
+    saveExperiment: builder.mutation<string, SavedExperimentIn>({
+      invalidatesTags: ["experiments"],
+      query: (experiment) => ({
+        url: "experiments",
+        body: experiment,
+        method: "POST",
+      })
+    }),
+    deleteExperiment: builder.mutation<string, string>({
+      invalidatesTags: ["experiments"],
+      query: (experiment_id) => ({
+        url: `experiments/${experiment_id}`,
+        method: "DELETE",
+      })
+    }),
   }),
 });
 
@@ -71,6 +94,9 @@ export const {
   useGetDescriptionQuery,
   useGetImportStatusQuery,
   useDeleteModelMutation,
+  useGetSavedExperimentsQuery,
+  useSaveExperimentMutation,
+  useDeleteExperimentMutation,
   useUpdateDescriptionMutation,
   useUpdateModelNameMutation,
   useImportModelMutation,

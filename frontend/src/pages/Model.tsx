@@ -1,18 +1,21 @@
 import { useState } from "react";
 import { Outlet, useParams, useNavigate, useLocation } from "react-router-dom";
 import { BlueprintIcons_16Id } from "@blueprintjs/icons/src/generated/16px/blueprint-icons-16.ts"
+
 import Page from "../components/layout/Page";
 import { Icon } from "@blueprintjs/core";
 import DropdownMenu from "../components/core/DropdownMenu";
 import ChangeNameModal from "./Model/ChangeNameModal";
 
-function ModelHeader() {
-    const { name } = useParams<"name">();
-    // eslint-disable-next-line  @typescript-eslint/no-non-null-assertion
-    const modelName = name!;
-    const navigate = useNavigate();
+function ModelHeader({
+    modelName
+}: {
+    modelName: string
+}) {
     const [currentTab, setCurrentTab] = useState(useLocation().pathname);
     const [isOpen, setIsOpen] = useState(false);
+
+    const navigate = useNavigate();
 
     const tabClick = (tabRoute: string) => {
         if (currentTab !== tabRoute) {
@@ -26,13 +29,13 @@ function ModelHeader() {
             id: "overview",
             display: "Overview",
             icon: "git-repo",
-            route: `/model/${name}`
+            route: `/model/${modelName}`
         },
         {
             id: "experiments",
             display: "Experiments",
             icon: "lab-test",
-            route: `/model/${name}/experiments`
+            route: `/model/${modelName}/experiments`
         }
     ]
 
@@ -53,7 +56,7 @@ function ModelHeader() {
             <ChangeNameModal isOpen={isOpen} setIsOpen={setIsOpen} modelName={modelName} />
             <div className=" flex flex-col justify-between">
                 <div className="flex flex-row items-center">
-                    <h2 className=" font-semibold text-xl mr-auto">{name}</h2>
+                    <h2 className=" font-semibold text-xl mr-auto">{modelName}</h2>
                     <DropdownMenu
                         type='text'
                         buttonText="Actions"
@@ -76,8 +79,12 @@ function ModelHeader() {
 }
 
 export default function Model() {
+    const { name } = useParams<"name">();
+    // eslint-disable-next-line  @typescript-eslint/no-non-null-assertion
+    const modelName = name!;
+
     return (
-        <Page header={<ModelHeader />}>
+        <Page header={<ModelHeader modelName={modelName} />}>
             <Outlet />
         </Page>
     )

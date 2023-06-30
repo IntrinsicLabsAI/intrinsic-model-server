@@ -2,7 +2,7 @@ import { createListenerMiddleware, createSlice, PayloadAction } from "@reduxjs/t
 import { createDefaultClient } from "../api/services/completion";
 
 
-export type ExperimentId = number;
+export type ExperimentId = string;
 
 export interface Experiment {
     id: ExperimentId;
@@ -22,45 +22,63 @@ export interface ExperimentState {
 }
 
 export interface ModelState {
-    experiments: ExperimentState[],
+    currentExperiments: ExperimentState[],
 }
 
-const initialState: Record<string, ModelState> = { };
+const initialState: Record<string, ModelState> = {};
 
 export const appSlice = createSlice({
     name: "app",
     initialState,
     reducers: {
-        startActiveExperiment: (state, action: PayloadAction<Experiment>) => {
-            if(!Object.prototype.hasOwnProperty.call(state, action.payload.modelId)) {
-                state[action.payload.modelId] = { experiments: [] }
+        addActiveExperiment: (state, action: PayloadAction<Experiment>) => {
+            if (!Object.prototype.hasOwnProperty.call(state, action.payload.modelId)) {
+                state[action.payload.modelId] = { currentExperiments: [] }
             }
 
-            state[action.payload.modelId].experiments.unshift({
+            state[action.payload.modelId].currentExperiments.unshift({
                 experiment: action.payload,
                 active: true,
                 output: "",
             });
         },
+        addCompletedExperiment: (state, action: PayloadAction<ExperimentState>) => {
+            const { experiment, output } = action.payload;
+            if (!Object.prototype.hasOwnProperty.call(state, experiment.modelId)) {
+                state[experiment.modelId] = { currentExperiments: [] }
+            }
+
+            state[experiment.modelId].currentExperiments.unshift({
+                experiment,
+                output,
+                active: false,
+            });
+        },
+        removeExperiment: (state, action: PayloadAction<{ modelId: string, experimentId: string }>) => {
+            const { modelId, experimentId } = action.payload;
+            const experiments = state[modelId] ?? [];
+            const removed = experiments.currentExperiments.filter(experiment => experiment.experiment.id !== experimentId);
+            experiments.currentExperiments = removed;
+        },
         addOutputToken: (state, action: PayloadAction<{ modelId: string, id: ExperimentId, token: string }>) => {
             // Prevent taking new output tokens if modelId is not known to system
-            if(!Object.prototype.hasOwnProperty.call(state, action.payload.modelId)) {
+            if (!Object.prototype.hasOwnProperty.call(state, action.payload.modelId)) {
                 return;
             }
             const { id, token } = action.payload;
-            const experiment = state[action.payload.modelId].experiments.find(ex => ex.experiment.id == id);
+            const experiment = state[action.payload.modelId].currentExperiments.find(ex => ex.experiment.id == id);
             // Prevent taking new output tokens after experiment is no longer active. This probably shoudln't happen anyway...
             if (experiment === undefined || !experiment.active) {
                 return;
             }
             experiment.output += token;
         },
-        completeExperiment: (state, action: PayloadAction<{modelId: string, id: ExperimentId}>) => {
+        completeExperiment: (state, action: PayloadAction<{ modelId: string, id: ExperimentId }>) => {
             // Prevents running action if modelId is not known to system
-            if(!Object.prototype.hasOwnProperty.call(state, action.payload.modelId)) {
+            if (!Object.prototype.hasOwnProperty.call(state, action.payload.modelId)) {
                 return;
             }
-            const experiment = state[action.payload.modelId].experiments.find(ex => ex.experiment.id === action.payload.id);
+            const experiment = state[action.payload.modelId].currentExperiments.find(ex => ex.experiment.id === action.payload.id);
 
             if (experiment === undefined || !experiment.active) {
                 return;
@@ -68,13 +86,13 @@ export const appSlice = createSlice({
 
             experiment.active = false;
         },
-        failExperiment: (state, action: PayloadAction<{modelId: string, id: ExperimentId}>) => {
+        failExperiment: (state, action: PayloadAction<{ modelId: string, id: ExperimentId }>) => {
             // Prevents running action if modelId is not known to system
-            if(!Object.prototype.hasOwnProperty.call(state, action.payload.modelId)) {
+            if (!Object.prototype.hasOwnProperty.call(state, action.payload.modelId)) {
                 return;
             }
 
-            const experiment = state[action.payload.modelId].experiments.find(ex => ex.experiment.id === action.payload.id);
+            const experiment = state[action.payload.modelId].currentExperiments.find(ex => ex.experiment.id === action.payload.id);
             if (experiment === undefined || !experiment.active) {
                 return;
             }
@@ -82,17 +100,18 @@ export const appSlice = createSlice({
             // End experiment and mark as failed
             experiment.active = false;
             experiment.failed = true;
-        },       
-    },
+        },
+        // Add an experiment that's already been completed
+    }
 });
 
-export const { startActiveExperiment, addOutputToken, completeExperiment, failExperiment } = appSlice.actions;
+export const { addActiveExperiment, addCompletedExperiment, addOutputToken, completeExperiment, removeExperiment, failExperiment } = appSlice.actions;
 
 // TODO(aduffy): move to own file?
 export const wsMiddleware = createListenerMiddleware();
 
 wsMiddleware.startListening({
-    actionCreator: startActiveExperiment,
+    actionCreator: addActiveExperiment,
     effect: async (action, listenerApi) => {
         const experiment = action.payload;
         const { id, model, modelId, version } = action.payload;
@@ -110,17 +129,18 @@ wsMiddleware.startListening({
                         },
                         (token) => listenerApi.dispatch(addOutputToken({ modelId, id, token })),
                         () => {
-                            listenerApi.dispatch(completeExperiment({modelId, id}));
+                            listenerApi.dispatch(completeExperiment({ modelId, id }));
                             resolve(undefined);
                         },
                     )
                 });
             } catch (e) {
                 console.error(e);
-                listenerApi.dispatch(failExperiment({modelId, id}));
+                listenerApi.dispatch(failExperiment({ modelId, id }));
             }
         }
 
         await startWebSocket();
     },
 });
+

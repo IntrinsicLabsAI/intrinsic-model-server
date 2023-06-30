@@ -23,6 +23,7 @@ from ..types.api import (
     CompletionInference,
     CompletionInferenceRequest,
     GetRegisteredModelsResponse,
+    GetSavedExperimentsResponse,
     ModelVersionInternal,
     RegisteredModel,
     RegisterModelRequest,
@@ -38,7 +39,7 @@ from ..types.tasks import (
 )
 
 logger = logging.getLogger(__name__)
-router = APIRouter(dependencies=[Depends(get_db)], prefix="/v1")
+router = APIRouter(prefix="/v1")
 
 
 @router.get("/models")
@@ -54,7 +55,7 @@ async def get_models(
     return GetRegisteredModelsResponse(models=out_models)
 
 
-@router.post("/{model}/{version}/complete")
+@router.post("/models/{model}/versions/{version}/complete")
 async def run_inference_sync(
     model: str,
     version: str,
@@ -92,7 +93,7 @@ async def run_inference_sync(
 
 
 @router.delete(
-    "/{model}/{version}",
+    "/models/{model}/versions/{version}",
     status_code=status.HTTP_204_NO_CONTENT,
     response_class=Response,
 )
@@ -103,7 +104,7 @@ async def delete_model_by_id(
 
 
 @router.put(
-    "/{model_name}/description",
+    "/models/{model_name}/description",
     status_code=status.HTTP_204_NO_CONTENT,
     response_class=Response,
 )
@@ -115,7 +116,7 @@ async def update_model_description(
     db.upsert_model_description(model_name, description)
 
 
-@router.get("/{model_name}/description")
+@router.get("/models/{model_name}/description")
 async def get_model_description(
     model_name: str, db: Annotated[DataManager, Depends(get_db)]
 ) -> str | None:
@@ -123,7 +124,7 @@ async def get_model_description(
 
 
 @router.post(
-    "/{model_name}/name",
+    "/models/{model_name}/name",
     status_code=status.HTTP_204_NO_CONTENT,
     response_class=Response,
 )
@@ -135,7 +136,7 @@ async def rename_model(
     component.db.set_model_name(model_name, new_name)
 
 
-@router.post("/import")
+@router.post("/imports")
 async def import_model(
     locator: Annotated[Locator, Body()],
     component: Annotated[AppComponent, Depends(AppComponent)],
@@ -161,14 +162,14 @@ async def import_model(
     return task_id
 
 
-@router.get("/import/{task_id}")
+@router.get("/imports/{task_id}")
 async def import_job_status(
     task_id: TaskId, component: Annotated[AppComponent, Depends(AppComponent)]
 ) -> TaskState:
     return component.taskdb.get_task_state(task_id)
 
 
-@router.websocket("/{model}/{version}/complete")
+@router.websocket("/models/{model}/versions/{version}/complete")
 async def completion_async(
     *,
     websocket: WebSocket,
@@ -206,8 +207,10 @@ async def save_experiment(
 async def get_experiments_for_model(
     model_name: str,
     component: Annotated[AppComponent, Depends(AppComponent)],
-) -> list[SavedExperimentOut]:
-    return component.db.get_experiments(model_name)
+) -> GetSavedExperimentsResponse:
+    return GetSavedExperimentsResponse(
+        experiments=component.db.get_experiments(model_name)
+    )
 
 
 @router.delete(

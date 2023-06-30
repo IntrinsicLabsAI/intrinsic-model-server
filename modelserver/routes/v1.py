@@ -39,19 +39,7 @@ from ..types.tasks import (
 )
 
 logger = logging.getLogger(__name__)
-router = APIRouter(dependencies=[Depends(get_db)], prefix="/v1")
-
-
-@router.delete(
-    "/experiments/{experiment_id}",
-    status_code=status.HTTP_204_NO_CONTENT,
-    response_class=Response,
-)
-async def delete_experiment(
-    experiment_id: str,
-    component: Annotated[AppComponent, Depends(AppComponent)],
-) -> None:
-    component.db.delete_experiment(experiment_id)
+router = APIRouter(prefix="/v1")
 
 
 @router.get("/models")
@@ -67,7 +55,7 @@ async def get_models(
     return GetRegisteredModelsResponse(models=out_models)
 
 
-@router.post("/{model}/{version}/complete")
+@router.post("/models/{model}/versions/{version}/complete")
 async def run_inference_sync(
     model: str,
     version: str,
@@ -105,7 +93,7 @@ async def run_inference_sync(
 
 
 @router.delete(
-    "/{model}/{version}",
+    "/models/{model}/versions/{version}",
     status_code=status.HTTP_204_NO_CONTENT,
     response_class=Response,
 )
@@ -116,7 +104,7 @@ async def delete_model_by_id(
 
 
 @router.put(
-    "/{model_name}/description",
+    "/models/{model_name}/description",
     status_code=status.HTTP_204_NO_CONTENT,
     response_class=Response,
 )
@@ -128,7 +116,7 @@ async def update_model_description(
     db.upsert_model_description(model_name, description)
 
 
-@router.get("/{model_name}/description")
+@router.get("/models/{model_name}/description")
 async def get_model_description(
     model_name: str, db: Annotated[DataManager, Depends(get_db)]
 ) -> str | None:
@@ -136,7 +124,7 @@ async def get_model_description(
 
 
 @router.post(
-    "/{model_name}/name",
+    "/models/{model_name}/name",
     status_code=status.HTTP_204_NO_CONTENT,
     response_class=Response,
 )
@@ -148,7 +136,7 @@ async def rename_model(
     component.db.set_model_name(model_name, new_name)
 
 
-@router.post("/import")
+@router.post("/imports")
 async def import_model(
     locator: Annotated[Locator, Body()],
     component: Annotated[AppComponent, Depends(AppComponent)],
@@ -181,7 +169,7 @@ async def import_job_status(
     return component.taskdb.get_task_state(task_id)
 
 
-@router.websocket("/{model}/{version}/complete")
+@router.websocket("/models/{model}/versions/{version}/complete")
 async def completion_async(
     *,
     websocket: WebSocket,
@@ -194,8 +182,7 @@ async def completion_async(
     llama = Llama(model_path=found_model.internal_params.model_path)
     try:
         msg = await websocket.receive_json()
-        request: CompletionInferenceRequest = CompletionInferenceRequest.parse_obj(
-            msg)
+        request: CompletionInferenceRequest = CompletionInferenceRequest.parse_obj(msg)
         for chunk in llama.create_completion(
             request.prompt,
             max_tokens=request.tokens,
@@ -224,3 +211,15 @@ async def get_experiments_for_model(
     return GetSavedExperimentsResponse(
         experiments=component.db.get_experiments(model_name)
     )
+
+
+@router.delete(
+    "/experiments/{experiment_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    response_class=Response,
+)
+async def delete_experiment(
+    experiment_id: str,
+    component: Annotated[AppComponent, Depends(AppComponent)],
+) -> None:
+    component.db.delete_experiment(experiment_id)

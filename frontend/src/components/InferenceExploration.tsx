@@ -138,7 +138,7 @@ const ExperimentView = React.memo((
 
     const propIsSaved = (experimentState.type === "saved") ? true : false;
     const expandedByDefault = (experimentState.type === "saved") ? false : true;
-    
+
     const [isExpanded, setIsExpanded] = useState(expandedByDefault);
     const [isSaved, setIsSaved] = useState(propIsSaved);
 
@@ -149,25 +149,25 @@ const ExperimentView = React.memo((
     }
 
     const onSaveClick = () => {
-        if(!isSaved){
+        if (!isSaved) {
             const saveBool = onSave(experimentState)
             setIsSaved(saveBool)
         }
-        if(isSaved){
+        if (isSaved) {
             const deleteBool = onDelete(experimentState)
             setIsSaved(!deleteBool)
         }
     }
 
     return (
-        <div className={`rounded p-3 mb-5 outline ${experimentState.active &&  outlineColor["running"]} ${experimentState.failed &&  outlineColor["failed"]} ${(!experimentState.active && !experimentState.failed) &&  outlineColor["finished"]} `}>
+        <div className={`rounded p-3 mb-5 outline ${experimentState.active && outlineColor["running"]} ${experimentState.failed && outlineColor["failed"]} ${(!experimentState.active && !experimentState.failed) && outlineColor["finished"]} `}>
             <div className="flex flex-row w-full items-center">
                 <p className=" font-semibold text-lg mr-auto"> Experiment Prompt </p>
 
-                { (!experimentState.active) && (
+                {(!experimentState.active) && (
                     <div className=" hover:bg-gray-300/40 p-2 rounded mb-auto" onClick={onSaveClick}>
-                        {isSaved ?  (<Icon icon="star" size={14} color="#6cc0a6" />) :
-                                    (<Icon icon="star-empty" size={14} color="#F6F7F9" />)
+                        {isSaved ? (<Icon icon="star" size={14} color="#6cc0a6" />) :
+                            (<Icon icon="star-empty" size={14} color="#F6F7F9" />)
                         }
                     </div>
                 )}
@@ -212,15 +212,15 @@ export default function InferenceExploration({
 
     const versions = useMemo(() => model.versions.map(v => v.version), [model]);
 
-    const new_experiments = useSelector(({ app }) => app[model.id]?.experiments ?? [] );
-    const saved_experiments = useSelector(({ app }) => app[model.id]?.saved_experiments ?? [] );
+    const new_experiments = useSelector(({ app }) => app[model.id]?.experiments ?? []);
+    const saved_experiments = useSelector(({ app }) => app[model.id]?.saved_experiments ?? []);
     const experiments = [...new_experiments, ...saved_experiments];
 
-    const [ addExperimentAction ] = useAddExperimentMutation();
-    const [ deleteExperimentAction ] = useDeleteExperimentMutation();
+    const [addExperimentAction] = useAddExperimentMutation();
+    const [deleteExperimentAction] = useDeleteExperimentMutation();
 
     const onExperimentSave = (experimentState: ExperimentState) => {
-        if(experimentState.active) {
+        if (experimentState.active) {
             console.log("ERROR: You cannot save a running experiment.")
             return false
         }
@@ -238,7 +238,7 @@ export default function InferenceExploration({
     }
 
     const onExperimentDelete = (experimentState: ExperimentState) => {
-        if(experimentState.active) {
+        if (experimentState.active) {
             console.log("ERROR: You cannot delete a running experiment.")
             return false
         }
@@ -285,9 +285,9 @@ export default function InferenceExploration({
                     ) : (
                         <>
                             {experiments.map(experimentState => (
-                                <ExperimentView 
+                                <ExperimentView
                                     key={experimentState.experiment.id}
-                                    experimentState={experimentState} 
+                                    experimentState={experimentState}
                                     onSave={onExperimentSave}
                                     onDelete={onExperimentDelete} />
                             ))}

@@ -44,6 +44,6 @@ export class CompletionClient {
 
 export function createDefaultClient(model: string, version: string) {
     const baseConnectStr = webSocketBaseUrl();
-    const url = `${baseConnectStr}/v1/${model}/${version}/complete`;
+    const url = `${baseConnectStr}/v1/models/${model}/versions/${version}/complete`;
     return new CompletionClient(url);
 }

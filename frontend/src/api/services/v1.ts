@@ -31,7 +31,7 @@ export const v1API = createApi({
     updateDescription: builder.mutation<string | undefined, { modelName: string, description: string }>({
       invalidatesTags: (_result, _error, query) => [{ type: "description", id: query.modelName }],
       query: ({ modelName, description }) => ({
-        url: `${modelName}/description`,
+        url: `models/${modelName}/description`,
         method: "PUT",
         body: description,
         headers: {
@@ -42,7 +42,7 @@ export const v1API = createApi({
     updateModelName: builder.mutation<string | undefined, { modelName: string, name: string }>({
       invalidatesTags: ["models"],
       query: ({ modelName, name }) => ({
-        url: `${modelName}/name`,
+        url: `models/${modelName}/name`,
         method: "POST",
         body: name,
         headers: {
@@ -53,14 +53,14 @@ export const v1API = createApi({
     importModel: builder.mutation<string, Locator>({
       invalidatesTags: ["models"],
       query: (locator) => ({
-        url: "import",
+        url: "imports",
         body: locator,
         method: "POST",
       })
     }),
     getImportStatus: builder.query<TaskState, string>({
       query: (importJobId) => ({
-        url: `import/${importJobId}`,
+        url: `imports/${importJobId}`,
         method: "GET",
       }),
     }),

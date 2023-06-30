@@ -41,7 +41,17 @@ from ..types.tasks import (
 logger = logging.getLogger(__name__)
 router = APIRouter(dependencies=[Depends(get_db)], prefix="/v1")
 
-
+@router.delete(
+    "/experiments/{experiment_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    response_class=Response,
+)
+async def delete_experiment(
+    experiment_id: str,
+    component: Annotated[AppComponent, Depends(AppComponent)],
+) -> None:
+    component.db.delete_experiment(experiment_id)
+    
 @router.get("/models")
 async def get_models(
     component: Annotated[AppComponent, Depends(AppComponent)]
@@ -121,7 +131,6 @@ async def get_model_description(
     model_name: str, db: Annotated[DataManager, Depends(get_db)]
 ) -> str | None:
     return db.get_model_description(model_name)
-
 
 @router.post(
     "/{model_name}/name",
@@ -211,15 +220,3 @@ async def get_experiments_for_model(
     return GetSavedExperimentsResponse(
         experiments=component.db.get_experiments(model_name)
     )
-
-
-@router.delete(
-    "/experiments/{experiment_id}",
-    status_code=status.HTTP_204_NO_CONTENT,
-    response_class=Response,
-)
-async def delete_experiment(
-    experiment_id: str,
-    component: Annotated[AppComponent, Depends(AppComponent)],
-) -> None:
-    component.db.delete_experiment(experiment_id)

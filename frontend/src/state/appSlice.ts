@@ -108,7 +108,7 @@ export const appSlice = createSlice({
                     output: exResponse.output,
                 })
             })
-        },
+        }
     }
 });
 

@@ -14,7 +14,7 @@ import Callout from "./core/Callout";
 import Pill from "./core/Pill";
 import OneColumnLayout from "./layout/OneColumnLayout";
 import { useDispatch, useSelector } from "../state/hooks";
-import { Experiment, startActiveExperiment } from "../state/appSlice";
+import { ExperimentState, Experiment, startActiveExperiment } from "../state/appSlice";
 
 import { useAddExperimentMutation, useDeleteExperimentMutation } from "../api/services/v1";
 
@@ -126,59 +126,21 @@ const ExperimentInput = React.memo(({
 
 const ExperimentView = React.memo((
     {
-        experiment,
-        isFailed,
-        isRunning,
-        output,
-        modelId,
-        type
+        experimentState,
+        onSave,
+        onDelete
     }: {
-        experiment: Experiment,
-        isFailed: boolean,
-        isRunning: boolean,
-        output: string,
-        modelId: string,
-        type: string,
+        experimentState: ExperimentState,
+        onSave: (experimentState: ExperimentState) => boolean,
+        onDelete: (experimentState: ExperimentState) => boolean,
     }) => {
+    const experiment = experimentState.experiment;
+
+    const propIsSaved = (experimentState.type === "saved") ? true : false;
+    const expandedByDefault = (experimentState.type === "saved") ? false : true;
     
-    const propIsSaved = (type === "saved") ? true : false;
-
-    const [isExpanded, setIsExpanded] = useState(true);
+    const [isExpanded, setIsExpanded] = useState(expandedByDefault);
     const [isSaved, setIsSaved] = useState(propIsSaved);
-
-    const [ addExperimentAction ] = useAddExperimentMutation();
-    const [ deleteExperimentAction ] = useDeleteExperimentMutation();
-
-    const manageSavedExperiments = () => {
-        if(isRunning) {
-            console.log("ERROR: You cannot save a running experiment.")
-            return
-        }
-
-        if(isFailed) {
-            console.log("ERROR: You cannot save a failed experiment.")
-            return
-        }
-
-        if(!isSaved) {
-            // save experiment
-            addExperimentAction({
-                model_id: modelId,
-                model_version: experiment.version,
-                temperature: experiment.temperature,
-                tokens: experiment.tokenLimit,
-                prompt: experiment.prompt,
-                output: output,
-            });
-
-            setIsSaved(true);
-        } else {
-            // delete saved experiment
-            deleteExperimentAction(experiment.id)
-
-            setIsSaved(false);
-        }
-    }
 
     const outlineColor = {
         running: "outline-dark-500",
@@ -186,16 +148,29 @@ const ExperimentView = React.memo((
         failed: "outline-red-500"
     }
 
-    return (
-        <div className={`rounded p-3 mb-5 outline ${isRunning &&  outlineColor["running"]} ${isFailed &&  outlineColor["failed"]} ${(!isRunning && !isFailed) &&  outlineColor["finished"]} `}>
-            <div className="flex flex-row w-full items-center">
-                <p className=" font-semibold text-lg "> Experiment Prompt </p>
+    const onSaveClick = () => {
+        if(!isSaved){
+            const saveBool = onSave(experimentState)
+            setIsSaved(saveBool)
+        }
+        if(isSaved){
+            const deleteBool = onDelete(experimentState)
+            setIsSaved(!deleteBool)
+        }
+    }
 
-                <div className=" ml-auto hover:bg-gray-300/40 p-2 rounded mb-auto" onClick={manageSavedExperiments}>
-                    {isSaved ?  (<Icon icon="star" size={14} color="#6cc0a6" />) :
-                                (<Icon icon="star-empty" size={14} color="#F6F7F9" />)
-                    }
-                </div>
+    return (
+        <div className={`rounded p-3 mb-5 outline ${experimentState.active &&  outlineColor["running"]} ${experimentState.failed &&  outlineColor["failed"]} ${(!experimentState.active && !experimentState.failed) &&  outlineColor["finished"]} `}>
+            <div className="flex flex-row w-full items-center">
+                <p className=" font-semibold text-lg mr-auto"> Experiment Prompt </p>
+
+                { (!experimentState.active) && (
+                    <div className=" hover:bg-gray-300/40 p-2 rounded mb-auto" onClick={onSaveClick}>
+                        {isSaved ?  (<Icon icon="star" size={14} color="#6cc0a6" />) :
+                                    (<Icon icon="star-empty" size={14} color="#F6F7F9" />)
+                        }
+                    </div>
+                )}
 
                 <div className=" hover:bg-gray-300/40 p-2 rounded mb-auto" onClick={() => setIsExpanded(!isExpanded)}>
                     {isExpanded ? (<Icon icon="collapse-all" size={14} color="#F6F7F9" />) :
@@ -219,7 +194,7 @@ const ExperimentView = React.memo((
                     </div>
                     <div className="flex flex-row w-full items-center">
                         <p className="leading-snug font-mono text-sm whitespace-pre-wrap">
-                            {output}
+                            {experimentState.output}
                         </p>
                     </div>
                 </>
@@ -240,6 +215,38 @@ export default function InferenceExploration({
     const new_experiments = useSelector(({ app }) => app[model.id]?.experiments ?? [] );
     const saved_experiments = useSelector(({ app }) => app[model.id]?.saved_experiments ?? [] );
     const experiments = [...new_experiments, ...saved_experiments];
+
+    const [ addExperimentAction ] = useAddExperimentMutation();
+    const [ deleteExperimentAction ] = useDeleteExperimentMutation();
+
+    const onExperimentSave = (experimentState: ExperimentState) => {
+        if(experimentState.active) {
+            console.log("ERROR: You cannot save a running experiment.")
+            return false
+        }
+
+        addExperimentAction({
+            model_id: model.id,
+            model_version: experimentState.experiment.version,
+            temperature: experimentState.experiment.temperature,
+            tokens: experimentState.experiment.tokenLimit,
+            prompt: experimentState.experiment.prompt,
+            output: experimentState.output,
+        })
+
+        return true
+    }
+
+    const onExperimentDelete = (experimentState: ExperimentState) => {
+        if(experimentState.active) {
+            console.log("ERROR: You cannot delete a running experiment.")
+            return false
+        }
+
+        deleteExperimentAction(experimentState.experiment.id)
+
+        return true
+    }
 
     return (
         <>
@@ -277,15 +284,12 @@ export default function InferenceExploration({
                         </div>
                     ) : (
                         <>
-                            {experiments.map(experiment => (
-                                <ExperimentView
-                                    type={experiment.type || ""}
-                                    modelId={model.id}
-                                    key={experiment.experiment.id}
-                                    output={experiment.output}
-                                    experiment={experiment.experiment}
-                                    isRunning={experiment.active}
-                                    isFailed={experiment.failed || false} />
+                            {experiments.map(experimentState => (
+                                <ExperimentView 
+                                    key={experimentState.experiment.id}
+                                    experimentState={experimentState} 
+                                    onSave={onExperimentSave}
+                                    onDelete={onExperimentDelete} />
                             ))}
                         </>
                     )}

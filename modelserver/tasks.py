@@ -45,7 +45,7 @@ class Tasks:
         "Download" disk model, i.e. import it into our DB.
         """
         model_name = os.path.basename(task.locator.path)
-        self.db.register_model(
+        [model_id, version] = self.db.register_model(
             RegisterModelRequest(
                 model=model_name,
                 version=SemVer.from_str("0.1.0"),
@@ -62,9 +62,13 @@ class Tasks:
         )
         self.taskdb.update_task(
             task_id,
-            TaskState(
-                **FinishedTaskState(
+            TaskState.parse_obj(
+                FinishedTaskState(
                     info=model_name,
+                    metadata={
+                        model_id: model_id,
+                        version: version,
+                    },
                 ).dict()
             ),
         )
@@ -111,7 +115,7 @@ class Tasks:
 
             modelname = f"{os.path.basename(locator.repo)}__{locator.file}"
 
-            self.db.register_model(
+            [model_id, version] = self.db.register_model(
                 RegisterModelRequest(
                     model=modelname,
                     version=SemVer.from_str("0.1.0"),
@@ -130,7 +134,8 @@ class Tasks:
                 task_id,
                 TaskState.parse_obj(
                     FinishedTaskState(
-                        info=f"Successfully registered {modelname}"
+                        info=f"Successfully registered {modelname}",
+                        metadata=dict(model_id=model_id, version=version),
                     ).dict()
                 ),
             )

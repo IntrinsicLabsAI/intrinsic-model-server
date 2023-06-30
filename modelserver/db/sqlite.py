@@ -107,7 +107,9 @@ class PersistentDataManager(DataManager):
                 )
         return registered_models
 
-    def register_model(self, register_params: RegisterModelRequest) -> None:
+    def register_model(
+        self, register_params: RegisterModelRequest
+    ) -> tuple[str, SemVer]:
         with self.engine.connect() as conn:
             existing_model = conn.execute(
                 select(model_table.c.id)
@@ -155,6 +157,8 @@ class PersistentDataManager(DataManager):
                 )
                 conn.execute(Insert(model_params_table).values(**model_params_row))
                 conn.commit()
+
+                return (model_uuid, register_params.version)
             except IntegrityError as e:
                 conn.rollback()
 

@@ -162,7 +162,7 @@ async def import_model(
     return task_id
 
 
-@router.get("/import/{task_id}")
+@router.get("/imports/{task_id}")
 async def import_job_status(
     task_id: TaskId, component: Annotated[AppComponent, Depends(AppComponent)]
 ) -> TaskState:

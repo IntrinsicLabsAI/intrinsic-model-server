@@ -7,7 +7,7 @@ export const v1API = createApi({
   tagTypes: [
     "models",
     "description",
-    "experiments"
+    "experiments",
   ],
   baseQuery: fetchBaseQuery({ baseUrl: isDevServer() ? "http://0.0.0.0:8000/v1" : "/v1" }),
   endpoints: (builder) => ({
@@ -64,13 +64,14 @@ export const v1API = createApi({
         method: "GET",
       }),
     }),
-    getExperiments: builder.query<GetSavedExperimentsResponse, string>({
+    getSavedExperiments: builder.query<GetSavedExperimentsResponse, string>({
+      providesTags: (_result, _error, modelName) => [{ type: "experiments", id: modelName }],
       query: (modelName) => ({
         url: `experiments-by-model/${modelName}`,
         providesTags: ["experiments"],
       }),
     }),
-    addExperiment: builder.mutation<string, SavedExperimentIn>({
+    saveExperiment: builder.mutation<string, SavedExperimentIn>({
       invalidatesTags: ["experiments"],
       query: (experiment) => ({
         url: "experiments",
@@ -93,8 +94,8 @@ export const {
   useGetDescriptionQuery,
   useGetImportStatusQuery,
   useDeleteModelMutation,
-  useGetExperimentsQuery,
-  useAddExperimentMutation,
+  useGetSavedExperimentsQuery,
+  useSaveExperimentMutation,
   useDeleteExperimentMutation,
   useUpdateDescriptionMutation,
   useUpdateModelNameMutation,

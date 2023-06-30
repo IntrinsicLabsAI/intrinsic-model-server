@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Outlet, useParams, useNavigate, useLocation } from "react-router-dom";
 import { BlueprintIcons_16Id } from "@blueprintjs/icons/src/generated/16px/blueprint-icons-16.ts"
 
@@ -7,14 +7,9 @@ import { Icon } from "@blueprintjs/core";
 import DropdownMenu from "../components/core/DropdownMenu";
 import ChangeNameModal from "./Model/ChangeNameModal";
 
-import { useGetExperimentsQuery, useGetModelsQuery } from "../api/services/v1";
-import { addSavedExperiments } from "../state/appSlice";
-
-import { useDispatch } from "../state/hooks";
-
 function ModelHeader({
     modelName
-}:{
+}: {
     modelName: string
 }) {
     const [currentTab, setCurrentTab] = useState(useLocation().pathname);
@@ -88,27 +83,8 @@ export default function Model() {
     // eslint-disable-next-line  @typescript-eslint/no-non-null-assertion
     const modelName = name!;
 
-    const dispatch = useDispatch();
-
-    const { registeredModel } = useGetModelsQuery(undefined, {
-        selectFromResult: ({ data }) => ({ registeredModel: data?.models.find(m => m.name === modelName) })
-    })
-
-    // Loading Saved Experiments for Model
-    const { data, isLoading } = useGetExperimentsQuery(modelName);
-    
-    const checkRun = (data !== undefined && !isLoading);
-
-    useEffect(() => {
-        dispatch(addSavedExperiments({
-            modelName: modelName,
-            modelID: registeredModel?.id || "",
-            experiments: data?.experiments || []
-        }))
-    }, [checkRun]);
-
     return (
-        <Page header={<ModelHeader modelName={modelName}/>}>
+        <Page header={<ModelHeader modelName={modelName} />}>
             <Outlet />
         </Page>
     )

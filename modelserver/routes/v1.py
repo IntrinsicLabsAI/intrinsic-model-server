@@ -1,7 +1,7 @@
 import logging
+import re
 import time
 from typing import Annotated
-from uuid import UUID
 
 from fastapi import (
     APIRouter,
@@ -24,9 +24,7 @@ from ..types.api import (
     CompletionInferenceRequest,
     GetRegisteredModelsResponse,
     GetSavedExperimentsResponse,
-    ModelVersionInternal,
     RegisteredModel,
-    RegisterModelRequest,
     SavedExperimentIn,
     SavedExperimentOut,
 )
@@ -40,6 +38,8 @@ from ..types.tasks import (
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/v1")
+
+VALID_MODEL_NAME = re.compile(r"^[a-zA-Z0-9-_.]+$")
 
 
 @router.get("/models")
@@ -133,6 +133,11 @@ async def rename_model(
     new_name: Annotated[str, Body(media_type="text/plain")],
     component: Annotated[AppComponent, Depends(AppComponent)],
 ) -> None:
+    if VALID_MODEL_NAME.match(new_name) is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Model name does not meet validity requirements",
+        )
     component.db.set_model_name(model_name, new_name)
 
 

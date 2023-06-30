@@ -1,5 +1,5 @@
 import { useGetImportStatusQuery } from "../api/services/v1";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import Page from "../components/layout/Page";
 import OneColumnLayout from "../components/layout/OneColumnLayout";
 import Column from "../components/layout/Column";
@@ -7,6 +7,7 @@ import Callout from "../components/core/Callout";
 import Button from "../components/core/Button";
 import Card from "../components/core/Card";
 import { useNavigate } from "react-router-dom";
+import { Icon } from "@blueprintjs/core";
 
 function ProgressBar({
     status,
@@ -49,11 +50,11 @@ export default function ImportModel() {
                             <h1 className=" font-semibold text-2xl leading-none pb-1">Importing Model from HuggingFace</h1>
                             <h3 className=" text-gray-400/60 pb-3">Import Job: {importJob}</h3>
                         </div>
-                        <Button 
+                        <Button
                             onAction={() => navigate("/")}
-                            buttonText="View Model" 
-                            type="text" 
-                            disabled={data?.type === "finished" ? false : true } />
+                            buttonText="View Model"
+                            type="text"
+                            disabled={data?.type === "finished" ? false : true} />
                     </div>
                     <>
                         {data?.type === "in-progress" && (
@@ -109,19 +110,33 @@ export default function ImportModel() {
                                     <p className=" font-mono pt-2 text-sm font-semibold text-center ">Error: {data?.error}</p>
                                 </>
                             )}
-                            {data?.type === "finished" && (
+                            {data && data.type === "finished" && (
                                 <>
-                                    <p className="font-semibold animate-none mt-2">The model import has compleated</p>
+                                    <p className="font-semibold animate-none mt-2">The model import has completed</p>
                                     <p className="animate-none pt-2 leading-tight">
                                         Your model is now available to use and available via API to all users of the server.
                                     </p>
-                                    <p className=" font-mono pt-2 text-sm font-semibold text-center ">{data?.info}</p>
+
+                                    <p className=" font-mono pt-2 text-sm font-semibold text-center flex flex-row ">
+                                        {data?.info}
+                                        {
+                                            Object.prototype.hasOwnProperty.call(data.metadata, "model_name")
+                                            && (
+                                                <span className="ml-2">
+
+                                                    <Link to={`/model/${data.metadata!["model_name"]}`}> {/* eslint-disable-line @typescript-eslint/no-non-null-assertion */}
+                                                        <Icon icon="document-open" size={18} color={"#53b79a"} />
+                                                    </Link>
+                                                </span>
+                                            )
+                                        }
+                                    </p>
                                 </>
                             )}
                         </div>
                     </Card>
                 </Column>
             </OneColumnLayout>
-        </Page>
+        </Page >
     )
 }

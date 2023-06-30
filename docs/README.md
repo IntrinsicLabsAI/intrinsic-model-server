@@ -85,6 +85,7 @@ curl 'http://localhost:8000/v1/imports/6ab01cbf-c5c5-4f2f-974a-d163a207bd2c'
   "type": "finished",
   "info": "Successfully registered ggml-vicuna-7b-1.1__ggml-vic7b-q5_0.bin",
   "metadata": {
+    "model_name": "ggml-vicuna-7b-1.1__ggml-vic7b-q5_0.bin",
     "model_id": "646f3b1b-f81e-4d38-a87f-a15a58ed19d6",
     "version": "0.1.0"
   }

@@ -38,8 +38,8 @@ export default function Timeline(
                             </div>
                             {event.metadata && (
                                 <div className=" grid grid-cols-2 gap-2 w-full">
-                                    {event.metadata.map((item) => (
-                                        <div className="flex flex-row gap-1 items-center">
+                                    {event.metadata.map((item, idx) => (
+                                        <div key={idx} className="flex flex-row gap-1 items-center">
                                             {item.icon && (<Icon icon={item.icon} size={12} color="#DCE0E5" />)}
                                             <p className=" leading-none font-mono text-xs text-gray-200">{item.value}</p>
                                         </div>

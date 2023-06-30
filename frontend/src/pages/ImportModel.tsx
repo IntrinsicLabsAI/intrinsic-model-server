@@ -123,7 +123,8 @@ export default function ImportModel() {
                                             Object.prototype.hasOwnProperty.call(data.metadata, "model_name")
                                             && (
                                                 <span className="ml-2">
-                                                    <Link to={`/model/${data.metadata!["model_name"]}`}>
+
+                                                    <Link to={`/model/${data.metadata!["model_name"]}`}> {/* eslint-disable-line @typescript-eslint/no-non-null-assertion */}
                                                         <Icon icon="document-open" size={18} color={"#53b79a"} />
                                                     </Link>
                                                 </span>

@@ -10,7 +10,7 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build:
+  spellcheck:
 
     runs-on: ubuntu-latest
 

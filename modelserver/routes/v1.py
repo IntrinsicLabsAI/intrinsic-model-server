@@ -97,10 +97,21 @@ async def run_inference_sync(
     status_code=status.HTTP_204_NO_CONTENT,
     response_class=Response,
 )
-async def delete_model_by_id(
+async def delete_model_version(
     model: str, version: str, component: Annotated[AppComponent, Depends(AppComponent)]
 ) -> None:
     component.db.delete_model_version(model, version)
+
+
+@router.delete(
+    "/models/{model}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    response_class=Response,
+)
+async def delete_model(
+    model: str, component: Annotated[AppComponent, Depends(AppComponent)]
+) -> None:
+    component.db.delete_model(model)
 
 
 @router.put(

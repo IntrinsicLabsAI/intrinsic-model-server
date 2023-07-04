@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Generator
 
 import pytest
 import sqlalchemy.exc
@@ -15,78 +16,106 @@ from ..types.api import (
 )
 from .sqlite import PersistentDataManager
 
-
-def test_db() -> None:
-    engine = create_engine("sqlite+pysqlite:///:memory:")
-    db = PersistentDataManager(engine)
-    assert db.get_registered_models() == []
-
-    # 1: model registration
-    register_request = RegisterModelRequest.parse_obj(
-        {
-            "model": "anewmodel",
-            "version": "0.1.0",
-            "model_type": "completion",
-            "runtime": "ggml",
-            "internal_params": {
-                "type": "paramsv1/completion",
-                "model_path": "/path/to/model.bin",
-            },
-            "import_metadata": {
-                "imported_at": datetime.utcnow().isoformat(),
+REGISTER_V1 = RegisterModelRequest.parse_obj(
+    {
+        "model": "anewmodel",
+        "version": "0.1.0",
+        "model_type": "completion",
+        "runtime": "ggml",
+        "internal_params": {
+            "type": "paramsv1/completion",
+            "model_path": "/path/to/model.bin",
+        },
+        "import_metadata": {
+            "imported_at": datetime.utcfromtimestamp(0),
+            "source": {
+                "type": "importv1/disk",
                 "source": {
-                    "type": "importv1/disk",
-                    "source": {
-                        "type": "locatorv1/disk",
-                        "path": "/path/to/model.bin",
-                    },
+                    "type": "locatorv1/disk",
+                    "path": "/path/to/model.bin",
                 },
             },
-        }
-    )
+        },
+    }
+)
 
-    db.register_model(register_request)
+REGISTER_V2 = REGISTER_V1.copy(update=dict(version="0.2.0"))
+REGISTER_V3 = REGISTER_V2.copy(update=dict(version="0.3.0"))
+
+
+@pytest.fixture(autouse=True)
+def db() -> Generator[PersistentDataManager, None, None]:
+    engine = create_engine("sqlite+pysqlite:///:memory:")
+    db = PersistentDataManager(engine)
+    yield db
+    engine.dispose()
+
+
+def test_simple_query(db: PersistentDataManager) -> None:
+    assert db.get_registered_models() == []
+
+    db.register_model(REGISTER_V1)
     assert len(db.get_registered_models()) == 1
     assert db.get_model_version_internal("anewmodel", "0.1.0") is not None
 
-    register_request_versionbump = register_request.copy(
-        update=dict(version=SemVer.from_str("0.2.0"))
-    )
-
-    db.register_model(register_request_versionbump)
+    db.register_model(REGISTER_V2)
     models = db.get_registered_models()
     assert len(db.get_registered_models()) == 1
     assert len(models[0].versions) == 2
 
-    assert db.get_model_version_internal("anewmodel", "0.2.0") is not None
 
+def test_delete_all(db: PersistentDataManager) -> None:
+    db.register_model(REGISTER_V1)
+    db.register_model(REGISTER_V2)
+
+    # Delete all instances of model
+    db.delete_model("anewmodel")
+    assert len(db.get_registered_models()) == 0
+
+
+def test_delete_version(db: PersistentDataManager) -> None:
+    # Repopulate
+    db.register_model(REGISTER_V1)
+    db.register_model(REGISTER_V2)
+    db.delete_model_version(REGISTER_V1.model, REGISTER_V1.version)
+    assert len(db.get_registered_models()[0].versions) == 1
+
+    # Deleting the last version of a model deletes the model too
+    db.delete_model_version(REGISTER_V2.model, REGISTER_V2.version)
+    assert len(db.get_registered_models()) == 0
+
+
+def test_error_handling(db: PersistentDataManager) -> None:
     # Ensure duplicative model registration fails with 409 CONFLICT exception
+    db.register_model(REGISTER_V1)
+    db.register_model(REGISTER_V2)
+
     with pytest.raises(HTTPException) as http_ex:
-        db.register_model(register_request_versionbump)
+        db.register_model(REGISTER_V2)
     assert http_ex.value.status_code == status.HTTP_409_CONFLICT
 
     # Ensure model lookups fail with 404 exception
     with pytest.raises(HTTPException) as http_ex:
-        db.get_model_version_internal("anewmodel", "0.3.0")
+        db.get_model_version_internal(REGISTER_V3.model, REGISTER_V3.version)
     assert http_ex.value.status_code == status.HTTP_404_NOT_FOUND
 
-    db.delete_model_version("anewmodel", "0.2.0")
 
-    assert len(db.get_registered_models()) == 1
-
-    ### Renaming
+def test_model_rename(db: PersistentDataManager) -> None:
+    db.register_model(REGISTER_V1)
 
     # Test 1: Simple rename
     db.set_model_name("anewmodel", "a_new_model")
     assert db.get_registered_models()[0].name == "a_new_model"
 
-    ### Saved experiments
 
-    # Test 1: Simple model save logic
+def test_experiments(db: PersistentDataManager) -> None:
+    db.register_model(REGISTER_V1)
+
+    # Test 1: Simple save logic
     model = db.get_registered_models()[0]
     experiment_in = SavedExperimentIn(
         model_id=str(model.id),
-        model_version=SemVer.from_str("0.2.0"),
+        model_version=SemVer.from_str("0.1.0"),
         tokens=50,
         temperature=0.1,
         prompt="User: Tell a joke\nSystem:",

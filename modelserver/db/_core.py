@@ -41,8 +41,17 @@ class DataManager(ABC):
     @abstractmethod
     def delete_model_version(self, model: str, version: str) -> None:
         """
-        Delete a model by its GUID.
-        :param model_id: The GUID of the model
+        Delete a specific version of a model and all associated data.
+        :param model: The name of the model
+        :param version: The version number
+        :return:
+        """
+
+    @abstractmethod
+    def delete_model(self, model: str) -> None:
+        """
+        Delete all versions of a model, cascading to delete all associated data for it.
+        :param model: The name of the model
         :return:
         """
 

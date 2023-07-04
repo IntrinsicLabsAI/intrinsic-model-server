@@ -3,12 +3,12 @@ export default function TextInput(
         onChange: onChange,
         name,
         placeholder,
-        disabled
+        disabled,
     }: {
         onChange?: (newState: string) => void,
         name: string,
         placeholder?: string,
-        disabled?: boolean
+        disabled?: boolean,
     }
 ) {
     return (

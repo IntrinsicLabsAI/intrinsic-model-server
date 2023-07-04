@@ -36,6 +36,12 @@ function ModelHeader({
             display: "Experiments",
             icon: "lab-test",
             route: `/model/${modelName}/experiments`
+        },
+        {
+            id: "settings",
+            display: "Settings",
+            icon: "cog",
+            route: `/model/${modelName}/settings`
         }
     ]
 

@@ -3,7 +3,6 @@ import OneColumnLayout from "../../components/layout/OneColumnLayout"
 import Column from "../../components/layout/Column"
 
 import { useGetModelsQuery } from "../../api/services/v1";
-
 import { useParams } from "react-router-dom";
 
 export default function Experiments() {

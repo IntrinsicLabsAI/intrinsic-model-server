@@ -73,8 +73,15 @@ def test_db() -> None:
     db.delete_model_version("anewmodel", "0.2.0")
 
     assert len(db.get_registered_models()) == 1
+    assert len(db.get_registered_models()[0].versions) == 1
+
+    # Use delete all endpoint
+    db.delete_model("anewmodel")
+    assert len(db.get_registered_models()) == 0
 
     ### Renaming
+    # 0: Re-register the models
+    db.register_model(register_request)
 
     # Test 1: Simple rename
     db.set_model_name("anewmodel", "a_new_model")
@@ -82,11 +89,11 @@ def test_db() -> None:
 
     ### Saved experiments
 
-    # Test 1: Simple model save logic
+    # Test 1: Simple save logic
     model = db.get_registered_models()[0]
     experiment_in = SavedExperimentIn(
         model_id=str(model.id),
-        model_version=SemVer.from_str("0.2.0"),
+        model_version=SemVer.from_str("0.1.0"),
         tokens=50,
         temperature=0.1,
         prompt="User: Tell a joke\nSystem:",

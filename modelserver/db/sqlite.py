@@ -207,20 +207,20 @@ class PersistentDataManager(DataManager):
 
     def delete_model_version(self, model: str, version: str) -> None:
         with self.engine.connect() as conn:
-            # model_version table
-            conn.execute(
-                delete(model_version_table).where(
-                    and_(
-                        model_version_table.c.model_id == model,
-                        model_version_table.c.version == version,
-                    )
-                )
-            )
+            row = conn.execute(
+                select(model_table.c.id)
+                .select_from(model_table)
+                .where(model_table.c.name == model)
+            ).fetchone()
+            if row is None:
+                return
+            [model_id] = row
+
             # import_metadata table
             conn.execute(
                 delete(import_metadata_table).where(
                     and_(
-                        import_metadata_table.c.model_id == model,
+                        import_metadata_table.c.model_id == model_id,
                         import_metadata_table.c.model_version == version,
                     )
                 )
@@ -229,11 +229,59 @@ class PersistentDataManager(DataManager):
             conn.execute(
                 delete(model_params_table).where(
                     and_(
-                        model_params_table.c.model_id == model,
+                        model_params_table.c.model_id == model_id,
                         model_params_table.c.model_version == version,
                     )
                 )
             )
+            # model_version table
+            conn.execute(
+                delete(model_version_table).where(
+                    and_(
+                        model_version_table.c.model_id == model_id,
+                        model_version_table.c.version == version,
+                    )
+                )
+            )
+            conn.commit()
+
+    def delete_model(self, model: str) -> None:
+        with self.engine.connect() as conn:
+            row = conn.execute(
+                select(model_table.c.id)
+                .select_from(model_table)
+                .where(model_table.c.name == model)
+            ).fetchone()
+            if row is None:
+                return
+            [model_id] = row
+
+            # import_metadata table
+            conn.execute(
+                delete(import_metadata_table).where(
+                    and_(
+                        import_metadata_table.c.model_id == model_id,
+                    )
+                )
+            )
+            # model_params table
+            conn.execute(
+                delete(model_params_table).where(
+                    and_(
+                        model_params_table.c.model_id == model_id,
+                    )
+                )
+            )
+            # model_version table
+            conn.execute(
+                delete(model_version_table).where(
+                    and_(
+                        model_version_table.c.model_id == model_id,
+                    )
+                )
+            )
+            # model table
+            conn.execute(delete(model_table).where(model_table.c.id == model_id))
             conn.commit()
 
     def upsert_model_description(self, model_name: str, description: str) -> None:

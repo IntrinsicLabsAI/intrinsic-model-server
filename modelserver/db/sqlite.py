@@ -243,6 +243,15 @@ class PersistentDataManager(DataManager):
                     )
                 )
             )
+
+            # Delete the model record if this was the final version
+            models = conn.execute(
+                select(model_version_table.c.version)
+                .select_from(model_version_table)
+                .where(model_version_table.c.model_id == model_id)
+            ).fetchall()
+            if len(models) == 0:
+                conn.execute(delete(model_table).where(model_table.c.id == model_id))
             conn.commit()
 
     def delete_model(self, model: str) -> None:

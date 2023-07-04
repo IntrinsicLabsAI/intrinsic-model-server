@@ -4,6 +4,8 @@ import { BlueprintIcons_16Id } from "@blueprintjs/icons/src/generated/16px/bluep
 
 import Page from "../components/layout/Page";
 import { Icon } from "@blueprintjs/core";
+import DropdownMenu from "../components/core/DropdownMenu";
+import ChangeNameModal from "./Model/ChangeNameModal";
 
 function ModelHeader({
     modelName
@@ -11,6 +13,7 @@ function ModelHeader({
     modelName: string
 }) {
     const [currentTab, setCurrentTab] = useState(useLocation().pathname);
+    const [isOpen, setIsOpen] = useState(false);
 
     const navigate = useNavigate();
 
@@ -42,11 +45,29 @@ function ModelHeader({
         }
     ]
 
+    const options = [
+        {
+            id: "editModelName",
+            value: "Rename Model",
+            icon: "edit" as BlueprintIcons_16Id
+        }
+    ]
+
+    const menuOptions = (key: string) => {
+        if (key === "editModelName") { setIsOpen(true) }
+    }
+
     return (
         <>
+            <ChangeNameModal isOpen={isOpen} setIsOpen={setIsOpen} modelName={modelName} />
             <div className=" flex flex-col justify-between">
                 <div className="flex flex-row items-center">
-                    <h2 className=" font-semibold text-2xl mr-auto">{modelName}</h2>
+                    <h2 className=" font-semibold text-xl mr-auto">{modelName}</h2>
+                    <DropdownMenu
+                        type='text'
+                        buttonText="Actions"
+                        items={options}
+                        onSelectionChange={menuOptions} />
                 </div>
                 <div className="flex flex-row pt-10 gap-4">
                     {tabs.map(tab => (

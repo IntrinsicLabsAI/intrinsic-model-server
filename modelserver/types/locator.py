@@ -1,6 +1,6 @@
-from typing import Annotated, Literal
+from typing import Annotated, Any, Literal, Union
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, RootModel
 
 
 class HFLocator(BaseModel):
@@ -19,5 +19,18 @@ class DiskLocator(BaseModel):
     path: str
 
 
-class Locator(BaseModel):
-    __root__: Annotated[HFLocator | DiskLocator, Field(discriminator="type")]
+class Locator(
+    RootModel[
+        Annotated[
+            HFLocator | DiskLocator,
+            Field(alias="Locator", title="Locator", discriminator="type"),
+        ]
+    ]
+):
+    root: Annotated[
+        HFLocator | DiskLocator,
+        Field(alias="Locator", title="Locator", discriminator="type"),
+    ]
+
+    def __init__(self, *args: HFLocator | DiskLocator, **data: Any) -> None:
+        super().__init__(*args, **data)

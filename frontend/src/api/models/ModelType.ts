@@ -9,6 +9,4 @@
  *
  * * `completion`: A language model using completion
  */
-export enum ModelType {
-    COMPLETION = 'completion',
-}
+export type ModelType = string;

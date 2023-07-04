@@ -1,42 +1,48 @@
-import pytest
-from pydantic import ValidationError
+from enum import member, nonmember
+from typing import Annotated, Any, Literal, TypeAlias
 
-from modelserver.types.api import SemVer
+import pytest
+from pydantic import Field, ValidationError, constr
+
+from modelserver.types.api import ModelVersion, SemVer
 from modelserver.types.locator import DiskLocator, HFLocator
 from modelserver.types.tasks import DownloadDiskModelTask, DownloadHFModelTask, Task
 
 
 def test_semver() -> None:
-    """
-    :return:
-    """
+    assert SemVer("1.2.3").model_dump_json() == '"1.2.3"'
+
     versions = [
-        SemVer.of(1, 1, 1),
-        SemVer.of(1, 0, 0),
-        SemVer.of(1, 1, 0),
+        SemVer("1.1.1"),
+        SemVer("1.0.0"),
+        SemVer("1.1.0"),
     ]
 
     assert sorted(versions) == [
-        SemVer.of(1, 0, 0),
-        SemVer.of(1, 1, 0),
-        SemVer.of(1, 1, 1),
+        SemVer("1.0.0"),
+        SemVer("1.1.0"),
+        SemVer("1.1.1"),
     ]
 
-    assert SemVer.from_str("100.10.19") == SemVer.of(100, 10, 19)
+    assert SemVer("100.10.19")
+    assert SemVer("11.12.13") == SemVer("11.12.13")
+
+    with pytest.raises(ValidationError):
+        SemVer("012..")
 
 
 def test_tasks() -> None:
-    parsed_task1 = Task.parse_obj(
+    parsed_task1 = Task.model_validate(
         {
             "type": "taskv1/download-disk",
             "locator": {"type": "locatorv1/disk", "path": "/my/new/file.bin"},
         }
     )
-    assert parsed_task1.__root__ == DownloadDiskModelTask(
+    assert parsed_task1.root == DownloadDiskModelTask(
         locator=DiskLocator(path="/my/new/file.bin")
     )
 
-    parsed_task2 = Task.parse_obj(
+    parsed_task2 = Task.model_validate(
         {
             "type": "taskv1/download-hf",
             "locator": {
@@ -47,7 +53,7 @@ def test_tasks() -> None:
         }
     )
 
-    assert parsed_task2.__root__ == DownloadHFModelTask(
+    assert parsed_task2.root == DownloadHFModelTask(
         locator=HFLocator(
             repo="vicuna/7b",
             file="ggml.bin",
@@ -56,7 +62,7 @@ def test_tasks() -> None:
 
     # Ensuer mismatched tasks/locators reject
     with pytest.raises(ValidationError):
-        Task.parse_obj(
+        Task.model_validate(
             {
                 "type": "taskv1/download-hf",
                 "locator": {"type": "locatorv1/disk", "path": "/this/will/fail.bin"},
@@ -64,7 +70,7 @@ def test_tasks() -> None:
         )
 
     with pytest.raises(ValidationError):
-        Task.parse_obj(
+        Task.model_validate(
             {
                 "type": "taskv1/download-disk",
                 "locator": {

@@ -56,10 +56,10 @@ class PersistentTaskStore(TaskStore):
             "INSERT INTO tasks(id, type, def, state_type, state) VALUES (?, ?, ?, ?, ?)",
             (
                 str(new_id),
-                str(task_def.__root__.dict()["type"]),
-                task_def.json(),
+                str(task_def.root.model_dump()["type"]),
+                task_def.model_dump_json(),
                 InProgressState(progress=0.0).type,
-                InProgressState(progress=0.0).json(),
+                InProgressState(progress=0.0).model_dump_json(),
             ),
         )
         self.db.commit()
@@ -69,8 +69,8 @@ class PersistentTaskStore(TaskStore):
         self.db.execute(
             "UPDATE tasks SET state = ?, state_type = ? WHERE id = ?",
             (
-                updated.json(),
-                updated.__root__.dict()["type"],
+                updated.model_dump_json(),
+                updated.root.model_dump()["type"],
                 str(task_id),
             ),
         )
@@ -84,7 +84,7 @@ class PersistentTaskStore(TaskStore):
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"No task found for {task_id}",
             )
-        return TaskState.parse_raw(row[0])
+        return TaskState.model_validate_json(row[0])
 
     def get_unfinished_tasks(self) -> Mapping[TaskId, Task]:
         cur = self.db.execute(
@@ -96,6 +96,6 @@ class PersistentTaskStore(TaskStore):
 
         mapping = dict()
         for row in cur.fetchall():
-            mapping[uuid.UUID(row[0])] = Task.parse_raw(row[1])
+            mapping[uuid.UUID(row[0])] = Task.model_validate_json(row[1])
 
         return mapping

@@ -4,7 +4,7 @@
 
 export type FinishedTaskState = {
     type?: 'finished';
-    info?: string;
+    info?: (string | null);
     metadata?: Record<string, string>;
 };
 

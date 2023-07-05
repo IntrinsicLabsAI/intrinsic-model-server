@@ -125,7 +125,7 @@ export default function Settings() {
                     The model will no longer be available and all experiments will be permanently deleted.
                     Please proceed with caution, there is no way to undo this action.
                 </p>
-                <div className="flex flex-row w-fit pt-4 gap-2 cursor-pointer"
+                <div className="flex flex-row w-fit mt-4 gap-2 cursor-pointer"
                     onClick={() => {                      
                         deleteModelAction(modelName)
                         navigate("/")}}>

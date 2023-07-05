@@ -65,11 +65,11 @@ export default function Home() {
               </Widget>
           ) : (
             <Card>
-              <h2 className=' text-xl font-semibold pb-2 '>Getting Started with Your First Model</h2>
+              <h2 className=' text-xl font-semibold pb-2 '>Getting Started with Intrinsic Server</h2>
               <p className=' leading-snug'>
                 You don't seem to have any models registered.
-                Import a model file to start using Intrinsic Server. 
-                You can import directly from HuggingFace or upload a model file from disk.
+                Import a model to start using Intrinsic Server.
+                You can import directly from HuggingFace or upload the model file from disk.
                 Check out the <span>documentation</span> if you have any questions.
               </p>
               <div className="mt-4 w-fit mx-auto">

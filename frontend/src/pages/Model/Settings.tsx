@@ -11,6 +11,7 @@ import Column from "../../components/layout/Column";
 import OneColumnLayout from "../../components/layout/OneColumnLayout";
 import { Icon } from "@blueprintjs/core";
 import Button from "../../components/core/Button";
+import InteractiveTable from "../../components/core/InteractiveTable";
 
 const VALIDATION_REGEX = /^[a-zA-Z0-9-_.]+$/;
 
@@ -24,6 +25,9 @@ export default function Settings() {
     })
 
     const [newName, setNewName] = useState<string>("")
+    const [settingsTab, setSettingTab] = useState<string>("general")
+    const [versionSelection, setVersionSelection] = useState<string>("")
+
     const [updateNameAction] = useUpdateModelNameMutation();
     const [deleteModelAction] = useDeleteModelMutation();
 
@@ -33,12 +37,37 @@ export default function Settings() {
         return VALIDATION_REGEX.test(newName);
     }, [newName]);
 
-    const updateMetadata = (
+    const rows = registeredModel?.versions.map(v => ({
+        Version: v.version,
+        Type: v.import_metadata?.source.type || "Unkown",
+        Date: v.import_metadata?.imported_at
+    })) || []
+
+    const modelVersions = (
         <>
+            <h3 className="text-2xl font-semibold">Model Versions</h3>
+            <div>
+                <h3 className="text-xl font-semibold">Delete Version</h3>
+                <p className=" text-gray-400/80 ">
+                    Delete one of the currently registered versions of this model.
+                    If you delete a version, it will delete all associated experiments as well.
+                </p>
+            </div>
+            <InteractiveTable
+                enableSelection
+                onRowSelect={setVersionSelection}
+                rows={rows}
+                columns={["Version", "Type", "Date"]} />
+        </>
+    )
+
+    const generalSettings = (
+        <>
+            <h3 className="text-2xl font-semibold">General</h3>
             <div>
                 <h3 className="text-xl font-semibold">Update Metadata</h3>
                 <p className=" text-gray-400/80 ">
-                    Change the metadata associated with the model's registration. 
+                    Change the metadata associated with the model's registration.
                     Currently, only Model Name can be updated.
                     Exercise caution when updating the name of your model.
                     Though the UUID will remain stable, updating the name may break any clients which leverage the server's generated API.
@@ -77,39 +106,45 @@ export default function Settings() {
                     </form>
                 </div>
             </div>
-        </>
-    )
-    
-    const deleteModel = (
-        <div>
-            <h3 className="text-xl font-semibold">Delete Model</h3>
-            <p className=" text-gray-400/80 ">
-                Delete your model and all associated imported versions from the server.
-                The model will no longer be available and all experiments will be permanently deleted.
-                Please proceed with caution, there is no way to undo this action.
-            </p>
-            <div className="flex flex-row w-fit pt-2">
-                <Button type="text" buttonIcon="trash" buttonText="Delete Model" onAction={() => { 
-                    deleteModelAction(modelName)
-                    navigate("/")
-                }} />
+            <div>
+                <h3 className="text-xl font-semibold">Delete Model</h3>
+                <p className=" text-gray-400/80 ">
+                    Delete your model and all associated imported versions from the server.
+                    The model will no longer be available and all experiments will be permanently deleted.
+                    Please proceed with caution, there is no way to undo this action.
+                </p>
+                <div className="flex flex-row w-fit pt-4">
+                    <Button type="text" buttonIcon="trash" buttonText="Delete Model" onAction={() => {
+                        deleteModelAction(modelName)
+                        navigate("/")
+                    }} />
+                </div>
             </div>
-        </div>
+        </>
     )
 
     return (
         <OneColumnLayout>
             <Column>
-                <Card>
-                    <div className="flex flex-col gap-4 w-full">
-                        <div>
-                            <h2 className="text-2xl font-semibold">Manage Settings for Model</h2>
-                            <p className=" text-gray-400/80 ">Use this to manage settings for your model, associated metadata, and the respective versions of the model which have been registered with the server.</p>
+                <div className="flex flex-row gap-4 w-full">
+                    <Card className=" w-64 h-96 ">
+                        <p className=" font-semibold text-lg pb-4">Settings</p>
+                        <p  className={` cursor-pointer font-semibold pb-1 ${settingsTab === "general" ? " text-primary-600 " : "" }`}
+                            onClick={() => setSettingTab("general")}>
+                            General
+                        </p>
+                        <p  className={` cursor-pointer font-semibold pb-1 ${settingsTab === "versions" ? " text-primary-600 " : "" }`}
+                            onClick={() => setSettingTab("versions")}>
+                            Model Versions
+                        </p>
+                    </Card>
+                    <Card className=" h-fit ">
+                        <div className="flex flex-col gap-4 w-full">
+                            {settingsTab === "general" &&   generalSettings}
+                            {settingsTab === "versions" &&  modelVersions}
                         </div>
-                        {updateMetadata}
-                        {deleteModel}
-                    </div>
-                </Card>
+                    </Card>
+                </div>
             </Column>
         </OneColumnLayout>
     )

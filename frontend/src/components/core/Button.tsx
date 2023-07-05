@@ -3,7 +3,7 @@ import { Icon } from '@blueprintjs/core'
 
 
 /**
-* The one true button for Intrinsic Labs.
+* A versitile button for use by Intrinsic Labs.
 * @component Button
 * @param {string} [buttonText] - The button text to display, no text is shown if none is provided.
 * @param {BlueprintIcons_16Id} [buttonIcon] - The Blueprint Icon to display, no icon is shown if none is provided.

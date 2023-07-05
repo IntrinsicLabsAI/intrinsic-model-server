@@ -67,10 +67,9 @@ export default function Home() {
             <Card>
               <h2 className=' text-xl font-semibold pb-2 '>Getting Started with Intrinsic Server</h2>
               <p className=' leading-snug'>
-                You don't seem to have any models registered.
                 Import a model to start using Intrinsic Server.
-                You can import directly from HuggingFace or upload the model file from disk.
-                Check out the <span>documentation</span> if you have any questions.
+                You can import from a <a href="https://huggingface.co/">HuggingFace</a> repository or upload a model from disk.
+                <a href="https://intrinsiclabsai.github.io/intrinsic-model-server">Check out the documentation</a> if you have any questions.
               </p>
               <div className="mt-4 w-fit mx-auto">
                 <Button

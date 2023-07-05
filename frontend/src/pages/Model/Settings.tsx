@@ -4,6 +4,7 @@ import { useMemo, useState } from "react"
 import { useNavigate } from "react-router-dom"
 
 import { useUpdateModelNameMutation, useDeleteModelMutation, useDeleteModelVersionMutation } from "../../api/services/v1"
+import { DateTime } from "luxon";
 
 import TextInput from "../../components/form/TextInput"
 import Card from "../../components/core/Card";
@@ -42,7 +43,7 @@ export default function Settings() {
         row_key: v.version,
         Version: v.version,
         Type: v.import_metadata?.source.type || "Unkown",
-        Date: v.import_metadata?.imported_at
+        Date: DateTime.fromISO(v.import_metadata?.imported_at).toLocaleString(DateTime.DATETIME_MED),
     })) || []
 
     const modelVersions = (
@@ -59,10 +60,11 @@ export default function Settings() {
                 enableSelection
                 onRowSelect={setVersionSelection}
                 rows={rows}
-                columns={["row_key", "Version", "Type", "Date"]} />
+                columns={["Version", "Type", "Date"]} />
             <div className="w-fit">
                 <Button type="text" 
                         buttonText="Delete Version"
+                        disabled={versionSelection === ""}
                         onAction={() => {
                             deleteModelVersionAction({ model: modelName, version: versionSelection })
                             navigate("/")
@@ -136,8 +138,8 @@ export default function Settings() {
     return (
         <OneColumnLayout>
             <Column>
-                <div className="flex flex-row gap-4 w-full">
-                    <Card className=" h-96 w-80 ">
+                <div className="flex flex-row gap-4 w-full h-full">
+                    <Card className=" h-60 w-80 ">
                         <p className=" font-semibold text-lg pb-4">Settings</p>
                         <p  className={` cursor-pointer font-semibold pb-1 ${settingsTab === "general" ? " text-primary-600 " : "" }`}
                             onClick={() => setSettingTab("general")}>

@@ -3,7 +3,7 @@ import { Icon } from '@blueprintjs/core'
 
 
 /**
-* A versitile button for use by Intrinsic Labs.
+* A versitile, basic button for use as part of IDS. Built on top of HTML button component for accessibility.
 * @component Button
 * @param {string} [buttonText] - The button text to display, no text is shown if none is provided.
 * @param {BlueprintIcons_16Id} [buttonIcon] - The Blueprint Icon to display, no icon is shown if none is provided.

@@ -75,22 +75,6 @@ export default function Settings() {
                             <TextInput disabled placeholder={registeredModel?.id} name="model-id" />
                         </div>
                     </form>
-                    <form className="flex flex-row gap-2 w-full">
-                        <div className="flex flex-col items-start basis-52">
-                            <p className=" font-semibold leading-none">Type</p>
-                        </div>
-                        <div className=" w-5/12 ">
-                            <TextInput disabled placeholder={registeredModel?.model_type} name="model-type" />
-                        </div>
-                    </form>
-                    <form className="flex flex-row gap-2 w-full">
-                        <div className="flex flex-col items-start basis-52">
-                            <p className=" font-semibold leading-none">Runtime</p>
-                        </div>
-                        <div className=" w-5/12 ">
-                            <TextInput disabled placeholder={registeredModel?.runtime} name="model-type" />
-                        </div>
-                    </form>
                 </div>
             </div>
         </>

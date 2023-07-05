@@ -35,8 +35,9 @@ export default function Workspace() {
                     </Link>
                     <div className='ml-auto'>
                         <Button
-                            type='icon'
+                            outline={false}
                             buttonIcon="manual"
+                            size='large'
                             onAction={() => window.open(`${baseURL()}/docs`, "_blank")}
                         />
                     </div>

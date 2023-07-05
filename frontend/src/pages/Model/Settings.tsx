@@ -62,7 +62,7 @@ export default function Settings() {
                 rows={rows}
                 columns={["Version", "Type", "Date"]} />
             <div className="w-fit">
-                <Button type="text"
+                <Button
                     buttonText="Delete Version"
                     disabled={versionSelection === ""}
                     onAction={() => {

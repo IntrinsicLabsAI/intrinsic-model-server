@@ -11,6 +11,7 @@ import { featureUpdates } from '../data/featureUpdates';
 import Card from '../components/core/Card';
 import { Icon } from '@blueprintjs/core';
 import { useNavigate } from 'react-router';
+import Button from '../components/core/Button';
 
 export default function Home() {
   // All models
@@ -69,17 +70,12 @@ export default function Home() {
                       You don't seem to have any models!
                       To get started, please import a model file using either an integrated repository or a file.
                     </p>
-                    <div className="mt-4">
-                      <button
-                        onClick={(evt) => {
-                          evt.preventDefault();
-                          navigate("/new-model");
-                        }}
-                        className="p-3 mx-auto flex flex-row rounded-md bg-primary-600/80 hover:bg-primary-600"
-                      >
-                        <Icon icon="cloud-upload" size={24} color="white" />
-                        <p className="pl-2">Import a model</p>
-                      </button>
+                    <div className="mt-4 w-fit mx-auto">
+                      <Button 
+                        size="large"
+                        buttonIcon='cloud-upload' 
+                        buttonText='Import a model' 
+                        onAction={() => {navigate('/new-model')}} />
                     </div>
                   </div>
                 )}

@@ -234,6 +234,14 @@ class PersistentDataManager(DataManager):
                     )
                 )
             )
+            conn.execute(
+                delete(saved_experiments_table).where(
+                    and_(
+                        saved_experiments_table.c.model_id == model_id,
+                        saved_experiments_table.c.model_version == version,
+                    )
+                )
+            )
             # model_version table
             conn.execute(
                 delete(model_version_table).where(
@@ -268,25 +276,25 @@ class PersistentDataManager(DataManager):
             # import_metadata table
             conn.execute(
                 delete(import_metadata_table).where(
-                    and_(
-                        import_metadata_table.c.model_id == model_id,
-                    )
+                    import_metadata_table.c.model_id == model_id,
                 )
             )
             # model_params table
             conn.execute(
                 delete(model_params_table).where(
-                    and_(
-                        model_params_table.c.model_id == model_id,
-                    )
+                    model_params_table.c.model_id == model_id,
+                )
+            )
+            # experiments
+            conn.execute(
+                delete(saved_experiments_table).where(
+                    saved_experiments_table.c.model_id == model_id
                 )
             )
             # model_version table
             conn.execute(
                 delete(model_version_table).where(
-                    and_(
-                        model_version_table.c.model_id == model_id,
-                    )
+                    model_version_table.c.model_id == model_id,
                 )
             )
             # model table

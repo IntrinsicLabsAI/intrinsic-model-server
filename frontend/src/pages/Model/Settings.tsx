@@ -137,7 +137,7 @@ export default function Settings() {
         <OneColumnLayout>
             <Column>
                 <div className="flex flex-row gap-4 w-full">
-                    <Card className=" w-64 h-96 ">
+                    <Card className=" h-96 w-80 ">
                         <p className=" font-semibold text-lg pb-4">Settings</p>
                         <p  className={` cursor-pointer font-semibold pb-1 ${settingsTab === "general" ? " text-primary-600 " : "" }`}
                             onClick={() => setSettingTab("general")}>

@@ -10,10 +10,12 @@ import Column from '../components/layout/Column';
 import { featureUpdates } from '../data/featureUpdates';
 import Card from '../components/core/Card';
 import { Icon } from '@blueprintjs/core';
+import { useNavigate } from 'react-router';
 
 export default function Home() {
   // All models
-  const { data, isLoading } = useGetModelsQuery()
+  const { data, isLoading } = useGetModelsQuery();
+  const navigate = useNavigate();
 
   return (
     <>
@@ -62,12 +64,23 @@ export default function Home() {
                     )}
                   </div>
                 ) : (
-                  <div className="mt-2">
-                    <p className=''>
-                      No models were found.
-                      This could be because no models have been registered or the server is offline.
-                      To get started, please register a model.
+                  <div className="mt-2 container">
+                    <p>
+                      You don't seem to have any models!
+                      To get started, please import a model file using either an integrated repository or a file.
                     </p>
+                    <div className="mt-4">
+                      <button
+                        onClick={(evt) => {
+                          evt.preventDefault();
+                          navigate("/new-model");
+                        }}
+                        className="p-3 mx-auto flex flex-row rounded-md bg-primary-600/80 hover:bg-primary-600"
+                      >
+                        <Icon icon="cloud-upload" size={24} color="white" />
+                        <p className="pl-2">Import a model</p>
+                      </button>
+                    </div>
                   </div>
                 )}
 
@@ -91,7 +104,7 @@ export default function Home() {
                       </div>
                     </Card>
                   </div>
-                  ))}
+                ))}
               </div>
             </Widget>
           </Column>

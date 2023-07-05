@@ -13,6 +13,7 @@ import OneColumnLayout from "../../components/layout/OneColumnLayout";
 import { Icon } from "@blueprintjs/core";
 import Button from "../../components/core/Button";
 import InteractiveTable from "../../components/core/InteractiveTable";
+import TwoColumnLayout from "../../components/layout/TwoColumnLayout";
 
 const VALIDATION_REGEX = /^[a-zA-Z0-9-_.]+$/;
 
@@ -62,13 +63,13 @@ export default function Settings() {
                 rows={rows}
                 columns={["Version", "Type", "Date"]} />
             <div className="w-fit">
-                <Button type="text" 
-                        buttonText="Delete Version"
-                        disabled={versionSelection === ""}
-                        onAction={() => {
-                            deleteModelVersionAction({ model: modelName, version: versionSelection })
-                            navigate("/")
-                        }} />
+                <Button type="text"
+                    buttonText="Delete Version"
+                    disabled={versionSelection === ""}
+                    onAction={() => {
+                        deleteModelVersionAction({ model: modelName, version: versionSelection })
+                        navigate("/")
+                    }} />
             </div>
         </>
     )
@@ -126,9 +127,10 @@ export default function Settings() {
                     Please proceed with caution, there is no way to undo this action.
                 </p>
                 <div className="flex flex-row w-fit mt-4 gap-2 cursor-pointer"
-                    onClick={() => {                      
+                    onClick={() => {
                         deleteModelAction(modelName)
-                        navigate("/")}}>
+                        navigate("/")
+                    }}>
                     <Icon icon="trash" size={14} color="#f1616f" />
                     <p className=" font-semibold text-red-400 leading-none"> Delete this model and all associated versions and experiments. </p>
                 </div>
@@ -137,28 +139,28 @@ export default function Settings() {
     )
 
     return (
-        <OneColumnLayout>
+        <TwoColumnLayout type="rightWide">
             <Column>
-                <div className="flex flex-row gap-4 w-full h-full">
-                    <Card className=" h-60 w-80 ">
-                        <p className=" font-semibold text-lg pb-4">Settings</p>
-                        <p  className={` cursor-pointer font-semibold pb-1 ${settingsTab === "general" ? " text-primary-600 " : "" }`}
-                            onClick={() => setSettingTab("general")}>
-                            General
-                        </p>
-                        <p  className={` cursor-pointer font-semibold pb-1 ${settingsTab === "versions" ? " text-primary-600 " : "" }`}
-                            onClick={() => setSettingTab("versions")}>
-                            Model Versions
-                        </p>
-                    </Card>
-                    <Card className=" h-fit ">
-                        <div className="flex flex-col gap-4 w-full">
-                            {settingsTab === "general" &&   generalSettings}
-                            {settingsTab === "versions" &&  modelVersions}
-                        </div>
-                    </Card>
-                </div>
+                <Card className=" h-60 w-80 ">
+                    <p className=" font-semibold text-lg pb-4">Settings</p>
+                    <p className={` cursor-pointer font-semibold pb-1 ${settingsTab === "general" ? " text-primary-600 " : ""}`}
+                        onClick={() => setSettingTab("general")}>
+                        General
+                    </p>
+                    <p className={` cursor-pointer font-semibold pb-1 ${settingsTab === "versions" ? " text-primary-600 " : ""}`}
+                        onClick={() => setSettingTab("versions")}>
+                        Model Versions
+                    </p>
+                </Card>
             </Column>
-        </OneColumnLayout>
+            <Column>
+                <Card className=" h-fit ">
+                    <div className="flex flex-col gap-4 w-full">
+                        {settingsTab === "general" && generalSettings}
+                        {settingsTab === "versions" && modelVersions}
+                    </div>
+                </Card>
+            </Column>
+        </TwoColumnLayout>
     )
 }

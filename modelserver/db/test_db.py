@@ -8,12 +8,7 @@ from sqlalchemy import create_engine
 
 from modelserver.types.tasks import InProgressState, TaskState
 
-from ..types.api import (
-    RegisterModelRequest,
-    SavedExperimentIn,
-    SavedExperimentOut,
-    SemVer,
-)
+from ..types.api import RegisterModelRequest, SavedExperimentIn, SemVer
 from .sqlite import PersistentDataManager
 
 REGISTER_V1 = RegisterModelRequest.parse_obj(
@@ -65,8 +60,28 @@ def test_simple_query(db: PersistentDataManager) -> None:
 
 
 def test_delete_all(db: PersistentDataManager) -> None:
-    db.register_model(REGISTER_V1)
-    db.register_model(REGISTER_V2)
+    v1_id, _ = db.register_model(REGISTER_V1)
+    v2_id, _ = db.register_model(REGISTER_V2)
+    db.save_experiment(
+        SavedExperimentIn(
+            model_id=v1_id,
+            model_version=SemVer.from_str("0.1.0"),
+            prompt="My name is",
+            output=" Bond. James Bond.",
+            temperature=0.4,
+            tokens=5,
+        )
+    )
+    db.save_experiment(
+        SavedExperimentIn(
+            model_id=v2_id,
+            model_version=SemVer.from_str("0.1.0"),
+            prompt="My name is",
+            output=" Inigo Montoya, you killed my father. Prepare to die.",
+            temperature=0.4,
+            tokens=5,
+        )
+    )
 
     # Delete all instances of model
     db.delete_model("anewmodel")
@@ -75,8 +90,18 @@ def test_delete_all(db: PersistentDataManager) -> None:
 
 def test_delete_version(db: PersistentDataManager) -> None:
     # Repopulate
-    db.register_model(REGISTER_V1)
+    v1_id, _ = db.register_model(REGISTER_V1)
     db.register_model(REGISTER_V2)
+    db.save_experiment(
+        SavedExperimentIn(
+            model_id=v1_id,
+            model_version=SemVer.from_str("0.1.0"),
+            prompt="My name is",
+            output=" Bond. James Bond.",
+            temperature=0.4,
+            tokens=5,
+        )
+    )
     db.delete_model_version(REGISTER_V1.model, REGISTER_V1.version)
     assert len(db.get_registered_models()[0].versions) == 1
 

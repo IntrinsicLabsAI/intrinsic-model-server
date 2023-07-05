@@ -69,7 +69,7 @@ export default function Home() {
               <p className=' leading-snug'>
                 Import a model to start using Intrinsic Server.
                 You can import from a <a href="https://huggingface.co/">HuggingFace</a> repository or upload a model from disk.
-                <a href="https://intrinsiclabsai.github.io/intrinsic-model-server">Check out the documentation</span> if you have any questions.
+                <a href="https://intrinsiclabsai.github.io/intrinsic-model-server">Check out the documentation</a> if you have any questions.
               </p>
               <div className="mt-4 w-fit mx-auto">
                 <Button

@@ -10,7 +10,7 @@ export default function Page(
     }
 ) {
     const headerRef = useRef<HTMLDivElement>(null);
-    const [headerHeight, setHeaderHeight] = useState("0px");
+    const [headerHeight, setHeaderHeight] = useState("24px");
 
     useEffect(() => {
         if(header && headerRef.current) {

@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from modelserver.dependencies import persistent_db, task_store
 from modelserver.middleware import StaticReactRouterFiles
-from modelserver.routes import health, hfbrowse, v1
+from modelserver.routes import admin, health, hfbrowse, v1
 from modelserver.tasks import TaskWorker
 
 app = FastAPI(openapi_url="/openapi.yml")
@@ -18,6 +18,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(admin.router)
 app.include_router(v1.router)
 app.include_router(health.router)
 app.include_router(hfbrowse.router)

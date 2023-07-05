@@ -11,7 +11,8 @@ import { Icon } from '@blueprintjs/core'
 * @param {function} [onAction] - The function to be called when the button is clicked, no function is run if none is provided.
 * @param {boolean} [disabled=false] - Determines if the button is disabled.
 * @param {boolean} [outline=true] - Determines if the button has an outline applied
-* @param {("default")} [color="default"] - The color scheme of the button.
+* @param {("default" | "primary" | "danger")} [color="default"] - The color scheme of the button.
+* @param {("minimal" | "bold")} [style="minimal"] - The style of the button.
 * @returns {JSX.Element} The rendered Button component.
 */
 
@@ -20,6 +21,7 @@ export default function Button(
         buttonText,
         buttonIcon,
         size,
+        style,
         onAction,
         color,
         outline,
@@ -27,17 +29,19 @@ export default function Button(
     } : {
         buttonText?: string,
         buttonIcon?: BlueprintIcons_16Id,
-        size?: "small" | "medium" | "large"
+        size?: "small" | "medium" | "large",
+        style?: "minimal" | "bold"
         onAction?: () => void,
         disabled?: boolean,
         outline?: boolean,
-        color?: "default"
+        color?: "default" | "primary" | "danger"
     }
 ) {
     const outlineProp = (outline === undefined ? true : outline);
     const colorProp = (color === undefined ? "default" : color);
     const sizeProp = (size === undefined ? "medium" : size);
     const disabledProp = (disabled === undefined ? false : disabled)
+    const styleProp = (style === undefined ? "minimal" : style)
 
     const sizeSystem = {
         small: {
@@ -61,20 +65,66 @@ export default function Button(
     }
 
     const colorSystem = {
-        default: {
-            outline: "outline outline-gray-400",
-            background: "",
-            text: "text-gray-400",
-            icon: "#F6F7F9",
-            hover: "hover:bg-slate-400/20"
+        minimal :{
+            default: {
+                outline: "outline outline-gray-400",
+                background: "",
+                text: "text-gray-400",
+                icon: "#F6F7F9",
+                hover: "hover:bg-slate-400/20"
+            },
+            primary: {
+                outline: "outline outline-primary-400",
+                background: "",
+                text: "text-primary-400",
+                icon: "#6cc0a6",
+                hover: "hover:bg-primary-400/10"
+            },
+            danger: {
+                outline: "outline outline-red-400",
+                background: "",
+                text: "text-red-400",
+                icon: "#f1616f",
+                hover: "hover:bg-red-400/10"
+            },
+            disabled: {
+                outline: "",
+                background: "bg-gray-200/20",
+                text: "text-gray-200",
+                icon: "#DCE0E5",
+                hover: ""
+            }
         },
-        disabled: {
-            outline: "",
-            background: "bg-gray-200/20",
-            text: "text-gray-200",
-            icon: "#DCE0E5",
-            hover: ""
-        },
+        bold: {
+            default: {
+                outline: "",
+                background: "bg-gray-400",
+                text: "text-dark-400",
+                icon: "#383E47",
+                hover: "hover:bg-gray-400/80"
+            },
+            primary: {
+                outline: "",
+                background: "bg-primary-400",
+                text: "text-dark-400",
+                icon: "#383E47",
+                hover: "hover:bg-primary-400/80"
+            },
+            danger: {
+                outline: "",
+                background: "bg-red-400",
+                text: "text-dark-400",
+                icon: "#383E47",
+                hover: "hover:bg-red-400/80"
+            },
+            disabled: {
+                outline: "",
+                background: "bg-gray-200/20",
+                text: "text-gray-200",
+                icon: "#DCE0E5",
+                hover: ""
+            }
+        }
     }
 
     return (
@@ -83,21 +133,22 @@ export default function Button(
                 <div onClick={onAction} 
                     className={` flex flex-row cursor-pointer rounded items-center
                         ${sizeSystem[sizeProp]["padding"]}
+                        ${colorSystem[styleProp][colorProp]["background"]}
                         ${sizeSystem[sizeProp]["gap"]}
-                        ${colorSystem[colorProp]["hover"]}
-                        ${outlineProp ? `${colorSystem[colorProp]["outline"]}` : ""}`}>
-                    {buttonIcon && <Icon icon={buttonIcon} size={sizeSystem[sizeProp]["icon"]} color={`${colorSystem[colorProp]["icon"]}`} />}
-                    {buttonText && <p className={`leading-none ${sizeSystem[sizeProp]["text"]} ${colorSystem[colorProp]["text"]}`}> {buttonText} </p>}
+                        ${colorSystem[styleProp][colorProp]["hover"]}
+                        ${outlineProp ? `${colorSystem[styleProp][colorProp]["outline"]}` : ""}`}>
+                    {buttonIcon && <Icon icon={buttonIcon} size={sizeSystem[sizeProp]["icon"]} color={`${colorSystem[styleProp][colorProp]["icon"]}`} />}
+                    {buttonText && <p className={`leading-none ${sizeSystem[sizeProp]["text"]} ${colorSystem[styleProp][colorProp]["text"]}`}> {buttonText} </p>}
                 </div> 
             ) : (
                 <div onClick={onAction} 
                     className={` flex flex-row px-3 py-2 rounded items-center cursor-not-allowed
-                        ${colorSystem["disabled"]["background"]}
+                        ${colorSystem[styleProp]["disabled"]["background"]}
                         ${sizeSystem[sizeProp]["gap"]}
-                        ${colorSystem["disabled"]["hover"]}
-                        ${outlineProp ? `${colorSystem["disabled"]["outline"]}` : ""}`}>
-                    {buttonIcon && <Icon icon={buttonIcon} size={sizeSystem[sizeProp]["icon"]} color={`${colorSystem["disabled"]["icon"]}`} />}
-                    {buttonText && <p className={`leading-none ${sizeSystem[sizeProp]["text"]} ${colorSystem["disabled"]["text"]}`}> {buttonText} </p>}
+                        ${colorSystem[styleProp]["disabled"]["hover"]}
+                        ${outlineProp ? `${colorSystem[styleProp]["disabled"]["outline"]}` : ""}`}>
+                    {buttonIcon && <Icon icon={buttonIcon} size={sizeSystem[sizeProp]["icon"]} color={`${colorSystem[styleProp]["disabled"]["icon"]}`} />}
+                    {buttonText && <p className={`leading-none ${sizeSystem[sizeProp]["text"]} ${colorSystem[styleProp]["disabled"]["text"]}`}> {buttonText} </p>}
                 </div>
             )}
         </>

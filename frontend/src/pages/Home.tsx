@@ -74,7 +74,9 @@ export default function Home() {
               </p>
               <div className="mt-4 w-fit mx-auto">
                 <Button
+                  color="primary"
                   size="large"
+                  style="bold"
                   buttonIcon='cloud-upload'
                   buttonText='Import a model'
                   onAction={() => { navigate('/new-model') }} />

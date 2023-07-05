@@ -17,7 +17,7 @@ export default function Page(
             const height = headerRef.current.getBoundingClientRect().height;
             setHeaderHeight(`${height+24}px`)
         }
-    }, [])
+    }, [header])
 
     const bodyStyle: React.CSSProperties = {
         "paddingTop": `${headerHeight}`,

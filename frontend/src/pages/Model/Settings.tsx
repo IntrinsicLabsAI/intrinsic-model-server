@@ -125,11 +125,12 @@ export default function Settings() {
                     The model will no longer be available and all experiments will be permanently deleted.
                     Please proceed with caution, there is no way to undo this action.
                 </p>
-                <div className="flex flex-row w-fit pt-4">
-                    <Button type="text" buttonIcon="trash" buttonText="Delete Model" onAction={() => {
+                <div className="flex flex-row w-fit pt-4 gap-2 cursor-pointer"
+                    onClick={() => {                      
                         deleteModelAction(modelName)
-                        navigate("/")
-                    }} />
+                        navigate("/")}}>
+                    <Icon icon="trash" size={14} color="#f1616f" />
+                    <p className=" font-semibold text-red-400 leading-none"> Delete this model and all associated versions and experiments. </p>
                 </div>
             </div>
         </>

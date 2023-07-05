@@ -24,3 +24,6 @@ jobs:
       - name: Tag manual review for major version bumps
         if: ${{steps.metadata.outputs.update-type == 'version-update:semver-major'}}
         run: gh pr edit --add-reviewer a10y,tarrekshaban "$PR_URL"
+        env:
+          PR_URL: ${{github.event.pull_request.html_url}}
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}

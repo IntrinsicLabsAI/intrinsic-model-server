@@ -77,12 +77,10 @@ export default function Settings() {
         <>
             <h3 className="text-2xl font-semibold">General</h3>
             <div>
-                <h3 className="text-xl font-semibold">Update Metadata</h3>
+                <h3 className="text-xl font-semibold">Rename</h3>
                 <p className=" text-gray-400/80 ">
-                    Change the metadata associated with the model's registration.
-                    Currently, only Model Name can be updated.
-                    Exercise caution when updating the name of your model.
-                    Though the UUID will remain stable, updating the name may break any clients which leverage the server's generated API.
+                    Update the name of the model. Model names may only include alphanumeric characters, as well as periods, underscores and dashes.
+                    Note that updating the name of the model may break downstream API consumers.
                 </p>
             </div>
             <div className="flex flex-row w-full h-fit pt-2">
@@ -99,7 +97,7 @@ export default function Settings() {
                         </div>
                         <button
                             className=" outline outline-primary-600 px-2 py-1 rounded bg-primary-400 disabled:outline-gray-600 disabled:opacity-25 disabled:bg-gray-400"
-                            disabled={newName === "" || !isValid}
+                            disabled={!isValid}
                             onClick={() => {
                                 updateNameAction({ modelName: modelName, name: newName })
                                 setNewName("")
@@ -115,6 +113,16 @@ export default function Settings() {
                         <div className=" w-5/12 ">
                             <TextInput disabled placeholder={registeredModel?.id} name="model-id" />
                         </div>
+                        <button
+                            className=" outline outline-primary-600/50 px-2 py-1 rounded bg-primary-400 disabled:outline-gray-600 disabled:opacity-25 disabled:bg-gray-400"
+                            onClick={(evt) => {
+                                evt.preventDefault();
+                                if (registeredModel?.id) {
+                                    navigator.clipboard.writeText(registeredModel.id);
+                                }
+                            }}>
+                            <Icon icon="clipboard" size={24} />
+                        </button>
                     </form>
                 </div>
             </div>
@@ -122,16 +130,16 @@ export default function Settings() {
                 <h3 className="text-xl font-semibold">Delete Model</h3>
                 <p className=" text-gray-400/80 ">
                     Delete your model and all associated imported versions from the server.
-                    The model will no longer be available and all experiments will be permanently deleted.
+                    The model will no longer be available and all saved experiments will be permanently deleted as well.
                     Please proceed with caution, there is no way to undo this action.
                 </p>
-                <div className="flex flex-row w-fit mt-4 gap-2 cursor-pointer"
+                <div className="flex flex-row w-fit mt-4 gap-2 cursor-pointer hover:bg-red-400/30 p-3 rounded-lg"
                     onClick={() => {
-                        deleteModelAction(modelName)
-                        navigate("/")
+                        deleteModelAction(modelName);
+                        navigate("/");
                     }}>
                     <Icon icon="trash" size={14} color="#f1616f" />
-                    <p className=" font-semibold text-red-400 leading-none"> Delete this model and all associated versions and experiments. </p>
+                    <p className=" font-semibold text-red-400 leading-none"> Permanently Delete </p>
                 </div>
             </div>
         </>

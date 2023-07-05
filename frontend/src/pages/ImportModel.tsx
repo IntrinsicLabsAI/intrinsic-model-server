@@ -53,7 +53,6 @@ export default function ImportModel() {
                         <Button
                             onAction={() => navigate("/")}
                             buttonText="View Model"
-                            type="text"
                             disabled={data?.type === "finished" ? false : true} />
                     </div>
                     <>

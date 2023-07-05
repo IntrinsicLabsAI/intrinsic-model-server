@@ -24,6 +24,8 @@ export default function Settings() {
     })
 
     const [newName, setNewName] = useState<string>("")
+    const [settingsTab, setSettingTab] = useState<string>("general")
+
     const [updateNameAction] = useUpdateModelNameMutation();
     const [deleteModelAction] = useDeleteModelMutation();
 
@@ -33,12 +35,13 @@ export default function Settings() {
         return VALIDATION_REGEX.test(newName);
     }, [newName]);
 
-    const updateMetadata = (
+    const generalSettings = (
         <>
+            <h3 className="text-2xl font-semibold">General</h3>
             <div>
                 <h3 className="text-xl font-semibold">Update Metadata</h3>
                 <p className=" text-gray-400/80 ">
-                    Change the metadata associated with the model's registration. 
+                    Change the metadata associated with the model's registration.
                     Currently, only Model Name can be updated.
                     Exercise caution when updating the name of your model.
                     Though the UUID will remain stable, updating the name may break any clients which leverage the server's generated API.
@@ -93,39 +96,44 @@ export default function Settings() {
                     </form>
                 </div>
             </div>
-        </>
-    )
-    
-    const deleteModel = (
-        <div>
-            <h3 className="text-xl font-semibold">Delete Model</h3>
-            <p className=" text-gray-400/80 ">
-                Delete your model and all associated imported versions from the server.
-                The model will no longer be available and all experiments will be permanently deleted.
-                Please proceed with caution, there is no way to undo this action.
-            </p>
-            <div className="flex flex-row w-fit pt-2">
-                <Button type="text" buttonIcon="trash" buttonText="Delete Model" onAction={() => { 
-                    deleteModelAction(modelName)
-                    navigate("/")
-                }} />
+            <div>
+                <h3 className="text-xl font-semibold">Delete Model</h3>
+                <p className=" text-gray-400/80 ">
+                    Delete your model and all associated imported versions from the server.
+                    The model will no longer be available and all experiments will be permanently deleted.
+                    Please proceed with caution, there is no way to undo this action.
+                </p>
+                <div className="flex flex-row w-fit pt-2">
+                    <Button type="text" buttonIcon="trash" buttonText="Delete Model" onAction={() => {
+                        deleteModelAction(modelName)
+                        navigate("/")
+                    }} />
+                </div>
             </div>
-        </div>
+        </>
     )
 
     return (
         <OneColumnLayout>
             <Column>
-                <Card>
-                    <div className="flex flex-col gap-4 w-full">
-                        <div>
-                            <h2 className="text-2xl font-semibold">Manage Settings for Model</h2>
-                            <p className=" text-gray-400/80 ">Use this to manage settings for your model, associated metadata, and the respective versions of the model which have been registered with the server.</p>
+                <div className="flex flex-row gap-4 w-full">
+                    <Card className=" w-64 h-96 ">
+                        <p className=" font-semibold text-lg pb-4">Settings</p>
+                        <p  className={` cursor-pointer font-semibold pb-1 ${settingsTab === "general" ? " text-primary-600 " : "" }`}
+                            onClick={() => setSettingTab("general")}>
+                            General
+                        </p>
+                        <p  className={` cursor-pointer font-semibold pb-1 ${settingsTab === "versions" ? " text-primary-600 " : "" }`}
+                            onClick={() => setSettingTab("versions")}>
+                            Model Versions
+                        </p>
+                    </Card>
+                    <Card className=" h-fit ">
+                        <div className="flex flex-col gap-4 w-full">
+                            {settingsTab === "general" && generalSettings}
                         </div>
-                        {updateMetadata}
-                        {deleteModel}
-                    </div>
-                </Card>
+                    </Card>
+                </div>
             </Column>
         </OneColumnLayout>
     )

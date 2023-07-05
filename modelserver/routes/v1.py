@@ -1,4 +1,7 @@
+import asyncio
 import logging
+import multiprocessing as M
+import queue
 import re
 import time
 from typing import Annotated
@@ -15,6 +18,7 @@ from fastapi import (
 )
 from llama_cpp import Llama
 
+from modelserver.model_worker import run_completion_async
 from modelserver.types.locator import DiskLocator, HFLocator, Locator
 
 from ..db import DataManager
@@ -73,16 +77,11 @@ async def run_inference_sync(
 
     # Generate the Llama context
     starttime = time.time()
-    llama = Llama(model_path=found_model.internal_params.model_path)
-
-    res = llama.create_completion(
-        request.prompt,
-        temperature=request.temperature,
-        max_tokens=request.tokens,
-        stream=False,
-    )
-
-    completion = res["choices"][0]["text"]
+    completion = ""
+    async for token in run_completion_async(
+        request, found_model.internal_params.model_path
+    ):
+        completion += token
     elapsed = time.time() - starttime
     return CompletionInference(
         model_name=model,
@@ -195,17 +194,14 @@ async def completion_async(
 ) -> None:
     await websocket.accept()
     found_model = component.db.get_model_version_internal(model, version)
-    llama = Llama(model_path=found_model.internal_params.model_path)
     try:
         msg = await websocket.receive_json()
         request: CompletionInferenceRequest = CompletionInferenceRequest.parse_obj(msg)
-        for chunk in llama.create_completion(
-            request.prompt,
-            max_tokens=request.tokens,
-            temperature=request.temperature,
-            stream=True,
+
+        async for item in run_completion_async(
+            request, found_model.internal_params.model_path
         ):
-            await websocket.send_text(chunk["choices"][0]["text"])
+            await websocket.send_text(str(item))
         await websocket.close(1000)
     except WebSocketDisconnect:
         logger.info("WebSocket disconnected from streaming session")

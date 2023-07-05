@@ -22,6 +22,13 @@ export const v1API = createApi({
         method: "DELETE",
       }),
     }),
+    deleteModelVersion: builder.mutation<string, {model:string, version:string}>({
+      invalidatesTags: ["models"],
+      query: (model) => ({
+        url: `models/${model.model}/versions/${model.version}`,
+        method: "DELETE",
+      }),
+    }),
     getDescription: builder.query<string, string>({
       providesTags: (_result, _error, query) => [{ type: "description", id: query }],
       query: (modelName) => ({
@@ -94,6 +101,7 @@ export const {
   useGetDescriptionQuery,
   useGetImportStatusQuery,
   useDeleteModelMutation,
+  useDeleteModelVersionMutation,
   useGetSavedExperimentsQuery,
   useSaveExperimentMutation,
   useDeleteExperimentMutation,

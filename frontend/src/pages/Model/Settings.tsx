@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import { useMemo, useState } from "react"
 import { useNavigate } from "react-router-dom"
 
-import { useUpdateModelNameMutation, useDeleteModelMutation } from "../../api/services/v1"
+import { useUpdateModelNameMutation, useDeleteModelMutation, useDeleteModelVersionMutation } from "../../api/services/v1"
 
 import TextInput from "../../components/form/TextInput"
 import Card from "../../components/core/Card";
@@ -30,6 +30,7 @@ export default function Settings() {
 
     const [updateNameAction] = useUpdateModelNameMutation();
     const [deleteModelAction] = useDeleteModelMutation();
+    const [deleteModelVersionAction] = useDeleteModelVersionMutation();
 
     const navigate = useNavigate();
 
@@ -38,6 +39,7 @@ export default function Settings() {
     }, [newName]);
 
     const rows = registeredModel?.versions.map(v => ({
+        row_key: v.version,
         Version: v.version,
         Type: v.import_metadata?.source.type || "Unkown",
         Date: v.import_metadata?.imported_at
@@ -57,7 +59,15 @@ export default function Settings() {
                 enableSelection
                 onRowSelect={setVersionSelection}
                 rows={rows}
-                columns={["Version", "Type", "Date"]} />
+                columns={["row_key", "Version", "Type", "Date"]} />
+            <div className="w-fit">
+                <Button type="text" 
+                        buttonText="Delete Version"
+                        onAction={() => {
+                            deleteModelVersionAction({ model: modelName, version: versionSelection })
+                            navigate("/")
+                        }} />
+            </div>
         </>
     )
 

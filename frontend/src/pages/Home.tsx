@@ -78,11 +78,11 @@ export default function Home() {
           <Column>
             <Widget title="Feature Updates">
               <div>
-                {featureUpdates.sort((a, b) => a.id-b.id).map((update) => (
+                {featureUpdates.sort((a, b) => b.id - a.id).map((update) => (
                   <div className=" pb-2 " key={update.id}>
                     <Card>
                       <div className="flex flex-col w-full gap-1">
-                        <h3 className=' text-xl font-medium '>{update.title}</h3>
+                        <h3 className=' text-lg font-medium '>{update.title}</h3>
                         <div className='flex flex-row gap-1.5 items-center'>
                           <Icon icon="time" size={14} color="#82BEC7" />
                           <p className=' text-sm font-medium leading-none text-blue-500'>{update.date.toDateString()}</p>

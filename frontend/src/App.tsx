@@ -7,6 +7,7 @@ import NewModel from './pages/NewModel';
 import Overview from './pages/Model/Overview';
 import Experiments from './pages/Model/Experiments';
 import ImportModel from './pages/ImportModel';
+import Settings from './pages/Model/Settings';
 
 function App() {
     return (
@@ -16,6 +17,7 @@ function App() {
                 <Route path="model/:name" element={<Model />}>
                     <Route index element={<Overview />} />
                     <Route path="experiments" element={<Experiments />} />
+                    <Route path="settings" element={<Settings />} />
                 </Route>
                 <Route path="new-model" element={<NewModel />} />
                 <Route path="import/:importid" element={<ImportModel />} />

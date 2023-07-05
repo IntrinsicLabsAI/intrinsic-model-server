@@ -29,7 +29,7 @@ export default function Workspace() {
     return (
         <div className='bg-dark-300 '>
             <header className=' sticky top-0 z-50'>
-                <div className='flex flex-row h-16 p-4 items-center bg-dark-100 gap-2'>
+                <div className='flex flex-row h-16 p-4 items-center bg-dark-100'>
                     <Link to="/">
                         <p className="text-lg font-semibold">Intrinsic Server</p>
                     </Link>
@@ -49,7 +49,7 @@ export default function Workspace() {
                             { id: "new-model", value: "Add New Model" },
                         ]}
                     />
-                    <div>
+                    <div className='pl-3'>
                         <div className='flex flex-col items-center outline outline-gray-400 rounded px-2 py-1'>
 
                             {onlineState === "online" && (

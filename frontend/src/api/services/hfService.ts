@@ -1,6 +1,6 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { isDevServer } from './util';
-import { ListHFFilesResponse } from '../models/ListHFFilesResponse';
+import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { isDevServer } from "./util";
+import { ListHFFilesResponse } from "../models/ListHFFilesResponse";
 
 export const huggingFaceServiceAPI = createApi({
     reducerPath: "huggingFaceServiceAPI",
@@ -14,6 +14,4 @@ export const huggingFaceServiceAPI = createApi({
     }),
 });
 
-export const {
-    useGetRepoFilesQuery,
-} = huggingFaceServiceAPI;
+export const { useGetRepoFilesQuery } = huggingFaceServiceAPI;

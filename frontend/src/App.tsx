@@ -1,13 +1,13 @@
-import { Routes, Route } from 'react-router-dom';
-import Home from './pages/Home';
-import Workspace from './pages/Workspace';
-import NotFound from './pages/NotFound';
-import Model from './pages/Model';
-import NewModel from './pages/NewModel';
-import Overview from './pages/Model/Overview';
-import Experiments from './pages/Model/Experiments';
-import ImportModel from './pages/ImportModel';
-import Settings from './pages/Model/Settings';
+import { Routes, Route } from "react-router-dom";
+import Home from "./pages/Home";
+import Workspace from "./pages/Workspace";
+import NotFound from "./pages/NotFound";
+import Model from "./pages/Model";
+import NewModel from "./pages/NewModel";
+import Overview from "./pages/Model/Overview";
+import Experiments from "./pages/Model/Experiments";
+import ImportModel from "./pages/ImportModel";
+import Settings from "./pages/Model/Settings";
 
 function App() {
     return (
@@ -24,7 +24,7 @@ function App() {
                 <Route path="*" element={<NotFound />} />
             </Route>
         </Routes>
-    )
+    );
 }
 
 export default App;

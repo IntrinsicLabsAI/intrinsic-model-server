@@ -10,7 +10,7 @@ const pollStatus = async () => {
     setTimeout(() => abort.abort("timed out"), 2_000);
 
     const result = await fetch(healthz, { signal: abort.signal })
-        .then(resp => resp.status)
+        .then((resp) => resp.status)
         .catch(() => 500);
     return result === 200;
 };
@@ -22,9 +22,7 @@ export class StatusChecker {
 
     public status: Status = "loading";
 
-    constructor(
-        private onPoll: (value: Status) => void,
-    ) { }
+    constructor(private onPoll: (value: Status) => void) {}
 
     start() {
         this.loop();
@@ -33,17 +31,18 @@ export class StatusChecker {
     private loop() {
         console.log("next poll");
         pollStatus()
-            .then(isConnected => {
+            .then((isConnected) => {
                 this.onPoll(isConnected ? "online" : "offline");
                 this.status = isConnected ? "online" : "offline";
-            }).catch(() => {
+            })
+            .catch(() => {
                 this.onPoll("offline");
                 this.status = "offline";
             })
             .finally(() => {
                 console.log("scheduling next poll");
                 this.timerId = setTimeout(() => this.loop(), 3_000);
-            })
+            });
     }
 
     stop() {

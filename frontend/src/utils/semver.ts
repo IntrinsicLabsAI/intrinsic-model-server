@@ -1,4 +1,3 @@
-
 const SEMVER_PATTERN = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/;
 
 export function isValidSemVer(semver: string) {
@@ -24,4 +23,3 @@ export function semverCompare(a: string, b: string): number {
 
     return patchA - patchB;
 }
-

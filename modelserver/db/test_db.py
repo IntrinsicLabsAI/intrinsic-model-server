@@ -11,7 +11,7 @@ from modelserver.types.tasks import InProgressState, TaskState
 from ..types.api import RegisterModelRequest, SavedExperimentIn, SemVer
 from .sqlite import PersistentDataManager
 
-REGISTER_V1 = RegisterModelRequest.parse_obj(
+REGISTER_V1 = RegisterModelRequest.model_validate(
     {
         "model": "anewmodel",
         "version": "0.1.0",
@@ -34,8 +34,8 @@ REGISTER_V1 = RegisterModelRequest.parse_obj(
     }
 )
 
-REGISTER_V2 = REGISTER_V1.copy(update=dict(version="0.2.0"))
-REGISTER_V3 = REGISTER_V2.copy(update=dict(version="0.3.0"))
+REGISTER_V2 = REGISTER_V1.model_copy(update=dict(version="0.2.0"))
+REGISTER_V3 = REGISTER_V2.model_copy(update=dict(version="0.3.0"))
 
 
 @pytest.fixture(autouse=True)
@@ -65,7 +65,7 @@ def test_delete_all(db: PersistentDataManager) -> None:
     db.save_experiment(
         SavedExperimentIn(
             model_id=v1_id,
-            model_version=SemVer.from_str("0.1.0"),
+            model_version=SemVer("0.1.0"),
             prompt="My name is",
             output=" Bond. James Bond.",
             temperature=0.4,
@@ -75,7 +75,7 @@ def test_delete_all(db: PersistentDataManager) -> None:
     db.save_experiment(
         SavedExperimentIn(
             model_id=v2_id,
-            model_version=SemVer.from_str("0.1.0"),
+            model_version=SemVer("0.1.0"),
             prompt="My name is",
             output=" Inigo Montoya, you killed my father. Prepare to die.",
             temperature=0.4,
@@ -95,18 +95,18 @@ def test_delete_version(db: PersistentDataManager) -> None:
     db.save_experiment(
         SavedExperimentIn(
             model_id=v1_id,
-            model_version=SemVer.from_str("0.1.0"),
+            model_version=SemVer("0.1.0"),
             prompt="My name is",
             output=" Bond. James Bond.",
             temperature=0.4,
             tokens=5,
         )
     )
-    db.delete_model_version(REGISTER_V1.model, REGISTER_V1.version)
+    db.delete_model_version(REGISTER_V1.model, str(REGISTER_V1.version))
     assert len(db.get_registered_models()[0].versions) == 1
 
     # Deleting the last version of a model deletes the model too
-    db.delete_model_version(REGISTER_V2.model, REGISTER_V2.version)
+    db.delete_model_version(REGISTER_V2.model, str(REGISTER_V2.version))
     assert len(db.get_registered_models()) == 0
 
 
@@ -121,7 +121,7 @@ def test_error_handling(db: PersistentDataManager) -> None:
 
     # Ensure model lookups fail with 404 exception
     with pytest.raises(HTTPException) as http_ex:
-        db.get_model_version_internal(REGISTER_V3.model, REGISTER_V3.version)
+        db.get_model_version_internal(REGISTER_V3.model, str(REGISTER_V3.version))
     assert http_ex.value.status_code == status.HTTP_404_NOT_FOUND
 
 
@@ -140,7 +140,7 @@ def test_experiments(db: PersistentDataManager) -> None:
     model = db.get_registered_models()[0]
     experiment_in = SavedExperimentIn(
         model_id=str(model.id),
-        model_version=SemVer.from_str("0.1.0"),
+        model_version=SemVer("0.1.0"),
         tokens=50,
         temperature=0.1,
         prompt="User: Tell a joke\nSystem:",
@@ -156,13 +156,13 @@ def test_experiments(db: PersistentDataManager) -> None:
     assert saved.output == experiment_in.output
 
     # Test 2: Experiment should fail to save with bad model_id reference
-    experiment_bad_modelid = experiment_in.copy(update={"model_id": "nonsense"})
+    experiment_bad_modelid = experiment_in.model_copy(update={"model_id": "nonsense"})
     with pytest.raises(sqlalchemy.exc.IntegrityError):
         db.save_experiment(experiment_bad_modelid)
 
     # Test 3: Experiment should fail to save with bad model version reference
-    experiment_bad_version = experiment_in.copy(
-        update={"model_version": SemVer.from_str("100.999.999")}
+    experiment_bad_version = experiment_in.model_copy(
+        update={"model_version": SemVer("100.999.999")}
     )
     with pytest.raises(sqlalchemy.exc.IntegrityError):
         db.save_experiment(experiment_bad_version)
@@ -180,4 +180,6 @@ def test_taskdb() -> None:
         "progress": 0.8
     }
     """
-    assert TaskState.parse_raw(task_json).__root__ == InProgressState(progress=0.8)
+    assert TaskState.model_validate_json(task_json).root == InProgressState(
+        progress=0.8
+    )

@@ -48,7 +48,7 @@ class Tasks:
         [model_id, version] = self.db.register_model(
             RegisterModelRequest(
                 model=model_name,
-                version=SemVer.from_str("0.1.0"),
+                version=SemVer("0.1.0"),
                 model_type=ModelType.completion,
                 runtime=ModelRuntime.ggml,
                 internal_params=CompletionModelParams(
@@ -62,13 +62,15 @@ class Tasks:
         )
         self.taskdb.update_task(
             task_id,
-            TaskState.parse_obj(
+            TaskState.model_construct(
                 FinishedTaskState(
                     info=model_name,
                     metadata=dict(
-                        model_name=model_name, model_id=model_id, version=version
+                        model_name=model_name,
+                        model_id=model_id,
+                        version=str(version),
                     ),
-                ).dict()
+                )
             ),
         )
 
@@ -84,7 +86,7 @@ class Tasks:
             )
             if locator.revision is None:
                 meta = get_hf_file_metadata(hfurl)
-                locator = locator.copy(update=dict(revision=meta.commit_hash))
+                locator = locator.model_copy(update=dict(revision=meta.commit_hash))
                 self.logger.info(
                     "Assigning commit hash for model pull: %s", meta.commit_hash
                 )
@@ -117,7 +119,7 @@ class Tasks:
             [model_id, version] = self.db.register_model(
                 RegisterModelRequest(
                     model=modelname,
-                    version=SemVer.from_str("0.1.0"),
+                    version=SemVer("0.1.0"),
                     model_type=ModelType.completion,
                     runtime=ModelRuntime.ggml,
                     import_metadata=ImportMetadata(
@@ -131,20 +133,20 @@ class Tasks:
             )
             self.taskdb.update_task(
                 task_id,
-                TaskState.parse_obj(
+                TaskState(
                     FinishedTaskState(
                         info=f"Successfully registered {modelname}",
                         metadata=dict(
-                            model_name=modelname, model_id=model_id, version=version
+                            model_name=modelname,
+                            model_id=model_id,
+                            version=str(version),
                         ),
-                    ).dict()
+                    )
                 ),
             )
         except Exception as e:
             self.logger.error("Failed syncing model from HF Hub", exc_info=e)
-            self.taskdb.update_task(
-                task_id, TaskState.parse_obj(FailedTaskState(error=str(e)).dict())
-            )
+            self.taskdb.update_task(task_id, TaskState(FailedTaskState(error=str(e))))
 
 
 class TaskWorker(threading.Thread):
@@ -167,7 +169,7 @@ class TaskWorker(threading.Thread):
             unfinished = self.taskdb.get_unfinished_tasks()
             self.logger.debug(f"polled tasks(unfinished={unfinished})")
             for task_id, task in unfinished.items():
-                match task.__root__:
+                match task.root:
                     case DownloadDiskModelTask() as disk_task:
                         self.tasks.handle_download_disk_model(task_id, disk_task)
                     case DownloadHFModelTask() as hf_task:

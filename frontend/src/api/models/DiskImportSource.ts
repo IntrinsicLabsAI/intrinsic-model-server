@@ -5,16 +5,7 @@
 import type { DiskLocator } from './DiskLocator';
 
 export type DiskImportSource = {
-    type?: DiskImportSource.type;
+    type?: any;
     source: DiskLocator;
 };
-
-export namespace DiskImportSource {
-
-    export enum type {
-        IMPORTV1_DISK = 'importv1/disk',
-    }
-
-
-}
 

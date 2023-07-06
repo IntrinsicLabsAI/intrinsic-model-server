@@ -156,22 +156,20 @@ async def import_model(
     locator: Annotated[Locator, Body()],
     component: Annotated[AppComponent, Depends(AppComponent)],
 ) -> TaskId:
-    logger.info(f"Received import request: {locator.json()}")
+    logger.info(f"Received import request: {locator.model_dump_json()}")
 
-    match locator.__root__:
+    match locator.root:
         case HFLocator() as hf:
             # Store a task for this shit
-            task_id = component.taskdb.store_task(
-                Task.parse_obj(DownloadHFModelTask(locator=hf).dict())
-            )
+            task_id = component.taskdb.store_task(Task(DownloadHFModelTask(locator=hf)))
         case DiskLocator() as disk:
             task_id = component.taskdb.store_task(
-                Task.parse_obj(DownloadDiskModelTask(locator=disk).dict()),
+                Task(DownloadDiskModelTask(locator=disk)),
             )
         case _:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Invalid locator type {locator.json()}",
+                detail=f"Invalid locator type {locator.model_dump_json()}",
             )
 
     return task_id
@@ -196,7 +194,9 @@ async def completion_async(
     found_model = component.db.get_model_version_internal(model, version)
     try:
         msg = await websocket.receive_json()
-        request: CompletionInferenceRequest = CompletionInferenceRequest.parse_obj(msg)
+        request: CompletionInferenceRequest = CompletionInferenceRequest.model_validate(
+            msg
+        )
 
         async for item in run_completion_async(
             request, found_model.internal_params.model_path

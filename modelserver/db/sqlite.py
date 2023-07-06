@@ -89,8 +89,8 @@ class PersistentDataManager(DataManager):
                     }
                     versions.append(
                         ModelVersion(
-                            version=SemVer.from_str(version),
-                            import_metadata=ImportMetadata.parse_obj(
+                            version=SemVer(version),
+                            import_metadata=ImportMetadata.model_validate(
                                 import_metadata_dict
                             ),
                         )
@@ -142,13 +142,13 @@ class PersistentDataManager(DataManager):
             import_metadata_row = {
                 "model_id": model_uuid,
                 "model_version": str(register_params.version),
-                "source": register_params.import_metadata.source.json(),
+                "source": register_params.import_metadata.source.model_dump_json(),
                 "imported_at": register_params.import_metadata.imported_at,
             }
             model_params_row = {
                 "model_id": model_uuid,
                 "model_version": str(register_params.version),
-                "params": register_params.internal_params.json(),
+                "params": register_params.internal_params.model_dump_json(),
             }
             try:
                 conn.execute(Insert(model_version_table).values(**model_version_row))
@@ -195,9 +195,9 @@ class PersistentDataManager(DataManager):
                     "imported_at": imported_at,
                 }
                 return ModelVersionInternal(
-                    version=SemVer.from_str(semver),
-                    import_metadata=ImportMetadata.parse_obj(import_metadata_dict),
-                    internal_params=CompletionModelParams.parse_raw(params),
+                    version=SemVer(semver),
+                    import_metadata=ImportMetadata.model_validate(import_metadata_dict),
+                    internal_params=CompletionModelParams.model_validate_json(params),
                 )
             except NoResultFound:
                 raise HTTPException(
@@ -371,7 +371,7 @@ class PersistentDataManager(DataManager):
                     SavedExperimentOut(
                         experiment_id=experiment_id,
                         model_id=model_id,
-                        model_version=SemVer.from_str(model_version),
+                        model_version=SemVer(model_version),
                         temperature=temperature,
                         tokens=tokens,
                         prompt=prompt,
@@ -392,7 +392,7 @@ class PersistentDataManager(DataManager):
             row = {
                 "id": freshid,
                 "model_id": saved_experiment.model_id,
-                "model_version": saved_experiment.model_version,
+                "model_version": str(saved_experiment.model_version),
                 "temperature": saved_experiment.temperature,
                 "tokens": saved_experiment.tokens,
                 "prompt": saved_experiment.prompt,

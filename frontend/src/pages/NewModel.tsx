@@ -20,7 +20,7 @@ import { DateTime } from "luxon";
 function DiskModelForm() {
     const [name, setName] = useState("");
     const [, setVersion] = useState("");
-    const [modelType,] = useState<ModelType>(ModelType.COMPLETION);
+    const [modelType,] = useState<ModelType>("completion");
     const [modelPath, setModelPath] = useState<string>("");
     const [importModelAction] = useImportModelMutation();
 

@@ -4,9 +4,7 @@ import Page from "../components/layout/Page";
 import OneColumnLayout from "../components/layout/OneColumnLayout";
 import Column from "../components/layout/Column";
 import Callout from "../components/core/Callout";
-import Button from "../components/core/Button";
 import Card from "../components/core/Card";
-import { useNavigate } from "react-router-dom";
 import { Icon } from "@blueprintjs/core";
 
 function ProgressBar({
@@ -38,7 +36,6 @@ export default function ImportModel() {
     // eslint-disable-next-line  @typescript-eslint/no-non-null-assertion
     const importJob = importid!;
 
-    const navigate = useNavigate()
     const { data } = useGetImportStatusQuery(importJob, { pollingInterval: 3_000 })
 
     return (
@@ -50,10 +47,6 @@ export default function ImportModel() {
                             <h1 className=" font-semibold text-2xl leading-none pb-1">Importing Model from HuggingFace</h1>
                             <h3 className=" text-gray-400/60 pb-3">Import Job: {importJob}</h3>
                         </div>
-                        <Button
-                            onAction={() => navigate("/")}
-                            buttonText="View Model"
-                            disabled={data?.type === "finished" ? false : true} />
                     </div>
                     <>
                         {data?.type === "in-progress" && (

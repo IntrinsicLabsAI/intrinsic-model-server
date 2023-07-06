@@ -4,7 +4,7 @@
 
 export type HFFile = {
     filename: string;
-    subfolder?: string;
+    subfolder?: (string | null);
     size_bytes: number;
     committed_at: string;
 };

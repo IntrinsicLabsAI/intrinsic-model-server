@@ -1,53 +1,46 @@
 import re
+from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import Annotated, Any, List, Literal, Type, TypeAlias
+from typing import Annotated, Any, List, Literal, TypeAlias
 
-from fastapi import HTTPException, status
-from pydantic import UUID4, BaseModel, Field, validator
+from pydantic import UUID4, BaseModel, ConfigDict, Field, RootModel, field_validator
 
 from .locator import DiskLocator, HFLocator
 
-SEMVER_PATTERN = re.compile(r"(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)")
+SEMVER_PATTERN = r"(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)"
+SEMVER_RE = re.compile(SEMVER_PATTERN)
 
 
-class SemVer(str):
-    """
-    Semantic version string.
-    """
+class SemVer(RootModel[str]):
+    root: Annotated[str, Field(pattern=SEMVER_PATTERN)]
+
+    def __init__(self, *args: str, **data: Any) -> None:
+        super().__init__(*args, **data)
+
+    def __repr__(self) -> str:
+        return self.root
+
+    def __str__(self) -> str:
+        return self.root
 
     @property
     def major(self) -> int:
-        match = SEMVER_PATTERN.match(str(self))
+        match = SEMVER_RE.match(self.root)
         assert match is not None
         return int(match.groups()[0])
 
     @property
     def minor(self) -> int:
-        match = SEMVER_PATTERN.match(str(self))
+        match = SEMVER_RE.match(self.root)
         assert match is not None
         return int(match.groups()[1])
 
     @property
     def patch(self) -> int:
-        match = SEMVER_PATTERN.match(str(self))
+        match = SEMVER_RE.match(self.root)
         assert match is not None
         return int(match.groups()[2])
-
-    def __repr__(self) -> str:
-        return f"{self.major}.{self.minor}.{self.patch}"
-
-    def __hash__(self) -> int:
-        return hash((self.major, self.minor, self.patch))
-
-    def __eq__(self, other: Any) -> bool:
-        if not isinstance(other, SemVer):
-            return False
-        return (self.major, self.minor, self.patch) == (
-            other.major,
-            other.minor,
-            other.patch,
-        )
 
     def __gt__(self, other: Any) -> bool:
         if not isinstance(other, SemVer):
@@ -66,26 +59,6 @@ class SemVer(str):
             other.minor,
             other.patch,
         )
-
-    @classmethod
-    def is_valid(cls, semver: str) -> bool:
-        return SEMVER_PATTERN.match(semver) is not None
-
-    @classmethod
-    def from_str(cls: Type["SemVer"], semver: str) -> "SemVer":
-        if not SemVer.is_valid(semver):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Invalid semantic version format {semver}",
-            )
-        match = SEMVER_PATTERN.match(semver)
-        assert match is not None
-        major, minor, patch = match.groups()
-        return SemVer.of(int(major), int(minor), int(patch))
-
-    @classmethod
-    def of(cls: Type["SemVer"], major: int, minor: int, patch: int) -> "SemVer":
-        return SemVer(f"{major}.{minor}.{patch}")
 
 
 class ModelType(str, Enum):
@@ -138,6 +111,10 @@ class CompletionModelParams(BaseModel):
 
     model_path: str
 
+    model_config = ConfigDict(
+        protected_namespaces=(),
+    )
+
 
 class HFImportSource(BaseModel):
     type: Literal["importv1/hf"] = "importv1/hf"
@@ -158,10 +135,10 @@ class ModelVersion(BaseModel):
     version: SemVer
     import_metadata: ImportMetadata
 
-    @validator("version")
+    @field_validator("version")
     def validate_version(cls, v: str | SemVer) -> SemVer:
         if isinstance(v, str):
-            return SemVer.from_str(v)
+            return SemVer(v)
         return v
 
 
@@ -179,10 +156,14 @@ class RegisterModelRequest(BaseModel):
     import_metadata: ImportMetadata
     internal_params: CompletionModelParams
 
-    @validator("version")
+    model_config = ConfigDict(
+        protected_namespaces=(),
+    )
+
+    @field_validator("version")
     def validate_version(cls, v: str | SemVer) -> SemVer:
         if isinstance(v, str):
-            return SemVer.from_str(v)
+            return SemVer(v)
         return v
 
 
@@ -200,6 +181,10 @@ class RegisteredModel(BaseModel):
     model_type: ModelType
     runtime: str
     versions: list[ModelVersion]
+
+    model_config = ConfigDict(
+        protected_namespaces=(),
+    )
 
 
 class CompletionInferenceRequest(BaseModel):
@@ -235,10 +220,14 @@ class CompletionInference(BaseModel):
     elapsed_seconds: float
     completion: str
 
-    @validator("model_version")
+    model_config = ConfigDict(
+        protected_namespaces=(),
+    )
+
+    @field_validator("model_version")
     def validate_version(cls, v: str | SemVer) -> SemVer:
         if isinstance(v, str):
-            return SemVer.from_str(v)
+            return SemVer(v)
         return v
 
 
@@ -254,7 +243,7 @@ class ListHFFiles(BaseModel):
     repo: str
     subfolder: str | None
 
-    @validator("repo")
+    @field_validator("repo")
     def validate_repo(cls, v: str) -> str:
         REPO_PATTERN = re.compile(r"^[^\s/]+/[^\s/]$")
         if REPO_PATTERN.match(v) is None:
@@ -282,6 +271,10 @@ class SavedExperimentIn(BaseModel):
     prompt: str
     output: str
 
+    model_config = ConfigDict(
+        protected_namespaces=(),
+    )
+
 
 class SavedExperimentOut(BaseModel):
     experiment_id: str
@@ -292,6 +285,10 @@ class SavedExperimentOut(BaseModel):
     prompt: str
     output: str
     created_at: datetime
+
+    model_config = ConfigDict(
+        protected_namespaces=(),
+    )
 
 
 class GetSavedExperimentsResponse(BaseModel):

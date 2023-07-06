@@ -1,7 +1,8 @@
-from typing import Annotated, Literal, TypeAlias
+from typing import Annotated, Any, Literal, TypeAlias
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, RootModel
+from pydantic_core import PydanticUndefined
 
 from modelserver.types.locator import DiskLocator, HFLocator
 
@@ -23,18 +24,21 @@ class DownloadDiskModelTask(BaseModel):
     locator: DiskLocator
 
 
-class Task(BaseModel):
-    __root__: Annotated[
+class Task(
+    RootModel[
+        Annotated[
+            DownloadHFModelTask | DownloadDiskModelTask, Field(discriminator="type")
+        ]
+    ]
+):
+    root: Annotated[
         DownloadHFModelTask | DownloadDiskModelTask, Field(discriminator="type")
     ]
 
-    @classmethod
-    def from_disk(cls, task: DownloadDiskModelTask) -> "Task":
-        return Task(**task.dict())
-
-    @classmethod
-    def from_hf(cls, task: DownloadHFModelTask) -> "Task":
-        return Task(**task.dict())
+    def __init__(
+        self, *args: DownloadHFModelTask | DownloadDiskModelTask, **kwargs: Any
+    ):
+        super().__init__(*args, **kwargs)
 
 
 class InProgressState(BaseModel):
@@ -53,13 +57,26 @@ class FailedTaskState(BaseModel):
     error: str
 
 
-class TaskState(BaseModel):
-    """
-    Discriminated union type over the different task states, easy handle to polymorphically
-    deserialize different states from a DB.
-    """
+"""
+Discriminated union type over the different task states, easy handle to polymorphically
+deserialize different states from a DB.
+"""
 
-    __root__: Annotated[
-        InProgressState | FinishedTaskState | FailedTaskState,
-        Field(discriminator="type"),
+
+class TaskState(
+    RootModel[
+        Annotated[
+            InProgressState | FinishedTaskState | FailedTaskState,
+            Field(title="TaskState", discriminator="type"),
+        ]
     ]
+):
+    root: Annotated[
+        InProgressState | FinishedTaskState | FailedTaskState,
+        Field(title="TaskState", discriminator="type"),
+    ]
+
+    def __init__(
+        self, *args: InProgressState | FinishedTaskState | FailedTaskState, **data: Any
+    ) -> None:
+        super().__init__(*args, **data)

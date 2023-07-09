@@ -6,5 +6,8 @@
         "--profile",
         "black"
     ],
-    "mypy-type-checker.args": []
+    "mypy-type-checker.args": [],
+    "prettier.documentSelectors": [
+        "**/*.{ts,tsx,js,jsx,json}"
+    ]
 }

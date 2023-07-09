@@ -1,0 +1,4 @@
+/src/api/index.ts
+/src/api/core/**/*
+/src/api/models/**/*
+/package-lock.json

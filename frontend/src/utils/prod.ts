@@ -4,6 +4,6 @@ function isDevServer() {
 
 export function baseURL() {
     const hostname = isDevServer() ? "0.0.0.0:8000" : window.location.host;
-    console.log(`${window.location.protocol}//${hostname}`)
+    console.log(`${window.location.protocol}//${hostname}`);
     return `${window.location.protocol}//${hostname}`;
 }

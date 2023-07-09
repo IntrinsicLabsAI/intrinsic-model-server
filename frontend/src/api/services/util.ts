@@ -1,4 +1,3 @@
-
 /**
  * @returns True if we are running in the Vite dev server, false otherwise.
  */
@@ -17,8 +16,6 @@ function webSocketScheme() {
 
 export function webSocketBaseUrl() {
     const scheme = webSocketScheme();
-    const hostname = isDevServer()
-        ? "0.0.0.0:8000"
-        : window.location.host;
+    const hostname = isDevServer() ? "0.0.0.0:8000" : window.location.host;
     return `${scheme}://${hostname}`;
 }

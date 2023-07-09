@@ -1,7 +1,6 @@
 import { createListenerMiddleware, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { createDefaultClient } from "../api/services/completion";
 
-
 export type ExperimentId = string;
 
 export interface Experiment {
@@ -22,7 +21,7 @@ export interface ExperimentState {
 }
 
 export interface ModelState {
-    currentExperiments: ExperimentState[],
+    currentExperiments: ExperimentState[];
 }
 
 const initialState: Record<string, ModelState> = {};
@@ -33,7 +32,7 @@ export const appSlice = createSlice({
     reducers: {
         addActiveExperiment: (state, action: PayloadAction<Experiment>) => {
             if (!Object.prototype.hasOwnProperty.call(state, action.payload.modelId)) {
-                state[action.payload.modelId] = { currentExperiments: [] }
+                state[action.payload.modelId] = { currentExperiments: [] };
             }
 
             state[action.payload.modelId].currentExperiments.unshift({
@@ -45,7 +44,7 @@ export const appSlice = createSlice({
         addCompletedExperiment: (state, action: PayloadAction<ExperimentState>) => {
             const { experiment, output } = action.payload;
             if (!Object.prototype.hasOwnProperty.call(state, experiment.modelId)) {
-                state[experiment.modelId] = { currentExperiments: [] }
+                state[experiment.modelId] = { currentExperiments: [] };
             }
 
             state[experiment.modelId].currentExperiments.unshift({
@@ -54,31 +53,46 @@ export const appSlice = createSlice({
                 active: false,
             });
         },
-        removeExperiment: (state, action: PayloadAction<{ modelId: string, experimentId: string }>) => {
+        removeExperiment: (
+            state,
+            action: PayloadAction<{ modelId: string; experimentId: string }>
+        ) => {
             const { modelId, experimentId } = action.payload;
             const experiments = state[modelId] ?? [];
-            const removed = experiments.currentExperiments.filter(experiment => experiment.experiment.id !== experimentId);
+            const removed = experiments.currentExperiments.filter(
+                (experiment) => experiment.experiment.id !== experimentId
+            );
             experiments.currentExperiments = removed;
         },
-        addOutputToken: (state, action: PayloadAction<{ modelId: string, id: ExperimentId, token: string }>) => {
+        addOutputToken: (
+            state,
+            action: PayloadAction<{ modelId: string; id: ExperimentId; token: string }>
+        ) => {
             // Prevent taking new output tokens if modelId is not known to system
             if (!Object.prototype.hasOwnProperty.call(state, action.payload.modelId)) {
                 return;
             }
             const { id, token } = action.payload;
-            const experiment = state[action.payload.modelId].currentExperiments.find(ex => ex.experiment.id == id);
+            const experiment = state[action.payload.modelId].currentExperiments.find(
+                (ex) => ex.experiment.id == id
+            );
             // Prevent taking new output tokens after experiment is no longer active. This probably shoudln't happen anyway...
             if (experiment === undefined || !experiment.active) {
                 return;
             }
             experiment.output += token;
         },
-        completeExperiment: (state, action: PayloadAction<{ modelId: string, id: ExperimentId }>) => {
+        completeExperiment: (
+            state,
+            action: PayloadAction<{ modelId: string; id: ExperimentId }>
+        ) => {
             // Prevents running action if modelId is not known to system
             if (!Object.prototype.hasOwnProperty.call(state, action.payload.modelId)) {
                 return;
             }
-            const experiment = state[action.payload.modelId].currentExperiments.find(ex => ex.experiment.id === action.payload.id);
+            const experiment = state[action.payload.modelId].currentExperiments.find(
+                (ex) => ex.experiment.id === action.payload.id
+            );
 
             if (experiment === undefined || !experiment.active) {
                 return;
@@ -86,13 +100,15 @@ export const appSlice = createSlice({
 
             experiment.active = false;
         },
-        failExperiment: (state, action: PayloadAction<{ modelId: string, id: ExperimentId }>) => {
+        failExperiment: (state, action: PayloadAction<{ modelId: string; id: ExperimentId }>) => {
             // Prevents running action if modelId is not known to system
             if (!Object.prototype.hasOwnProperty.call(state, action.payload.modelId)) {
                 return;
             }
 
-            const experiment = state[action.payload.modelId].currentExperiments.find(ex => ex.experiment.id === action.payload.id);
+            const experiment = state[action.payload.modelId].currentExperiments.find(
+                (ex) => ex.experiment.id === action.payload.id
+            );
             if (experiment === undefined || !experiment.active) {
                 return;
             }
@@ -102,10 +118,17 @@ export const appSlice = createSlice({
             experiment.failed = true;
         },
         // Add an experiment that's already been completed
-    }
+    },
 });
 
-export const { addActiveExperiment, addCompletedExperiment, addOutputToken, completeExperiment, removeExperiment, failExperiment } = appSlice.actions;
+export const {
+    addActiveExperiment,
+    addCompletedExperiment,
+    addOutputToken,
+    completeExperiment,
+    removeExperiment,
+    failExperiment,
+} = appSlice.actions;
 
 // TODO(aduffy): move to own file?
 export const wsMiddleware = createListenerMiddleware();
@@ -131,8 +154,8 @@ wsMiddleware.startListening({
                         () => {
                             listenerApi.dispatch(completeExperiment({ modelId, id }));
                             resolve(undefined);
-                        },
-                    )
+                        }
+                    );
                 });
             } catch (e) {
                 console.error(e);
@@ -143,4 +166,3 @@ wsMiddleware.startListening({
         await startWebSocket();
     },
 });
-

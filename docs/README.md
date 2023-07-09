@@ -6,8 +6,8 @@
 
 intrinsic-model-server is a fast and easy way to get started using the power of LLM models. It prefers to stay lean, and provides only the bare minimum of features including
 
-* OpenAPI endpoints for serving your local LLMs to build apps to your liking
-* A lightweight frontend for browsing and interacting with your local models
+- OpenAPI endpoints for serving your local LLMs to build apps to your liking
+- A lightweight frontend for browsing and interacting with your local models
 
 Our goal is to be a place for hackers, hobbyists and developers to easily catalog and use their models across hardware platforms behind a single API.
 
@@ -17,26 +17,25 @@ If you'd like to run from source, see the [Developer Documentation](/#developer-
 
 We also distribute Docker images, hosted on [GitHub Packages](https://github.com/IntrinsicLabsAI/intrinsic-model-server/pkgs/container/intrinsic-model-server). To get started you can simply run
 
-
 ```
 $ docker run -it -p 8000:8000 ghcr.io/intrinsiclabsai/intrinsic-model-server:latest
 
 Unable to find image 'ghcr.io/intrinsiclabsai/intrinsic-model-server:latest' locally
 latest: Pulling from intrinsiclabsai/intrinsic-model-server
-92ad47755700: Pull complete 
-26fdba5dcbb4: Pull complete 
-8c0a87ac9995: Pull complete 
-6bc04cbfbbaa: Pull complete 
-7371c9b78edc: Pull complete 
-8ca60ac7dd55: Pull complete 
-2718b3f45548: Pull complete 
-d66bf3ddbb06: Pull complete 
-4f4fb700ef54: Pull complete 
-b96fb6eb3048: Pull complete 
-7d9d1ada1911: Pull complete 
-45c9d3a60ed7: Pull complete 
-c1e75fdc29b2: Pull complete 
-cdb0a3bc9f3e: Pull complete 
+92ad47755700: Pull complete
+26fdba5dcbb4: Pull complete
+8c0a87ac9995: Pull complete
+6bc04cbfbbaa: Pull complete
+7371c9b78edc: Pull complete
+8ca60ac7dd55: Pull complete
+2718b3f45548: Pull complete
+d66bf3ddbb06: Pull complete
+4f4fb700ef54: Pull complete
+b96fb6eb3048: Pull complete
+7d9d1ada1911: Pull complete
+45c9d3a60ed7: Pull complete
+c1e75fdc29b2: Pull complete
+cdb0a3bc9f3e: Pull complete
 Digest: sha256:0c45924e4f4f12f62309428c66f50e4a228be5ed431bc74b6a11073270c0db4d
 Status: Downloaded newer image for ghcr.io/intrinsiclabsai/intrinsic-model-server:latest
 INFO:     Started server process [1]
@@ -46,7 +45,6 @@ INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
 ```
 
 From there you can visit the server at http://localhost:8000 or using the IP of the device on which you ran the command.
-
 
 # Quickstart
 
@@ -69,6 +67,7 @@ curl -X 'POST' 'http://localhost:8000/v1/imports' \
   "file": "ggml-vic7b-q5_0.bin"
 }'
 ```
+
 ```json
 "6ab01cbf-c5c5-4f2f-974a-d163a207bd2c"
 ```
@@ -80,6 +79,7 @@ You can poll the Import Job Status endpoint for the success/error result of the 
 ```
 curl 'http://localhost:8000/v1/imports/6ab01cbf-c5c5-4f2f-974a-d163a207bd2c'
 ```
+
 ```json
 {
   "type": "finished",
@@ -94,10 +94,10 @@ curl 'http://localhost:8000/v1/imports/6ab01cbf-c5c5-4f2f-974a-d163a207bd2c'
 
 We can see the full set of model information that was extracted via the import process:
 
-
 ```shell
 curl localhost:8000/v1/models
 ```
+
 ```json
 {
   "models": [
@@ -129,6 +129,7 @@ curl localhost:8000/v1/models
 ```
 
 ## Running Inference
+
 Now you can use the model to run inference:
 
 ```shell
@@ -140,6 +141,7 @@ curl -XPOST localhost:8000/v1/models/ggml-vicuna-7b-1.1__ggml-vic7b-q5_0.bin/ver
             "temperature": 0.3
           }'
 ```
+
 ```json
 {
   "model_name": "ggml-vicuna-7b-1.1__ggml-vic7b-q5_0.bin",
@@ -149,9 +151,7 @@ curl -XPOST localhost:8000/v1/models/ggml-vicuna-7b-1.1__ggml-vic7b-q5_0.bin/ver
 }
 ```
 
-
 # Developer documentation
-
 
 > We ❤️ contributions!
 
@@ -161,9 +161,8 @@ curl -XPOST localhost:8000/v1/models/ggml-vicuna-7b-1.1__ggml-vic7b-q5_0.bin/ver
 
 You'll also need to be on a system that has `gcc` installed so you can build the native `llama-cpp-python` wheel.
 
-* on macOS, you do this by installing XCode Developer Tools on your machine. Run `xcode-select --install` and follow the prompts
-* on Linux follow the guide for your distribution, e.g. on Ubuntu you would run `apt install build-essential`. See `Dockerfile` in the root of this repo for an example of how to setup a Linux environment to build the project.
-
+- on macOS, you do this by installing XCode Developer Tools on your machine. Run `xcode-select --install` and follow the prompts
+- on Linux follow the guide for your distribution, e.g. on Ubuntu you would run `apt install build-essential`. See `Dockerfile` in the root of this repo for an example of how to setup a Linux environment to build the project.
 
 Clone the project:
 
@@ -221,4 +220,47 @@ npm run lint
 
 # run the live dev server
 npm run dev
+```
+
+### VSCode Setup
+
+It's recommended that you use Visual Studio Code for developing as it has a great set of plugins for TypeScript projects.
+
+1. Install the [Prettier Plugin](<[Title](https://marketplace.visualstudio.com/items?itemName%253Desbenp.prettier-vscode)>) and be sure that it's enabled in your Workspace
+
+<img src="appdev-01_prettier.jpg" width="400px" style="margin-left: 25%">
+
+2. In Settings -> Workspace, be sure to configure `Prettier: Document Selectors` to pick up all TypeScript, JS and JSON files with the glob pattern `**/*{ts,tsx,js,jsx, json}`
+
+<img src="appdev-02_vsconfig.jpg" width="100%">
+
+You can similarly accomplish this by directly editing `.vscode/settings.json`:
+
+```json
+{
+  "prettier.documentSelectors": "**/*{ts,tsx,js,jsx, json}"
+}
+```
+
+Ensure that `Format On Save` is enabled in the workspace, e.g. by adding the following to `settings.json`
+
+```json
+{
+  "prettier.documentSelectors": "**/*{ts,tsx,js,jsx, json}",
+  "editor.formatOnSave": true
+}
+```
+
+Prettier checks are built into the linting process, so running
+
+```shell
+$ cd frontend
+$ npm run lint
+```
+
+Will scan for eslint errors as well prettier formatting. If you'd like to manually trigger formatting of all files in the frontend repo, run
+
+```shell
+$ cd frontend
+$ npx prettier --write .
 ```

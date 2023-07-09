@@ -1,4 +1,4 @@
-export const endorsedModels: Array<{ repo: string, name: string, description: string }> = [
+export const endorsedModels: Array<{ repo: string; name: string; description: string }> = [
     {
         repo: "vicuna/ggml-vicuna-7b-1.1",
         name: "Vicuna 7B (v1.1)",
@@ -17,11 +17,11 @@ export const endorsedModels: Array<{ repo: string, name: string, description: st
     {
         repo: "TheBloke/WizardLM-Uncensored-Falcon-7B-GGML",
         name: "WizardLM Uncensored 7B",
-        description: "Uncensored model trained by \"TheBloke\" based off of the Falcon 7B model",
+        description: 'Uncensored model trained by "TheBloke" based off of the Falcon 7B model',
     },
     {
         repo: "TheBloke/falcon-7b-instruct-GGML",
         name: "TheBloke Falcon 7B Instruct-tuned model",
         description: "Uncensored instruction-tuned model",
-    }
+    },
 ];

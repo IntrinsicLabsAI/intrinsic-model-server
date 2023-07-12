@@ -2,7 +2,9 @@
 
 > Speedy access to local LLMs ⚡️
 
-<img src="app.jpg" width="75%" style="margin-x: auto" />
+> Checkout a demo of the server's main functionality below:
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/6hm1sYKcrIo" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
 
 intrinsic-model-server is a fast and easy way to get started using the power of LLM models. It prefers to stay lean, and provides only the bare minimum of features including
 

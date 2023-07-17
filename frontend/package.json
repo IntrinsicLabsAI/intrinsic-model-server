@@ -11,7 +11,7 @@
         "generate-client": "openapi --input http://localhost:8000/openapi.yml --output ./src/api --exportServices false"
     },
     "dependencies": {
-        "@blueprintjs/core": "^5.0.0",
+        "@blueprintjs/core": "^5.1.2",
         "@headlessui/react": "^1.7.15",
         "@heroicons/react": "^2.0.18",
         "@reduxjs/toolkit": "^1.9.5",

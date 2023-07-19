@@ -7,7 +7,7 @@ const pollStatus = async () => {
     const abort = new AbortController();
     const healthz = isDevServer() ? "//127.0.0.1:8000/healthz" : "/healthz";
 
-    setTimeout(() => abort.abort("timed out"), 2_000);
+    window.setTimeout(() => abort.abort("timed out"), 2_000);
 
     const result = await fetch(healthz, { signal: abort.signal })
         .then((resp) => resp.status)
@@ -41,13 +41,13 @@ export class StatusChecker {
             })
             .finally(() => {
                 console.log("scheduling next poll");
-                this.timerId = setTimeout(() => this.loop(), 3_000);
+                this.timerId = window.setTimeout(() => this.loop(), 3_000);
             });
     }
 
     stop() {
         if (this.timerId >= 0) {
-            clearTimeout(this.timerId);
+            window.clearTimeout(this.timerId);
         }
     }
 }

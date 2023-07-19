@@ -17,7 +17,7 @@
         "@reduxjs/toolkit": "^1.9.5",
         "@tailwindcss/forms": "^0.5.3",
         "@tailwindcss/typography": "^0.5.9",
-        "@uiw/react-textarea-code-editor": "^2.1.6",
+        "@uiw/react-textarea-code-editor": "./vendor/react-textarea-code-editor",
         "axios": "^1.4.0",
         "form-data": "^4.0.0",
         "luxon": "^3.3.0",

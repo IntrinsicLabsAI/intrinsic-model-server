@@ -15,13 +15,8 @@ export const endorsedModels: Array<{ repo: string; name: string; description: st
         description: "Uncensored variant of Vicuna 13B 😈",
     },
     {
-        repo: "TheBloke/WizardLM-Uncensored-Falcon-7B-GGML",
-        name: "WizardLM Uncensored 7B",
-        description: 'Uncensored model trained by "TheBloke" based off of the Falcon 7B model',
-    },
-    {
-        repo: "TheBloke/falcon-7b-instruct-GGML",
-        name: "TheBloke Falcon 7B Instruct-tuned model",
-        description: "Uncensored instruction-tuned model",
+        repo: "TheBloke/Llama-2-13B-chat-GGML",
+        name: "Llama-2 13B Chat",
+        description: "Variant of Llama-2 fine-tuned for ChatGPT-style interaction",
     },
 ];

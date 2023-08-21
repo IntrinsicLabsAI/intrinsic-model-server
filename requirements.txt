@@ -14,7 +14,7 @@ huggingface-hub==0.15.1
 idna==3.4
 iniconfig==2.0.0
 isort==5.12.0
-llama-cpp-python==0.1.68
+llama-cpp-python==0.1.78
 markdown-it-py==3.0.0
 mccabe==0.7.0
 mdurl==0.1.2

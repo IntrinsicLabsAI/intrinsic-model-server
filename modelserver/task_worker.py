@@ -8,43 +8,33 @@ from concurrent.futures import ProcessPoolExecutor
 from typing import AsyncGenerator
 
 from llama_cpp import CompletionChunk, Llama
+from llama_cpp.llama_grammar import LlamaGrammar
 
-from modelserver.types.api import CompletionInferenceRequest
-
-"""
-Python asyncio-friendly multiprocessing worker for running llama.cpp models.
-
-This module connects a few related Python 3.x concepts to create a simple way to run models
-without hogging the ports in the foreground:
-
-    1. When a WebSocket comes in, the processing of messages on the WebSocket must be done
-       using async primitives, as the WebSocket library object itself only contains methods
-       that are coroutines.
-    2. We construct a ProcessPoolExecutor to spawn new multiprocessing.Process objects that
-       can execute the llama-cpp-python inference code in a separate Python process. This allows
-       us to completely avoid the GIL issues that arise when trying to use either background
-       threads or the main event loop thread for executing CPU-intensive code.
-    3. We construct a queue.Queue object which serves as a multiprocessing-safe channel to convey
-       data from the subprocess (in this case, live tokens) back up to the parent. The parent
-       wraps this queue using async primitives to then expose an AsyncGenerator interface to users.
-       This allows you to use the tidy `async for token in run_completion_async(...)` syntax.
-"""
+from modelserver.types.workers import RenderedTaskInvocation
 
 CHANNEL_SENTINEL = None
 
 logger = logging.getLogger(__name__)
 
 
-def do_completion_llama(
+def invoke_task(
     model_path: str,
     prompt: str,
     tokens: int,
     temperature: float,
+    grammar: str | None,
     channel: queue.Queue[str | None],
 ) -> None:
     """
     Execute completion, sending the results back over the completion task.
     """
+
+    # NOTE: This may fail with ValueError if the grammar is invalid
+    if grammar is not None:
+        llama_grammar = LlamaGrammar.from_string(grammar)
+    else:
+        llama_grammar = None
+
     logger.info(f"Initializing model in subprocess {os.getpid()}")
     llama = Llama(model_path=model_path)
     for next_chunk in llama.create_completion(
@@ -52,15 +42,16 @@ def do_completion_llama(
         max_tokens=tokens,
         temperature=temperature,
         stream=True,
+        grammar=llama_grammar,
     ):
+        # TODO(aduffy): Enable non-greedy decoding strategies
         chunk: CompletionChunk = typing.cast(CompletionChunk, next_chunk)
         channel.put(chunk["choices"][0]["text"])
     channel.put(CHANNEL_SENTINEL)
 
 
-async def run_completion_async(
-    completion_request: CompletionInferenceRequest,
-    model_path: str,
+async def run_task_async(
+    invocation_params: RenderedTaskInvocation,
 ) -> AsyncGenerator[str, str]:
     loop = asyncio.get_running_loop()
 
@@ -69,11 +60,10 @@ async def run_completion_async(
             chan: queue.Queue[str | None] = manager.Queue()
             res = loop.run_in_executor(
                 pool,
-                do_completion_llama,
-                model_path,
-                completion_request.prompt,
-                completion_request.tokens,
-                completion_request.temperature,
+                invoke_task,
+                invocation_params.model_path,
+                invocation_params.rendered_prompt,
+                invocation_params.temperature,
                 chan,
             )
             while True:

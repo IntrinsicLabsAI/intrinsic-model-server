@@ -4,6 +4,7 @@ from typing import Any, Mapping, Optional, final
 from uuid import UUID, uuid4
 
 from fastapi import HTTPException, status
+from pydantic import UUID4
 from sqlalchemy import Engine, and_, delete, event, or_, select, update
 from sqlalchemy.dialects.sqlite import Insert
 from sqlalchemy.engine.interfaces import DBAPIConnection, Dialect
@@ -14,6 +15,7 @@ from sqlalchemy.pool import ConnectionPoolEntry, Pool
 
 from modelserver.types.api import (
     CompletionModelParams,
+    CreateTaskRequest,
     ImportMetadata,
     ModelRuntime,
     ModelType,
@@ -24,6 +26,8 @@ from modelserver.types.api import (
     SavedExperimentIn,
     SavedExperimentOut,
     SemVer,
+    TaskInfo,
+    UpdateTaskRequest,
 )
 
 from ._core import DataManager
@@ -35,6 +39,7 @@ from ._tables import (
     model_version_table,
     model_versions_joined_table,
     saved_experiments_table,
+    task_def_table,
 )
 
 
@@ -172,9 +177,20 @@ class PersistentDataManager(DataManager):
                 raise
 
     def get_model_version_internal(
-        self, model: str, version: str
+        self,
+        *,
+        version: str,
+        model_name: str | None = None,
+        model_id: str | None = None,
     ) -> ModelVersionInternal:
-        model_cond = or_(model_table.c.id == model, model_table.c.name == model)
+        # only one of model_id or model_name can be supplied
+        assert (model_id is not None) ^ (model_name is not None)
+        if model_id is not None:
+            model_cond = model_table.c.id == model_id
+            model = model_id
+        else:
+            model_cond = model_table.c.name == model_name
+            model = str(model_name)
         version_cond = (
             model_version_table.c.version == version if version is not None else True
         )
@@ -424,3 +440,150 @@ class PersistentDataManager(DataManager):
                 )
             )
             conn.commit()
+
+    def create_task(self, create_request: CreateTaskRequest) -> UUID4:
+        with self.engine.connect() as conn:
+            freshid = str(uuid4())
+            # Attempt to create if not already in there
+            row = {
+                "id": freshid,
+                "name": create_request.name,
+                "created_at": datetime.utcnow(),
+                "updated_at": datetime.utcnow(),
+                "prompte_template": "",
+                "input_schema": "{}",
+                "output_grammar": None,
+                "backing_model_id": None,
+                "backing_model_version": None,
+            }
+
+            conn.execute(Insert(task_def_table).values(**row))
+            conn.commit()
+
+            return UUID4(freshid)
+
+    def get_tasks(self) -> list[TaskInfo]:
+        with self.engine.connect() as conn:
+            task_rows = conn.execute(
+                select(
+                    task_def_table.c.id,
+                    task_def_table.c.name,
+                    task_def_table.c.backing_model_id,
+                    task_def_table.c.backing_model_version,
+                    task_def_table.c.prompt_template,
+                    task_def_table.c.input_schema,
+                    task_def_table.c.output_grammar,
+                ).select_from(task_def_table)
+            ).all()
+
+            tasks = []
+            for task in task_rows:
+                (
+                    task_id,
+                    task_name,
+                    model_id,
+                    model_version,
+                    prompt_template,
+                    input_schema,
+                    grammar,
+                ) = task
+                if model_id is None:
+                    model_uuid = None
+                else:
+                    model_uuid = UUID4(model_id)
+                if model_version is None:
+                    semver = None
+                else:
+                    semver = SemVer(model_version)
+                tasks.append(
+                    TaskInfo(
+                        name=task_name,
+                        task_id=UUID4(task_id),
+                        model_id=model_uuid,
+                        model_version=semver,
+                        prompt_template=prompt_template,
+                        task_params=json.loads(input_schema),
+                        output_grammar=grammar,
+                    )
+                )
+        return tasks
+
+    def update_task(
+        self, task_name: str, update_task_request: UpdateTaskRequest
+    ) -> None:
+        with self.engine.connect() as conn:
+            if (
+                conn.execute(
+                    select(task_def_table.c.id).where(
+                        task_def_table.c.name == task_name
+                    )
+                ).one_or_none()
+                is None
+            ):
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"No Task named {task_name}",
+                )
+
+            update_values = {
+                task_def_table.c.backing_model_id.name: update_task_request.model_id,
+                task_def_table.c.backing_model_version.name: update_task_request.model_version,
+                task_def_table.c.prompt_template.name: update_task_request.prompt_template,
+                task_def_table.c.input_schema.name: update_task_request.input_schema,
+                task_def_table.c.output_grammar.name: update_task_request.grammar,
+            }
+            if update_task_request.name is not None:
+                update_values[task_def_table.c.name.name] = update_task_request.name
+            conn.execute(
+                update(task_def_table)
+                .values(**update_values)
+                .where(task_def_table.c.name == task_name)
+            )
+            conn.commit()
+
+    def get_task_by_name(self, task_name: str) -> TaskInfo:
+        with self.engine.connect() as conn:
+            task = conn.execute(
+                select(
+                    task_def_table.c.id,
+                    task_def_table.c.backing_model_id,
+                    task_def_table.c.backing_model_version,
+                    task_def_table.c.prompt_template,
+                    task_def_table.c.input_schema,
+                    task_def_table.c.output_grammar,
+                )
+                .select_from(task_def_table)
+                .where(task_def_table.c.name == task_name)
+            ).one_or_none()
+            if task is None:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Invalid task ({task_name})",
+                )
+
+            (
+                task_id,
+                model_id,
+                model_version,
+                prompt_template,
+                input_schema,
+                grammar,
+            ) = task
+            if model_id is None:
+                model_uuid = None
+            else:
+                model_uuid = UUID4(model_id)
+            if model_version is None:
+                semver = None
+            else:
+                semver = SemVer(model_version)
+
+            return TaskInfo(
+                name=task_name,
+                task_id=UUID4(task_id),
+                model_id=model_uuid,
+                model_version=semver,
+                prompt_template=prompt_template,
+                task_params=json.loads(input_schema),
+                output_grammar=grammar,
+            )

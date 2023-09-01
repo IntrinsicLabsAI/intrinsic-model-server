@@ -51,7 +51,10 @@ def test_simple_query(db: PersistentDataManager) -> None:
 
     db.register_model(REGISTER_V1)
     assert len(db.get_registered_models()) == 1
-    assert db.get_model_version_internal("anewmodel", "0.1.0") is not None
+    assert (
+        db.get_model_version_internal(model_name="anewmodel", version="0.1.0")
+        is not None
+    )
 
     db.register_model(REGISTER_V2)
     models = db.get_registered_models()
@@ -121,7 +124,9 @@ def test_error_handling(db: PersistentDataManager) -> None:
 
     # Ensure model lookups fail with 404 exception
     with pytest.raises(HTTPException) as http_ex:
-        db.get_model_version_internal(REGISTER_V3.model, str(REGISTER_V3.version))
+        db.get_model_version_internal(
+            model_name=REGISTER_V3.model, version=str(REGISTER_V3.version)
+        )
     assert http_ex.value.status_code == status.HTTP_404_NOT_FOUND
 
 

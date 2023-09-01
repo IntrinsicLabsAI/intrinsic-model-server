@@ -17,20 +17,28 @@ from fastapi import (
     status,
 )
 from llama_cpp import Llama
+from llama_cpp.llama_grammar import LlamaGrammar
+from pydantic import UUID4
 
-from modelserver.model_worker import run_completion_async
+from modelserver import model_worker, task_worker
 from modelserver.types.locator import DiskLocator, HFLocator, Locator
+from modelserver.types.workers import RenderedTaskInvocation
 
 from ..db import DataManager
 from ..dependencies import AppComponent, get_db
 from ..types.api import (
     CompletionInference,
     CompletionInferenceRequest,
+    CreateTaskRequest,
     GetRegisteredModelsResponse,
     GetSavedExperimentsResponse,
     RegisteredModel,
     SavedExperimentIn,
     SavedExperimentOut,
+    TaskInfo,
+    TaskInvocation,
+    TaskInvocationRequest,
+    UpdateTaskRequest,
 )
 from ..types.tasks import (
     DownloadDiskModelTask,
@@ -73,12 +81,14 @@ async def run_inference_sync(
     :param request: Request body for inference
     :return:
     """
-    found_model = component.db.get_model_version_internal(model, version)
+    found_model = component.db.get_model_version_internal(
+        model_name=model, version=version
+    )
 
     # Generate the Llama context
     starttime = time.time()
     completion = ""
-    async for token in run_completion_async(
+    async for token in model_worker.run_completion_async(
         request, found_model.internal_params.model_path
     ):
         completion += token
@@ -191,14 +201,16 @@ async def completion_async(
     component: Annotated[AppComponent, Depends(AppComponent)],
 ) -> None:
     await websocket.accept()
-    found_model = component.db.get_model_version_internal(model, version)
+    found_model = component.db.get_model_version_internal(
+        model_name=model, version=version
+    )
     try:
         msg = await websocket.receive_json()
         request: CompletionInferenceRequest = CompletionInferenceRequest.model_validate(
             msg
         )
 
-        async for item in run_completion_async(
+        async for item in model_worker.run_completion_async(
             request, found_model.internal_params.model_path
         ):
             await websocket.send_text(str(item))
@@ -235,3 +247,97 @@ async def delete_experiment(
     component: Annotated[AppComponent, Depends(AppComponent)],
 ) -> None:
     component.db.delete_experiment(experiment_id)
+
+
+"""
+New task structure endpoints
+
+- create_task
+- invoke_task
+- Update the task (grammar/input-schema/whatever)
+"""
+
+
+@router.post("/tasks")
+async def create_task(
+    create_request: CreateTaskRequest,
+    component: Annotated[AppComponent, Depends(AppComponent)],
+) -> UUID4:
+    """
+    Create a new task with the provided parameters
+    """
+    return component.db.create_task(create_request)
+
+
+@router.get("/tasks")
+async def get_tasks(
+    component: Annotated[AppComponent, Depends(AppComponent)],
+) -> list[TaskInfo]:
+    return component.db.get_tasks()
+
+
+@router.put("/tasks/{task_name}")
+async def update_task(
+    task_name: str,
+    update_request: UpdateTaskRequest,
+    component: Annotated[AppComponent, Depends(AppComponent)],
+) -> None:
+    # Perform basic validation before persisting
+    if (update_request.model_id is None) ^ (update_request.model_version is None):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="model_version and model_id must both be set or not set",
+        )
+    if update_request.grammar is not None:
+        try:
+            _ = LlamaGrammar.from_string(update_request.grammar)
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"provided grammar was invalid: {e}",
+            )
+    pass
+
+
+@router.post("/tasks/{task}/invoke")
+async def invoke_task_sync(
+    task_name: str,
+    request: TaskInvocationRequest,
+    component: Annotated[AppComponent, Depends(AppComponent)],
+) -> TaskInvocation:
+    """
+    Run inference on the specified model
+    :param model: The name of the model.
+    :param version: The model version in semantic version format. If not provided it will be inferred to the latest version.
+    :param request: Request body for inference
+    :return:
+    """
+    # Get the associated model version if available
+    task_info = component.db.get_task_by_name(task_name)
+    found_model = component.db.get_model_version_internal(
+        model_id=str(task_info.model_id), version=str(task_info.model_version)
+    )
+
+    completion = ""
+
+    # TODO(aduffy): Validate the provided params matches the stored set exactly
+    rendered_prompt = task_info.prompt_template.format(**request.variables)
+
+    # Generate the Llama context
+    starttime = time.time()
+    rendered_invocation = RenderedTaskInvocation(
+        model_path=found_model.internal_params.model_path,
+        rendered_prompt=rendered_prompt,
+        grammar=task_info.output_grammar,
+        temperature=request.temperature,
+    )
+
+    async for token in task_worker.run_task_async(rendered_invocation):
+        completion += token
+
+    elapsed = time.time() - starttime
+    return TaskInvocation(
+        task_name=task_name,
+        elapsed_seconds=elapsed,
+        result=completion,
+    )

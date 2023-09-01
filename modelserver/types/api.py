@@ -300,14 +300,9 @@ class CreateTaskRequest(BaseModel):
     # We need a new system for setting this shit up properly...everything else will be none to start with
 
 
-class UpdateTaskRequest(BaseModel):
-    # Make a modification to the task to update it in some way
-    name: str | None
-    model_id: str | None
-    model_version: str | None
-    prompt_template: str | None
-    input_schema: dict[str, str] | None
-    grammar: str | None
+class SetTaskBackingModelRequest(BaseModel):
+    model_id: str
+    model_version: str
 
     model_config = ConfigDict(
         protected_namespaces=(),

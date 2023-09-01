@@ -1,7 +1,5 @@
-import asyncio
 import logging
 import multiprocessing as M
-import queue
 import re
 import time
 from typing import Annotated
@@ -16,8 +14,6 @@ from fastapi import (
     WebSocketDisconnect,
     status,
 )
-from llama_cpp import Llama
-from llama_cpp.llama_grammar import LlamaGrammar
 from pydantic import UUID4
 
 from modelserver import model_worker, task_worker
@@ -35,10 +31,10 @@ from ..types.api import (
     RegisteredModel,
     SavedExperimentIn,
     SavedExperimentOut,
+    SetTaskBackingModelRequest,
     TaskInfo,
     TaskInvocation,
     TaskInvocationRequest,
-    UpdateTaskRequest,
 )
 from ..types.tasks import (
     DownloadDiskModelTask,
@@ -276,30 +272,93 @@ async def get_tasks(
     return component.db.get_tasks()
 
 
-@router.put("/tasks/{task_name}")
-async def update_task(
-    task_name: str,
-    update_request: UpdateTaskRequest,
+@router.post(
+    "/tasks/{task_name}/name",
+    status_code=status.HTTP_204_NO_CONTENT,
+    response_class=Response,
+)
+async def rename_task(
+    model_name: str,
+    new_name: Annotated[str, Body(media_type="text/plain")],
     component: Annotated[AppComponent, Depends(AppComponent)],
 ) -> None:
-    # Perform basic validation before persisting
-    if (update_request.model_id is None) ^ (update_request.model_version is None):
+    if VALID_MODEL_NAME.match(new_name) is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="model_version and model_id must both be set or not set",
+            detail="Model name does not meet validity requirements",
         )
-    if update_request.grammar is not None:
-        try:
-            _ = LlamaGrammar.from_string(update_request.grammar)
-        except Exception as e:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"provided grammar was invalid: {e}",
-            )
-    pass
+    component.db.set_model_name(model_name, new_name)
 
 
-@router.post("/tasks/{task}/invoke")
+@router.post(
+    "/tasks/{task_name}/grammar",
+    status_code=status.HTTP_204_NO_CONTENT,
+    response_class=Response,
+)
+async def task_set_grammar(
+    task_name: str,
+    grammar: Annotated[str, Body(media_type="text/plain")],
+    component: Annotated[AppComponent, Depends(AppComponent)],
+) -> None:
+    component.db.update_task_grammar(task_name=task_name, grammar=grammar)
+
+
+@router.post(
+    "/tasks/{task_name}/prompt",
+    status_code=status.HTTP_204_NO_CONTENT,
+    response_class=Response,
+)
+async def task_set_prompt_template(
+    task_name: str,
+    prompt_template: Annotated[str, Body(media_type="text/plain")],
+    component: Annotated[AppComponent, Depends(AppComponent)],
+) -> None:
+    component.db.update_task_prompt_template(task_name, prompt_template)
+
+
+@router.post(
+    "/tasks/{task_name}/input-schema",
+    status_code=status.HTTP_204_NO_CONTENT,
+    response_class=Response,
+)
+async def task_set_input_schema(
+    task_name: str,
+    input_schema: dict[str, str],
+    component: Annotated[AppComponent, Depends(AppComponent)],
+) -> None:
+    component.db.update_task_input_schema(task_name, input_schema)
+
+
+@router.post(
+    "/tasks/{task_name}/model",
+    status_code=status.HTTP_204_NO_CONTENT,
+    response_class=Response,
+)
+async def task_set_backing_model(
+    task_name: str,
+    set_model_request: SetTaskBackingModelRequest,
+    component: Annotated[AppComponent, Depends(AppComponent)],
+) -> None:
+    component.db.set_task_backing_model(
+        task_name=task_name,
+        model_id=set_model_request.model_id,
+        model_version=set_model_request.model_version,
+    )
+
+
+@router.delete(
+    "/tasks/{task_name}/model",
+    status_code=status.HTTP_204_NO_CONTENT,
+    response_class=Response,
+)
+async def task_clear_backing_model(
+    task_name: str,
+    component: Annotated[AppComponent, Depends(AppComponent)],
+) -> None:
+    component.db.clear_task_backing_model(task_name=task_name)
+
+
+@router.post("/tasks/{task_name}/invoke")
 async def invoke_task_sync(
     task_name: str,
     request: TaskInvocationRequest,

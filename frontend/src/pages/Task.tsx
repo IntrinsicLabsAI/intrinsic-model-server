@@ -29,7 +29,7 @@ function TaskHeader({ task }: { task: string }) {
 function TaskStatus(){
     const [statusActive, setStatusActive] = useState<boolean>(true);
     return (
-        <div className="mb-5">
+        <div className="mb-4">
             {statusActive ? 
                 (<Callout color="green">
                     <div className=" flex flex-row gap-2 items-center">
@@ -72,7 +72,7 @@ function TaskInstructions() {
     const [taskPrompt, setTaskPrompt] = useState<string | undefined>();
     const [isEditingTaskPrompt, setIsEditingTaskPrompt] = useState<boolean>(false);
     return (
-        <Card className="mb-5">
+        <Card className="mb-4">
             <div className="flex flex-col w-full gap-4">
                 <div className=" flex flex-row">
                     <div className="mr-auto items-start">
@@ -250,7 +250,7 @@ function TaskSidebarInputs(
 function TaskSidebar() {
     return (
         <>
-            <Card className="mb-5">
+            <Card className="mb-2">
                 <div className="flex flex-row gap-2 items-center pb-2">
                     <div className=" mr-auto ">
                         <p className=" font-semibold text-lg leading-none">Inputs</p>
@@ -263,10 +263,10 @@ function TaskSidebar() {
                 </div>
             </Card>
             <Card className="mb-2">
-                <p className=" font-semibold text-lg pb-2">Linked Model</p>
-                <div className=" flex flex-col ">
-                    <div className=" flex flex-row gap-3 items-center">
-                        <Icon icon="application" size={18} color={"#DCE0E5"}/>
+                <p className=" font-semibold text-lg pb-2">Model</p>
+                <div className=" flex flex-col outline p-2 outline-gray-400/60 rounded-sm">
+                    <div className=" flex flex-row gap-2 items-center">
+                        <Icon icon="application" size={16} color={"#DCE0E5"}/>
                         <p className="font-mono text-sm leading-normal hover:cursor-pointer hover:underline underline-offset-4">The Model Name 7B</p>
                     </div>
                 </div>

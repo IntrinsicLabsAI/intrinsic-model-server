@@ -92,6 +92,25 @@ saved_experiments_table = Table(
     ),
 )
 
+task_def_table = Table(
+    "task_def_v0",
+    metadata_obj,
+    Column("id", String, primary_key=True),
+    Column("name", String, unique=True),
+    Column("created_at", DateTime, nullable=False),
+    Column("updated_at", DateTime, nullable=False),
+    Column("prompt_template", String, nullable=False),
+    Column("input_schema", JSON, nullable=False),
+    Column("output_grammar", String, nullable=True),
+    # A task can be defined but not yet linked to a particular backing model
+    Column("backing_model_id", String, nullable=True),
+    Column("backing_model_version", String, nullable=True),
+    ForeignKeyConstraint(
+        ["backing_model_id", "backing_model_version"],
+        ["model_version.model_id", "model_version.version"],
+    ),
+)
+
 
 """
 Special table that contains all joined attributes of model_version_table, import_metadata_table and model_params_table.

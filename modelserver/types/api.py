@@ -293,3 +293,54 @@ class SavedExperimentOut(BaseModel):
 
 class GetSavedExperimentsResponse(BaseModel):
     experiments: list[SavedExperimentOut]
+
+
+class CreateTaskRequest(BaseModel):
+    name: str
+    # We need a new system for setting this shit up properly...everything else will be none to start with
+
+
+class UpdateTaskRequest(BaseModel):
+    # Make a modification to the task to update it in some way
+    name: str | None
+    model_id: str | None
+    model_version: str | None
+    prompt_template: str | None
+    input_schema: dict[str, str] | None
+    grammar: str | None
+
+    model_config = ConfigDict(
+        protected_namespaces=(),
+    )
+
+
+class TaskInfo(BaseModel):
+    name: str
+    task_id: UUID4
+    model_id: UUID4 | None
+    model_version: SemVer | None
+    task_params: dict[str, str]
+    output_grammar: str | None
+    prompt_template: str
+
+    model_config = ConfigDict(
+        protected_namespaces=(),
+    )
+
+
+class TaskInvocationRequest(BaseModel):
+    """
+    A request to invoke a particular Task
+
+    :param variables: A string to string dictionary of variables as provided by the user at request time, must
+                      correspond to the configured variables for the Task.
+    """
+
+    variables: dict[str, str]
+    temperature: float = 0.0
+
+
+class TaskInvocation(BaseModel):
+    task_name: str
+    elapsed_seconds: float
+    result: str

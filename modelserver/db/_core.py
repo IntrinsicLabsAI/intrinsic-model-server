@@ -1,13 +1,17 @@
 from abc import ABC, abstractmethod
-from uuid import UUID
+
+from pydantic import UUID4
 
 from modelserver.types.api import (
+    CreateTaskRequest,
     ModelVersionInternal,
     RegisteredModel,
     RegisterModelRequest,
     SavedExperimentIn,
     SavedExperimentOut,
     SemVer,
+    TaskInfo,
+    UpdateTaskRequest,
 )
 
 
@@ -29,7 +33,11 @@ class DataManager(ABC):
 
     @abstractmethod
     def get_model_version_internal(
-        self, model_name: str, version: str
+        self,
+        *,
+        version: str,
+        model_name: str | None = None,
+        model_id: str | None = None,
     ) -> ModelVersionInternal:
         """
         Retrieve a single model using its name and version.
@@ -96,4 +104,32 @@ class DataManager(ABC):
         """
         Delete the experiment by ID.
         :param experiment_id: The ID of the saved experiment
+        """
+
+    @abstractmethod
+    def get_tasks(self) -> list[TaskInfo]:
+        """
+        Return a list of registered tasks.
+        """
+
+    @abstractmethod
+    def create_task(self, create_request: CreateTaskRequest) -> UUID4:
+        """
+        Create a new task based on a desired input and output schema.
+        """
+
+    @abstractmethod
+    def update_task(
+        self, task_name: str, update_task_request: UpdateTaskRequest
+    ) -> None:
+        """
+        Request to update the task using a partial version of the task info.
+        """
+
+    @abstractmethod
+    def get_task_by_name(self, task_name: str) -> TaskInfo:
+        """
+        Lookup a task by name.
+
+        :param task_name: The unique name of the task
         """

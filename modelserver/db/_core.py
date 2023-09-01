@@ -11,7 +11,6 @@ from modelserver.types.api import (
     SavedExperimentOut,
     SemVer,
     TaskInfo,
-    UpdateTaskRequest,
 )
 
 
@@ -119,11 +118,43 @@ class DataManager(ABC):
         """
 
     @abstractmethod
-    def update_task(
-        self, task_name: str, update_task_request: UpdateTaskRequest
+    def set_task_name(self, old_task_name: str, new_task_name: str) -> None:
+        """
+        Rename the model from the old name to the new name.
+        """
+
+    @abstractmethod
+    def set_task_backing_model(
+        self, task_name: str, model_id: str, model_version: str
     ) -> None:
         """
-        Request to update the task using a partial version of the task info.
+        Set the backing model for the task
+        """
+
+    @abstractmethod
+    def clear_task_backing_model(self, task_name: str) -> None:
+        """
+        Clear the backing model setting for a Task, making it no longer accessible.
+        """
+
+    @abstractmethod
+    def update_task_prompt_template(self, task_name: str, prompt_template: str) -> None:
+        """
+        Set the prompt template that a Task will format into a rendered prompt at invocation time.
+        """
+
+    @abstractmethod
+    def update_task_grammar(self, task_name: str, grammar: str) -> None:
+        """
+        Update the Grammar a Task uses to control its outputs.
+        """
+
+    @abstractmethod
+    def update_task_input_schema(
+        self, task_name: str, input_schema: dict[str, str]
+    ) -> None:
+        """
+        Update the input schema of variables injected into the prompt template at invocation time.
         """
 
     @abstractmethod

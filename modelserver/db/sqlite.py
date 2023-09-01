@@ -5,13 +5,11 @@ from uuid import UUID, uuid4
 
 from fastapi import HTTPException, status
 from pydantic import UUID4
-from sqlalchemy import Engine, and_, delete, event, or_, select, update
+from sqlalchemy import Engine, and_, delete, event, select, update
 from sqlalchemy.dialects.sqlite import Insert
-from sqlalchemy.engine.interfaces import DBAPIConnection, Dialect
-from sqlalchemy.engine.url import URL
+from sqlalchemy.engine.interfaces import DBAPIConnection
 from sqlalchemy.exc import IntegrityError, NoResultFound
-from sqlalchemy.log import _EchoFlagType
-from sqlalchemy.pool import ConnectionPoolEntry, Pool
+from sqlalchemy.pool import ConnectionPoolEntry
 
 from modelserver.types.api import (
     CompletionModelParams,
@@ -27,7 +25,6 @@ from modelserver.types.api import (
     SavedExperimentOut,
     SemVer,
     TaskInfo,
-    UpdateTaskRequest,
 )
 
 from ._core import DataManager
@@ -450,7 +447,7 @@ class PersistentDataManager(DataManager):
                 "name": create_request.name,
                 "created_at": datetime.utcnow(),
                 "updated_at": datetime.utcnow(),
-                "prompte_template": "",
+                "prompt_template": "",
                 "input_schema": "{}",
                 "output_grammar": None,
                 "backing_model_id": None,
@@ -460,7 +457,7 @@ class PersistentDataManager(DataManager):
             conn.execute(Insert(task_def_table).values(**row))
             conn.commit()
 
-            return UUID4(freshid)
+            return UUID(freshid)
 
     def get_tasks(self) -> list[TaskInfo]:
         with self.engine.connect() as conn:
@@ -487,10 +484,6 @@ class PersistentDataManager(DataManager):
                     input_schema,
                     grammar,
                 ) = task
-                if model_id is None:
-                    model_uuid = None
-                else:
-                    model_uuid = UUID4(model_id)
                 if model_version is None:
                     semver = None
                 else:
@@ -498,8 +491,8 @@ class PersistentDataManager(DataManager):
                 tasks.append(
                     TaskInfo(
                         name=task_name,
-                        task_id=UUID4(task_id),
-                        model_id=model_uuid,
+                        task_id=task_id,
+                        model_id=model_id,
                         model_version=semver,
                         prompt_template=prompt_template,
                         task_params=json.loads(input_schema),
@@ -508,37 +501,114 @@ class PersistentDataManager(DataManager):
                 )
         return tasks
 
-    def update_task(
-        self, task_name: str, update_task_request: UpdateTaskRequest
+    def set_task_name(self, old_task_name: str, new_task_name: str) -> None:
+        with self.engine.connect() as conn:
+            conn.execute(
+                update(task_def_table)
+                .values(name=new_task_name)
+                .where(task_def_table.c.name == new_task_name)
+            )
+            conn.commit()
+
+    def set_task_backing_model(
+        self, task_name: str, model_id: str, model_version: str
     ) -> None:
+        """
+        Set the backing model for the task
+        """
         with self.engine.connect() as conn:
             if (
                 conn.execute(
-                    select(task_def_table.c.id).where(
-                        task_def_table.c.name == task_name
+                    update(task_def_table)
+                    .values(
+                        backing_model_id=model_id, backing_model_version=model_version
                     )
-                ).one_or_none()
-                is None
+                    .where(task_def_table.c.name == task_name)
+                ).rowcount
+                == 0
             ):
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
-                    detail=f"No Task named {task_name}",
+                    detail=f"No task found with name {task_name}",
                 )
+            conn.commit()
 
-            update_values = {
-                task_def_table.c.backing_model_id.name: update_task_request.model_id,
-                task_def_table.c.backing_model_version.name: update_task_request.model_version,
-                task_def_table.c.prompt_template.name: update_task_request.prompt_template,
-                task_def_table.c.input_schema.name: update_task_request.input_schema,
-                task_def_table.c.output_grammar.name: update_task_request.grammar,
-            }
-            if update_task_request.name is not None:
-                update_values[task_def_table.c.name.name] = update_task_request.name
-            conn.execute(
-                update(task_def_table)
-                .values(**update_values)
-                .where(task_def_table.c.name == task_name)
-            )
+    def clear_task_backing_model(self, task_name: str) -> None:
+        """
+        Clear the backing model setting for a Task, making it no longer accessible.
+        """
+        with self.engine.connect() as conn:
+            if (
+                conn.execute(
+                    update(task_def_table)
+                    .values(backing_model_id=None, backing_model_version=None)
+                    .where(task_def_table.c.name == task_name)
+                ).rowcount
+                == 0
+            ):
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"No task found with name {task_name}",
+                )
+            conn.commit()
+
+    def update_task_prompt_template(self, task_name: str, prompt_template: str) -> None:
+        """
+        Set the prompt template that a Task will format into a rendered prompt at invocation time.
+        """
+        with self.engine.connect() as conn:
+            if (
+                conn.execute(
+                    update(task_def_table)
+                    .values(prompt_template=prompt_template)
+                    .where(task_def_table.c.name == task_name)
+                ).rowcount
+                == 0
+            ):
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"No task found with name {task_name}",
+                )
+            conn.commit()
+
+    def update_task_grammar(self, task_name: str, grammar: str) -> None:
+        """
+        Update the Grammar a Task uses to control its outputs.
+        """
+        with self.engine.connect() as conn:
+            if (
+                conn.execute(
+                    update(task_def_table)
+                    .values(output_grammar=grammar)
+                    .where(task_def_table.c.name == task_name)
+                ).rowcount
+                == 0
+            ):
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"No task found with name {task_name}",
+                )
+            conn.commit()
+
+    def update_task_input_schema(
+        self, task_name: str, input_schema: dict[str, str]
+    ) -> None:
+        """
+        Update the input schema of variables injected into the prompt template at invocation time.
+        """
+        with self.engine.connect() as conn:
+            if (
+                conn.execute(
+                    update(task_def_table)
+                    .values(input_schema=json.dumps(input_schema))
+                    .where(task_def_table.c.name == task_name)
+                ).rowcount
+                == 0
+            ):
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"No task found with name {task_name}",
+                )
             conn.commit()
 
     def get_task_by_name(self, task_name: str) -> TaskInfo:
@@ -569,10 +639,6 @@ class PersistentDataManager(DataManager):
                 input_schema,
                 grammar,
             ) = task
-            if model_id is None:
-                model_uuid = None
-            else:
-                model_uuid = UUID4(model_id)
             if model_version is None:
                 semver = None
             else:
@@ -580,8 +646,8 @@ class PersistentDataManager(DataManager):
 
             return TaskInfo(
                 name=task_name,
-                task_id=UUID4(task_id),
-                model_id=model_uuid,
+                task_id=task_id,
+                model_id=model_id,
                 model_version=semver,
                 prompt_template=prompt_template,
                 task_params=json.loads(input_schema),

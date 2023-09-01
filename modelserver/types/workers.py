@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class RenderedTaskInvocation(BaseModel):
@@ -14,3 +14,7 @@ class RenderedTaskInvocation(BaseModel):
     rendered_prompt: str
     grammar: str | None
     temperature: float
+
+    model_config = ConfigDict(
+        protected_namespaces=(),
+    )

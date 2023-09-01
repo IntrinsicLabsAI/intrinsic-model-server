@@ -96,23 +96,24 @@ class Tasks:
                 revision=locator.revision,
                 resume_download=True,
             )
+            ## TODO(aduffy): Bring back validation for GGUF
             # Validate the model to ensure that we're actually running it.
-            from .ggml import GGMLFile, check_compatible_with_latest_llamacpp
+            # from .ggml import GGMLFile, check_compatible_with_latest_llamacpp
 
-            ggml_file = GGMLFile(pathlib.Path(localized))
-            parsed_ggml = ggml_file.read_structure()
-            check_compatible_with_latest_llamacpp(parsed_ggml)
+            # ggml_file = GGMLFile(pathlib.Path(localized))
+            # parsed_ggml = ggml_file.read_structure()
+            # check_compatible_with_latest_llamacpp(parsed_ggml)
             # Assert that the GGML file contains necessary tensor types for LLAMA style inference.
-            tok_embds = list(
-                filter(
-                    lambda tensor: tensor.name == "tok_embeddings.weight",
-                    parsed_ggml.tensors,
-                )
-            )
-            if len(tok_embds) == 0:
-                raise ValueError(
-                    "Invalid GGML file: must be LLaMa-formatted to be run with llama.cpp"
-                )
+            # tok_embds = list(
+            #     filter(
+            #         lambda tensor: tensor.name == "tok_embeddings.weight",
+            #         parsed_ggml.tensors,
+            #     )
+            # )
+            # if len(tok_embds) == 0:
+            #     raise ValueError(
+            #         "Invalid GGML file: must be LLaMa-formatted to be run with llama.cpp"
+            #     )
 
             modelname = f"{os.path.basename(locator.repo)}__{locator.file}"
 

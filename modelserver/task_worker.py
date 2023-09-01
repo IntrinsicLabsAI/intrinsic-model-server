@@ -20,7 +20,6 @@ logger = logging.getLogger(__name__)
 def invoke_task(
     model_path: str,
     prompt: str,
-    tokens: int,
     temperature: float,
     grammar: str | None,
     channel: queue.Queue[str | None],
@@ -29,6 +28,7 @@ def invoke_task(
     Execute completion, sending the results back over the completion task.
     """
 
+    logger.info("starting Task invocation")
     # NOTE: This may fail with ValueError if the grammar is invalid
     if grammar is not None:
         llama_grammar = LlamaGrammar.from_string(grammar)
@@ -39,7 +39,7 @@ def invoke_task(
     llama = Llama(model_path=model_path)
     for next_chunk in llama.create_completion(
         prompt,
-        max_tokens=tokens,
+        max_tokens=2048,
         temperature=temperature,
         stream=True,
         grammar=llama_grammar,
@@ -53,6 +53,7 @@ def invoke_task(
 async def run_task_async(
     invocation_params: RenderedTaskInvocation,
 ) -> AsyncGenerator[str, str]:
+    logger.info("ENTER run_task_async")
     loop = asyncio.get_running_loop()
 
     with ProcessPoolExecutor() as pool:
@@ -64,6 +65,7 @@ async def run_task_async(
                 invocation_params.model_path,
                 invocation_params.rendered_prompt,
                 invocation_params.temperature,
+                invocation_params.grammar,
                 chan,
             )
             while True:

@@ -1,6 +1,5 @@
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useState } from "react";
-import { useGetTasksQuery, useRenameTaskMutation, useUpdateTaskPromptMutation } from "../api/services/v1";
 // import { BlueprintIcons_16Id } from "@blueprintjs/icons/src/generated/16px/blueprint-icons-16.ts";
 // import { Icon } from "@blueprintjs/core";
 
@@ -11,49 +10,13 @@ import Card from "../components/core/Card";
 import Button from "../components/core/Button";
 import Callout from "../components/core/Callout";
 import { Icon } from "@blueprintjs/core";
-import { TaskInfo } from "../api";
+import Dropdown from "../components/core/Dropdown";
 
 function TaskHeader({ task }: { task: string }) {
-    const navigate = useNavigate();
-    const [isEditing, setEditing] = useState<boolean>(false);
-    const [taskName, setTaskName] = useState<string>(task);
-
-    const [createTaskAction] = useRenameTaskMutation();
-
-    const toggleEditing = () => {
-        if(!isEditing) {
-            setEditing(true);
-        } else if (isEditing) {
-            createTaskAction({ taskName: task, newName: taskName })
-            navigate(`/task/${taskName}`)
-            setEditing(false)
-        }
-    };
-
     return (
         <div className="flex flex-row items-start pb-5">
             <div className=" flex flex-col gap-2 mr-auto">
-                <div className=" flex flex-row items-center gap-2 group">
-                    <>
-                        {isEditing ? (
-                            <>
-                                <input 
-                                    value={taskName}
-                                    type="text" 
-                                    onChange={(evt) => setTaskName(evt.target.value)}
-                                    className=" font-semibold text-xl text-gray-400 bg-transparent focus:ring-0 focus:outline-primary-400 shadow-none outline border-none p-1 rounded-sm w-1/2"/>
-                                <Button buttonIcon="tick" color="primary" style="bold" size="medium" outline={false} onAction={() => toggleEditing()} />
-                            </>
-                        ) : (
-                            <>
-                                <h2 className=" font-semibold text-2xl leading-none cursor-default ">{task}</h2>
-                                <div className="hidden group-hover:block">
-                                    <Button buttonIcon="edit" style="minimal" size="small" outline={false} onAction={() => toggleEditing()} />
-                                </div>
-                            </>
-                        )}
-                    </>
-                </div>
+                <h2 className=" font-semibold text-2xl leading-none">Very Important Task</h2>
                 <p className=" text-gray-400/80">
                     Description of this task. This is shown in other UIs to provide context on what this task does.
                 </p>
@@ -66,7 +29,7 @@ function TaskHeader({ task }: { task: string }) {
 function TaskStatus(){
     const [statusActive, setStatusActive] = useState<boolean>(true);
     return (
-        <div className="mb-5">
+        <div className="mb-4">
             {statusActive ? 
                 (<Callout color="green">
                     <div className=" flex flex-row gap-2 items-center">
@@ -105,23 +68,11 @@ function TaskStatus(){
     )
 }
 
-function TaskInstructions({ task }: { task: TaskInfo }) {
-    const [taskPrompt, setTaskPrompt] = useState<string>(task.prompt_template);
+function TaskInstructions() {
+    const [taskPrompt, setTaskPrompt] = useState<string | undefined>();
     const [isEditingTaskPrompt, setIsEditingTaskPrompt] = useState<boolean>(false);
-    const [updatePromptAction] = useUpdateTaskPromptMutation();
-
-    const savePrompt = () => {
-        if(taskPrompt){
-            updatePromptAction({ taskName: task.name, prompt: taskPrompt })
-            setIsEditingTaskPrompt(false)
-        } else {
-            updatePromptAction({ taskName: task.name, prompt: "" })
-            setIsEditingTaskPrompt(false)
-        }
-    }
-
     return (
-        <Card className="mb-5">
+        <Card className="mb-4">
             <div className="flex flex-col w-full gap-4">
                 <div className=" flex flex-row">
                     <div className="mr-auto items-start">
@@ -138,7 +89,7 @@ function TaskInstructions({ task }: { task: TaskInfo }) {
                                 style="bold"
                                 outline={false}
                                 buttonIcon="tick"
-                                onAction={() => savePrompt()}
+                                onAction={() => setIsEditingTaskPrompt(false)}
                             />
                         ) : (
                             <Button
@@ -299,7 +250,7 @@ function TaskSidebarInputs(
 function TaskSidebar() {
     return (
         <>
-            <Card className="mb-5">
+            <Card className="mb-2">
                 <div className="flex flex-row gap-2 items-center pb-2">
                     <div className=" mr-auto ">
                         <p className=" font-semibold text-lg leading-none">Inputs</p>
@@ -312,10 +263,10 @@ function TaskSidebar() {
                 </div>
             </Card>
             <Card className="mb-2">
-                <p className=" font-semibold text-lg pb-2">Linked Model</p>
-                <div className=" flex flex-col ">
-                    <div className=" flex flex-row gap-3 items-center">
-                        <Icon icon="application" size={18} color={"#DCE0E5"}/>
+                <p className=" font-semibold text-lg pb-2">Model</p>
+                <div className=" flex flex-col outline p-2 outline-gray-400/60 rounded-sm">
+                    <div className=" flex flex-row gap-2 items-center">
+                        <Icon icon="application" size={16} color={"#DCE0E5"}/>
                         <p className="font-mono text-sm leading-normal hover:cursor-pointer hover:underline underline-offset-4">The Model Name 7B</p>
                     </div>
                 </div>
@@ -324,14 +275,14 @@ function TaskSidebar() {
     )
 }
 
-function TaskPage({ task }: { task: TaskInfo }) {
+function TaskPage({ task }: { task: string }) {
     return (
         <TwoColumnLayout type="right">
             <Column>
                 <TaskSidebar />
             </Column>
             <Column>
-                <TaskInstructions task={task} />
+                <TaskInstructions />
                 <TaskValidation />
             </Column>
         </TwoColumnLayout>
@@ -339,29 +290,15 @@ function TaskPage({ task }: { task: TaskInfo }) {
 } 
 
 export default function Task() {
-    const navigate = useNavigate();
     const { taskid } = useParams<"taskid">();
 
     // eslint-disable-next-line  @typescript-eslint/no-non-null-assertion
-    const taskName = taskid!;
-
-    const { registeredTask, isLoading } = useGetTasksQuery(undefined, {
-        selectFromResult: ({ data, isLoading }) => ({
-            registeredTask: data?.find((m) => m.name === taskName),
-            isLoading
-        }),
-    });
-
-    if(registeredTask === undefined && !isLoading) {
-        navigate("/404")
-    }
+    const task = taskid!;
 
     return (
-        <Page header={<TaskHeader task={taskName} />}>
+        <Page header={<TaskHeader task={task} />}>
             <TaskStatus />
-            {registeredTask && (
-                <TaskPage task={registeredTask} />
-            )}
+            <TaskPage task={task} />
         </Page>
     );
 }

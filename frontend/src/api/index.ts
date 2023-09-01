@@ -8,6 +8,7 @@ export type { OpenAPIConfig } from './core/OpenAPI';
 
 export type { CompletionInference } from './models/CompletionInference';
 export type { CompletionInferenceRequest } from './models/CompletionInferenceRequest';
+export type { CreateTaskRequest } from './models/CreateTaskRequest';
 export type { DiskImportSource } from './models/DiskImportSource';
 export type { DiskLocator } from './models/DiskLocator';
 export type { FailedTaskState } from './models/FailedTaskState';
@@ -29,5 +30,9 @@ export type { RegisteredModel } from './models/RegisteredModel';
 export type { SavedExperimentIn } from './models/SavedExperimentIn';
 export type { SavedExperimentOut } from './models/SavedExperimentOut';
 export type { SemVer } from './models/SemVer';
+export type { TaskInfo } from './models/TaskInfo';
+export type { TaskInvocation } from './models/TaskInvocation';
+export type { TaskInvocationRequest } from './models/TaskInvocationRequest';
 export type { TaskState } from './models/TaskState';
+export type { UpdateTaskRequest } from './models/UpdateTaskRequest';
 export type { ValidationError } from './models/ValidationError';

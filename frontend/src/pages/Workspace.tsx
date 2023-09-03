@@ -5,10 +5,15 @@ import DropdownMenu from "../components/core/DropdownMenu";
 import Button from "../components/core/Button";
 import { Status, StatusChecker } from "../api/services/statusService";
 import { baseURL } from "../utils/prod";
+import { useCreateTaskMutation } from "../api/services/v1";
+import { DateTime } from "luxon";
 
 export default function Workspace() {
     // Setup status checker in background.
     const [onlineState, setOnlineState] = useState<Status>("loading");
+
+    // Redux Mutations
+    const [createTaskAction] = useCreateTaskMutation();
 
     useEffect(() => {
         // Create and mount a status checker on the beginning of page load.
@@ -22,7 +27,16 @@ export default function Workspace() {
     const navigate = useNavigate();
 
     const actionsButton = (key: string) => {
-        navigate(key);
+        if (key === "new-model") {
+            navigate(key)
+        }
+        else if (key === "new-task") {
+            const currentDate = DateTime.now().toLocaleString(DateTime.DATE_SHORT)
+            const currentTime = DateTime.now().toLocaleString(DateTime.TIME_SIMPLE)
+            const name = "New Task - " + currentDate + " " + currentTime
+            createTaskAction({name: name})
+            navigate("/task/" + encodeURIComponent(name))
+        }
     };
 
     return (
@@ -44,7 +58,8 @@ export default function Workspace() {
                         type="icon"
                         buttonIcon="cube-add"
                         onSelectionChange={actionsButton}
-                        items={[{ id: "new-model", value: "Add New Model" }]}
+                        items={[{ id: "new-model", value: "Add a Model" },
+                                { id: "new-task", value: "Create a Task" }]}
                     />
                     <div className="pl-3">
                         <div className="flex flex-col items-center outline outline-gray-400 rounded px-2 py-1">

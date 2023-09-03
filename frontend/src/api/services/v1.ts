@@ -7,12 +7,14 @@ import {
     HFImportSource,
     Locator,
     TaskState,
+    CreateTaskRequest,
+    TaskInfo,
 } from "..";
 import { isDevServer } from "./util";
 
 export const v1API = createApi({
     reducerPath: "baseServiceAPI",
-    tagTypes: ["models", "description", "experiments"],
+    tagTypes: ["models", "description", "experiments", "tasks"],
     baseQuery: fetchBaseQuery({ baseUrl: isDevServer() ? "http://0.0.0.0:8000/v1" : "/v1" }),
     endpoints: (builder) => ({
         getModels: builder.query<GetRegisteredModelsResponse, void>({
@@ -102,6 +104,26 @@ export const v1API = createApi({
                 method: "DELETE",
             }),
         }),
+        createTask: builder.mutation<string, CreateTaskRequest>({
+            invalidatesTags: ["tasks"],
+            query: (createRequest) => ({
+                url: "tasks",
+                body: createRequest,
+                method: "POST",
+            }),
+        }),
+        renameTask: builder.mutation<string, { oldName: string; newName: string }>({
+            invalidatesTags: ["tasks"],
+            query: (body) => ({
+                url: `tasks/${body.oldName}/name`,
+                body: body.newName,
+                method: "POST",
+            }),
+        }),
+        getTasks: builder.query<TaskInfo[], void>({
+            query: () => `tasks`,
+            providesTags: ["tasks"],
+        }),
     }),
 });
 
@@ -117,6 +139,8 @@ export const {
     useUpdateDescriptionMutation,
     useUpdateModelNameMutation,
     useImportModelMutation,
+    useGetTasksQuery,
+    useCreateTaskMutation
 } = v1API;
 
 // Custom type guards

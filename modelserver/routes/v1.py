@@ -278,7 +278,7 @@ async def get_tasks(
     response_class=Response,
 )
 async def rename_task(
-    model_name: str,
+    task_name: str,
     new_name: Annotated[str, Body(media_type="text/plain")],
     component: Annotated[AppComponent, Depends(AppComponent)],
 ) -> None:
@@ -287,7 +287,7 @@ async def rename_task(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Model name does not meet validity requirements",
         )
-    component.db.set_model_name(model_name, new_name)
+    component.db.set_task_name(task_name, new_name)
 
 
 @router.post(

@@ -10,13 +10,17 @@ import Card from "../components/core/Card";
 import Button from "../components/core/Button";
 import Callout from "../components/core/Callout";
 import { Icon } from "@blueprintjs/core";
-import Dropdown from "../components/core/Dropdown";
 
 function TaskHeader({ task }: { task: string }) {
     return (
         <div className="flex flex-row items-start pb-5">
             <div className=" flex flex-col gap-2 mr-auto">
-                <h2 className=" font-semibold text-2xl leading-none">Very Important Task</h2>
+                <div className=" flex flex-row items-center gap-2 group">
+                    <h2 className=" font-semibold text-2xl leading-none cursor-default">{task}</h2>
+                    <div className="hidden group-hover:block">
+                        <Button buttonIcon="edit" style="minimal" size="small" outline={false} />
+                    </div>
+                </div>
                 <p className=" text-gray-400/80">
                     Description of this task. This is shown in other UIs to provide context on what this task does.
                 </p>
@@ -293,7 +297,7 @@ export default function Task() {
     const { taskid } = useParams<"taskid">();
 
     // eslint-disable-next-line  @typescript-eslint/no-non-null-assertion
-    const task = taskid!;
+    const task = decodeURI(taskid!);
 
     return (
         <Page header={<TaskHeader task={task} />}>

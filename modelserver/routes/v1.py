@@ -262,6 +262,12 @@ async def create_task(
     """
     Create a new task with the provided parameters
     """
+    if VALID_MODEL_NAME.match(create_request.name) is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Task name does not meet validity requirements",
+        )
+
     return component.db.create_task(create_request)
 
 
@@ -285,7 +291,7 @@ async def rename_task(
     if VALID_MODEL_NAME.match(new_name) is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Model name does not meet validity requirements",
+            detail="Task name does not meet validity requirements",
         )
     component.db.set_task_name(task_name, new_name)
 

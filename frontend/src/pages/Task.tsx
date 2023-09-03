@@ -1,5 +1,6 @@
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useState } from "react";
+import { useRenameTaskMutation } from "../api/services/v1";
 // import { BlueprintIcons_16Id } from "@blueprintjs/icons/src/generated/16px/blueprint-icons-16.ts";
 // import { Icon } from "@blueprintjs/core";
 
@@ -12,14 +13,45 @@ import Callout from "../components/core/Callout";
 import { Icon } from "@blueprintjs/core";
 
 function TaskHeader({ task }: { task: string }) {
+    const navigate = useNavigate();
+    const [isEditing, setEditing] = useState<boolean>(false);
+    const [taskName, setTaskName] = useState<string>(task);
+
+    const [createTaskAction] = useRenameTaskMutation();
+
+    const toggleEditing = () => {
+        if(!isEditing) {
+            setEditing(true);
+        } else if (isEditing) {
+            createTaskAction({ taskName: task, newName: taskName })
+            navigate(`/task/${taskName}`)
+            setEditing(false)
+        }
+    };
+
     return (
         <div className="flex flex-row items-start pb-5">
             <div className=" flex flex-col gap-2 mr-auto">
                 <div className=" flex flex-row items-center gap-2 group">
-                    <h2 className=" font-semibold text-2xl leading-none cursor-default">{task}</h2>
-                    <div className="hidden group-hover:block">
-                        <Button buttonIcon="edit" style="minimal" size="small" outline={false} />
-                    </div>
+                    <>
+                        {isEditing ? (
+                            <>
+                                <input 
+                                    value={taskName}
+                                    type="text" 
+                                    onChange={(evt) => setTaskName(evt.target.value)}
+                                    className=" font-semibold text-xl text-gray-400 bg-transparent focus:ring-0 focus:outline-primary-400 shadow-none outline border-none p-1 rounded-sm w-1/2"/>
+                                <Button buttonIcon="tick" color="primary" style="bold" size="medium" outline={false} onAction={() => toggleEditing()} />
+                            </>
+                        ) : (
+                            <>
+                                <h2 className=" font-semibold text-2xl leading-none cursor-default ">{task}</h2>
+                                <div className="hidden group-hover:block">
+                                    <Button buttonIcon="edit" style="minimal" size="small" outline={false} onAction={() => toggleEditing()} />
+                                </div>
+                            </>
+                        )}
+                    </>
                 </div>
                 <p className=" text-gray-400/80">
                     Description of this task. This is shown in other UIs to provide context on what this task does.

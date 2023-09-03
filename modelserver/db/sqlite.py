@@ -506,7 +506,7 @@ class PersistentDataManager(DataManager):
             conn.execute(
                 update(task_def_table)
                 .values(name=new_task_name)
-                .where(task_def_table.c.name == new_task_name)
+                .where(task_def_table.c.name == old_task_name)
             )
             conn.commit()
 

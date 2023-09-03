@@ -112,10 +112,10 @@ export const v1API = createApi({
                 method: "POST",
             }),
         }),
-        renameTask: builder.mutation<string, { oldName: string; newName: string }>({
+        renameTask: builder.mutation<string, { taskName: string; newName: string }>({
             invalidatesTags: ["tasks"],
             query: (body) => ({
-                url: `tasks/${body.oldName}/name`,
+                url: `tasks/${body.taskName}/name`,
                 body: body.newName,
                 method: "POST",
             }),
@@ -140,7 +140,8 @@ export const {
     useUpdateModelNameMutation,
     useImportModelMutation,
     useGetTasksQuery,
-    useCreateTaskMutation
+    useCreateTaskMutation,
+    useRenameTaskMutation
 } = v1API;
 
 // Custom type guards

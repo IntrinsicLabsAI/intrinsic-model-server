@@ -31,9 +31,7 @@ export default function Workspace() {
             navigate(key)
         }
         else if (key === "new-task") {
-            const currentDate = DateTime.now().toLocaleString(DateTime.DATE_SHORT)
-            const currentTime = DateTime.now().toLocaleString(DateTime.TIME_SIMPLE)
-            const name = "New Task - " + currentDate + " " + currentTime
+            const name = "new-task_" + DateTime.now().year + "-" + DateTime.now().month + "-" + DateTime.now().day + "_" + DateTime.now().hour + DateTime.now().minute
             createTaskAction({name: name})
             navigate("/task/" + encodeURIComponent(name))
         }

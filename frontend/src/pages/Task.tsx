@@ -508,7 +508,7 @@ function TaskSidebar({ task }: { task: TaskInfo }) {
     const [updateInputsAction] = useUpdateTaskInputsMutation();
 
     const onCreate = () => {
-        var updatedInputs: Record<string, string> = {};
+        const updatedInputs: Record<string, string> = {};
         for (const pName in task.task_params) {
             updatedInputs[pName] = "string";
         }
@@ -519,7 +519,7 @@ function TaskSidebar({ task }: { task: TaskInfo }) {
     };
 
     const onDelete = (name: string) => {
-        var updatedInputs: Record<string, string> = {};
+        const updatedInputs: Record<string, string> = {};
         for (const pName in task.task_params) {
             if (pName === name) {
                 continue;
@@ -531,7 +531,7 @@ function TaskSidebar({ task }: { task: TaskInfo }) {
     };
 
     const onSave = (name: string, newName: string) => {
-        var updatedInputs: Record<string, string> = {};
+        const updatedInputs: Record<string, string> = {};
         for (const pName in task.task_params) {
             if (pName === name) {
                 updatedInputs[newName] = "string";
@@ -542,7 +542,7 @@ function TaskSidebar({ task }: { task: TaskInfo }) {
         updateInputsAction({ taskName: task.name, inputs: updatedInputs });
     };
 
-    return (
+        return (
         <>
             <Card className="mb-5">
                 <div className="flex flex-row gap-2 items-center pb-2">

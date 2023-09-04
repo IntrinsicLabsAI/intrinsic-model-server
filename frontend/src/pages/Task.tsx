@@ -1,6 +1,8 @@
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useState } from "react";
 import {
+    useDeleteGrammarModeMutation,
+    useDeleteTaskMutation,
     useGetModelsQuery,
     useGetTasksQuery,
     useRenameTaskMutation,
@@ -30,6 +32,14 @@ function TaskHeader({ task }: { task: string }) {
     const [taskName, setTaskName] = useState<string>(task);
 
     const [renameTaskAction] = useRenameTaskMutation();
+    const [deleteTaskAction] = useDeleteTaskMutation();
+
+    const onAction = (type: string) => {
+        if (type === "delete") {
+            deleteTaskAction(task);
+            navigate("/");
+        }
+    };
 
     const toggleEditing = () => {
         if (!isEditing) {
@@ -74,52 +84,11 @@ function TaskHeader({ task }: { task: string }) {
                     </>
                 </div>
             </div>
-            <Button buttonText="Actions" style="minimal" size="medium" />
-        </div>
-    );
-}
-
-function TaskStatus() {
-    const [statusActive, setStatusActive] = useState<boolean>(true);
-    return (
-        <div className="mb-5">
-            {statusActive ? (
-                <Callout color="green">
-                    <div className=" flex flex-row gap-2 items-center">
-                        <div className="mr-auto">
-                            <h3 className="text-lg font-semibold text-dark-300 leading-none">
-                                This task is active and accepting requests
-                            </h3>
-                        </div>
-                        <Button
-                            size="small"
-                            style="minimal"
-                            buttonText="Disable"
-                            buttonIcon="disable"
-                            color="dark"
-                            onAction={() => setStatusActive(false)}
-                        />
-                    </div>
-                </Callout>
-            ) : (
-                <Callout color="red">
-                    <div className=" flex flex-row gap-2 items-center">
-                        <div className="mr-auto">
-                            <h3 className="text-lg font-semibold text-dark-300 leading-none">
-                                This task is disabled and not accepting requests.
-                            </h3>
-                        </div>
-                        <Button
-                            size="small"
-                            style="minimal"
-                            buttonText="Active"
-                            buttonIcon="offline"
-                            color="dark"
-                            onAction={() => setStatusActive(true)}
-                        />
-                    </div>
-                </Callout>
-            )}
+            <Dropdown
+                onSelectionChange={(k) => onAction(`${k}`)}
+                buttonText="Actions"
+                items={[{ id: "delete", value: "Delete Task" }]}
+            />
         </div>
     );
 }
@@ -196,7 +165,7 @@ function TaskValidation({ task }: { task: TaskInfo }) {
 
     // Query and Mutation Hooks
     const [updateGrammarModelAction] = useUpdateGrammarModeMutation();
-
+    const [removeGrammarMode] = useDeleteGrammarModeMutation();
     // Event Handlers
     const onDownload = () => {
         if (!task.output_grammar?.grammar_generated) {
@@ -245,6 +214,7 @@ function TaskValidation({ task }: { task: TaskInfo }) {
     };
 
     const onDisable = () => {
+        removeGrammarMode(task.name);
         setValidationActive(false);
     };
 
@@ -651,7 +621,6 @@ export default function Task() {
 
     return (
         <Page header={<TaskHeader task={taskName} />}>
-            <TaskStatus />
             {registeredTask && <TaskPage task={registeredTask} />}
         </Page>
     );

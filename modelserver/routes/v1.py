@@ -316,9 +316,11 @@ async def task_set_grammar(
 )
 async def task_set_prompt_template(
     task_name: str,
-    prompt_template: Annotated[str, Body(media_type="text/plain")],
+    prompt_template: Annotated[str | None, Body(media_type="text/plain")],
     component: Annotated[AppComponent, Depends(AppComponent)],
 ) -> None:
+    if prompt_template is None:
+        prompt_template = ""
     component.db.update_task_prompt_template(task_name, prompt_template)
 
 

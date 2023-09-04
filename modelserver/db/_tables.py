@@ -4,7 +4,6 @@ from sqlalchemy import (
     Column,
     DateTime,
     Float,
-    ForeignKey,
     ForeignKeyConstraint,
     Integer,
     MetaData,
@@ -93,7 +92,7 @@ saved_experiments_table = Table(
 )
 
 task_def_table = Table(
-    "task_def_v0",
+    "task_def_v1",
     metadata_obj,
     Column("id", String, primary_key=True),
     Column("name", String, unique=True),
@@ -102,6 +101,7 @@ task_def_table = Table(
     Column("prompt_template", String, nullable=False),
     Column("input_schema", JSON, nullable=False),
     Column("output_grammar", String, nullable=True),
+    Column("output_grammar_user_code", String, nullable=True),
     # A task can be defined but not yet linked to a particular backing model
     Column("backing_model_id", String, nullable=True),
     Column("backing_model_version", String, nullable=True),

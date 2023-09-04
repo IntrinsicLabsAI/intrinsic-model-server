@@ -2,6 +2,7 @@
 /* tslint:disable */
 /* eslint-disable */
 
+import type { GrammarDefinition } from './GrammarDefinition';
 import type { SemVer } from './SemVer';
 
 export type TaskInfo = {
@@ -10,7 +11,7 @@ export type TaskInfo = {
     model_id: (string | null);
     model_version: (SemVer | null);
     task_params: Record<string, string>;
-    output_grammar: (string | null);
+    output_grammar: (GrammarDefinition | null);
     prompt_template: string;
 };
 

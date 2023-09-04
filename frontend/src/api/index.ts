@@ -15,6 +15,7 @@ export type { FailedTaskState } from './models/FailedTaskState';
 export type { FinishedTaskState } from './models/FinishedTaskState';
 export type { GetRegisteredModelsResponse } from './models/GetRegisteredModelsResponse';
 export type { GetSavedExperimentsResponse } from './models/GetSavedExperimentsResponse';
+export type { GrammarDefinition } from './models/GrammarDefinition';
 export type { HealthStatus } from './models/HealthStatus';
 export type { HFFile } from './models/HFFile';
 export type { HFImportSource } from './models/HFImportSource';

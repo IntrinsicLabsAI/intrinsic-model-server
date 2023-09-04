@@ -30,6 +30,7 @@ from ..types.api import (
     CreateTaskRequest,
     GetRegisteredModelsResponse,
     GetSavedExperimentsResponse,
+    GrammarDefinition,
     RegisteredModel,
     SavedExperimentIn,
     SavedExperimentOut,
@@ -305,10 +306,10 @@ async def rename_task(
 )
 async def task_set_grammar(
     task_name: str,
-    grammar: Annotated[str, Body(media_type="text/plain")],
+    grammar: GrammarDefinition,
     component: Annotated[AppComponent, Depends(AppComponent)],
 ) -> None:
-    component.db.update_task_grammar(task_name=task_name, grammar=grammar)
+    component.db.update_task_grammar(task_name=task_name, grammar_def=grammar)
 
 
 @router.post(
@@ -323,7 +324,8 @@ async def task_set_prompt_template(
     component: Annotated[AppComponent, Depends(AppComponent)],
 ) -> None:
     task_name: str = typing.cast(str, request.path_params.get("task_name"))
-    if not request.headers.get("Content-Type").startswith("text/plain"):
+    content_type = request.headers.get("Content-Type")
+    if content_type is None or not content_type.startswith("text/plain"):
         raise HTTPException(
             status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
             detail="prompt_template must be text/plain",
@@ -401,13 +403,17 @@ async def invoke_task_sync(
 
     # TODO(aduffy): Validate the provided params matches the stored set exactly
     rendered_prompt = task_info.prompt_template.format(**request.variables)
+    if task_info.output_grammar is None:
+        grammar = None
+    else:
+        grammar = task_info.output_grammar.grammar_generated
 
     # Generate the Llama context
     starttime = time.time()
     rendered_invocation = RenderedTaskInvocation(
         model_path=found_model.internal_params.model_path,
         rendered_prompt=rendered_prompt,
-        grammar=task_info.output_grammar,
+        grammar=grammar,
         temperature=request.temperature,
     )
 

@@ -309,13 +309,18 @@ class SetTaskBackingModelRequest(BaseModel):
     )
 
 
+class GrammarDefinition(BaseModel):
+    grammar_user_code: str
+    grammar_generated: str
+
+
 class TaskInfo(BaseModel):
     name: str
     task_id: UUID4
     model_id: UUID4 | None
     model_version: SemVer | None
     task_params: dict[str, str]
-    output_grammar: str | None
+    output_grammar: GrammarDefinition | None
     prompt_template: str
 
     model_config = ConfigDict(

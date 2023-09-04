@@ -14,6 +14,7 @@ from sqlalchemy.pool import ConnectionPoolEntry
 from modelserver.types.api import (
     CompletionModelParams,
     CreateTaskRequest,
+    GrammarDefinition,
     ImportMetadata,
     ModelRuntime,
     ModelType,
@@ -63,6 +64,11 @@ class PersistentDataManager(DataManager):
 
         # CREATE IF NOT EXISTS for all tables defined in _tables module
         metadata_obj.create_all(engine)
+
+        # Delete old tables that have been supplanted
+        with engine.connect() as conn:
+            conn.exec_driver_sql("drop table if exists task_def_v0")
+            conn.commit
 
     def get_registered_models(self) -> list[RegisteredModel]:
         registered_models: list[RegisteredModel] = []
@@ -450,6 +456,7 @@ class PersistentDataManager(DataManager):
                 "prompt_template": "",
                 "input_schema": "{}",
                 "output_grammar": None,
+                "output_grammar_user_code": None,
                 "backing_model_id": None,
                 "backing_model_version": None,
             }
@@ -470,6 +477,7 @@ class PersistentDataManager(DataManager):
                     task_def_table.c.prompt_template,
                     task_def_table.c.input_schema,
                     task_def_table.c.output_grammar,
+                    task_def_table.c.output_grammar_user_code,
                 ).select_from(task_def_table)
             ).all()
 
@@ -483,11 +491,18 @@ class PersistentDataManager(DataManager):
                     prompt_template,
                     input_schema,
                     grammar,
+                    grammar_user_code,
                 ) = task
                 if model_version is None:
                     semver = None
                 else:
                     semver = SemVer(model_version)
+                if grammar is None or grammar_user_code is None:
+                    output_grammar = None
+                else:
+                    output_grammar = GrammarDefinition(
+                        grammar_generated=grammar, grammar_user_code=grammar_user_code
+                    )
                 tasks.append(
                     TaskInfo(
                         name=task_name,
@@ -496,7 +511,7 @@ class PersistentDataManager(DataManager):
                         model_version=semver,
                         prompt_template=prompt_template,
                         task_params=json.loads(input_schema),
-                        output_grammar=grammar,
+                        output_grammar=output_grammar,
                     )
                 )
         return tasks
@@ -571,7 +586,9 @@ class PersistentDataManager(DataManager):
                 )
             conn.commit()
 
-    def update_task_grammar(self, task_name: str, grammar: str) -> None:
+    def update_task_grammar(
+        self, task_name: str, grammar_def: GrammarDefinition
+    ) -> None:
         """
         Update the Grammar a Task uses to control its outputs.
         """
@@ -579,7 +596,10 @@ class PersistentDataManager(DataManager):
             if (
                 conn.execute(
                     update(task_def_table)
-                    .values(output_grammar=grammar)
+                    .values(
+                        output_grammar=grammar_def.grammar_generated,
+                        output_grammar_user_code=grammar_def.grammar_user_code,
+                    )
                     .where(task_def_table.c.name == task_name)
                 ).rowcount
                 == 0
@@ -621,6 +641,7 @@ class PersistentDataManager(DataManager):
                     task_def_table.c.prompt_template,
                     task_def_table.c.input_schema,
                     task_def_table.c.output_grammar,
+                    task_def_table.c.output_grammar_user_code,
                 )
                 .select_from(task_def_table)
                 .where(task_def_table.c.name == task_name)
@@ -638,11 +659,20 @@ class PersistentDataManager(DataManager):
                 prompt_template,
                 input_schema,
                 grammar,
+                grammar_user_code,
             ) = task
+
             if model_version is None:
                 semver = None
             else:
                 semver = SemVer(model_version)
+
+            if grammar is None or grammar_user_code is None:
+                output_grammar = None
+            else:
+                output_grammar = GrammarDefinition(
+                    grammar_generated=grammar, grammar_user_code=grammar_user_code
+                )
 
             return TaskInfo(
                 name=task_name,
@@ -651,5 +681,5 @@ class PersistentDataManager(DataManager):
                 model_version=semver,
                 prompt_template=prompt_template,
                 task_params=json.loads(input_schema),
-                output_grammar=grammar,
+                output_grammar=output_grammar,
             )

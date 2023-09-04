@@ -4,6 +4,7 @@ from pydantic import UUID4
 
 from modelserver.types.api import (
     CreateTaskRequest,
+    GrammarDefinition,
     ModelVersionInternal,
     RegisteredModel,
     RegisterModelRequest,
@@ -144,7 +145,9 @@ class DataManager(ABC):
         """
 
     @abstractmethod
-    def update_task_grammar(self, task_name: str, grammar: str) -> None:
+    def update_task_grammar(
+        self, task_name: str, grammar_def: GrammarDefinition
+    ) -> None:
         """
         Update the Grammar a Task uses to control its outputs.
         """

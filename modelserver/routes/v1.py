@@ -249,13 +249,9 @@ async def delete_experiment(
     component.db.delete_experiment(experiment_id)
 
 
-"""
-New task structure endpoints
-
-- create_task
-- invoke_task
-- Update the task (grammar/input-schema/whatever)
-"""
+####
+# Task endpoints
+####
 
 
 @router.post("/tasks")
@@ -273,6 +269,21 @@ async def create_task(
         )
 
     return component.db.create_task(create_request)
+
+
+@router.delete(
+    "/tasks/{task_name}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    response_class=Response,
+)
+async def delete_task(
+    task_name: str,
+    component: Annotated[AppComponent, Depends(AppComponent)],
+) -> None:
+    """
+    Delete Task with unique name `task_name`  from the server.
+    """
+    component.db.delete_task(task_name=task_name)
 
 
 @router.get("/tasks")
@@ -311,6 +322,22 @@ async def task_set_grammar(
     component: Annotated[AppComponent, Depends(AppComponent)],
 ) -> None:
     component.db.update_task_grammar(task_name=task_name, grammar_def=grammar)
+
+
+@router.delete(
+    "/tasks/{task_name}/grammar",
+    status_code=status.HTTP_204_NO_CONTENT,
+    response_class=Response,
+)
+async def task_clear_grammar(
+    task_name: str,
+    component: Annotated[AppComponent, Depends(AppComponent)],
+) -> None:
+    """
+    Clear the grammar set on the task, resetting it back to unstructured free-text generation mode.
+    """
+
+    component.db.clear_task_grammar(task_name=task_name)
 
 
 @router.post(

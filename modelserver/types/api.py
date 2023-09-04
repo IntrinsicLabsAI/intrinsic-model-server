@@ -297,7 +297,6 @@ class GetSavedExperimentsResponse(BaseModel):
 
 class CreateTaskRequest(BaseModel):
     name: str
-    # We need a new system for setting this shit up properly...everything else will be none to start with
 
 
 class SetTaskBackingModelRequest(BaseModel):

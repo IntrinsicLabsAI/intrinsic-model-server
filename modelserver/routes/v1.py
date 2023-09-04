@@ -17,6 +17,7 @@ from fastapi import (
     status,
 )
 from pydantic import UUID4
+from pydantic_core import ValidationError
 
 from modelserver import model_worker, task_worker
 from modelserver.types.locator import DiskLocator, HFLocator, Locator
@@ -318,8 +319,6 @@ async def task_set_grammar(
     response_class=Response,
 )
 async def task_set_prompt_template(
-    # task_name: str,
-    # prompt_template: Annotated[str | None, Body(media_type="text/plain")],
     request: Request,
     component: Annotated[AppComponent, Depends(AppComponent)],
 ) -> None:
@@ -348,6 +347,16 @@ async def task_set_input_schema(
     input_schema: dict[str, str],
     component: Annotated[AppComponent, Depends(AppComponent)],
 ) -> None:
+    # Validate input variable names
+    invalid_names = set([])
+    for var in input_schema.keys():
+        if VALID_MODEL_NAME.match(var) is None:
+            invalid_names.add(var)
+    if len(invalid_names) > 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Task inputs do not meet naming requirements: {invalid_names}",
+        )
     component.db.update_task_input_schema(task_name, input_schema)
 
 
@@ -393,15 +402,26 @@ async def invoke_task_sync(
     :param request: Request body for inference
     :return:
     """
-    # Get the associated model version if available
     task_info = component.db.get_task_by_name(task_name)
     found_model = component.db.get_model_version_internal(
         model_id=str(task_info.model_id), version=str(task_info.model_version)
     )
 
+    # Ensure variables provided completely fulfill declared variables needed at runtime
+    provided_vars = set(request.variables.keys())
+    required_vars = set(task_info.task_params.keys())
+
+    unset_vars = required_vars.difference(provided_vars)
+    extra_vars = provided_vars.difference(required_vars)
+
+    if len(unset_vars) + len(extra_vars) > 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid variables passed to function: unknown={extra_vars} not-set={unset_vars}",
+        )
+
     completion = ""
 
-    # TODO(aduffy): Validate the provided params matches the stored set exactly
     rendered_prompt = task_info.prompt_template.format(**request.variables)
     if task_info.output_grammar is None:
         grammar = None
@@ -426,3 +446,68 @@ async def invoke_task_sync(
         elapsed_seconds=elapsed,
         result=completion,
     )
+
+
+@router.websocket("/tasks/{task_name}/invoke/complete")
+async def invoke_task_async(
+    *,
+    websocket: WebSocket,
+    task_name: str,
+    component: Annotated[AppComponent, Depends(AppComponent)],
+) -> None:
+    await websocket.accept()
+    task_info = component.db.get_task_by_name(task_name)
+    found_model = component.db.get_model_version_internal(
+        model_id=str(task_info.model_id), version=str(task_info.model_version)
+    )
+
+    try:
+        msg = await websocket.receive_json()
+        try:
+            request: TaskInvocationRequest = TaskInvocationRequest.model_validate(msg)
+        except ValidationError as e:
+            await websocket.close(
+                code=1003, reason=f"Failed to parse msg as TaskInvocationRequest: {e}"
+            )
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Failed to parse msg as TaskInvocationRequest: {e}",
+            )
+
+        # Ensure variables provided completely fulfill declared variables needed at runtime
+        provided_vars = set(request.variables.keys())
+        required_vars = set(task_info.task_params.keys())
+
+        unset_vars = required_vars.difference(provided_vars)
+        extra_vars = provided_vars.difference(required_vars)
+
+        if len(unset_vars) + len(extra_vars) > 0:
+            await websocket.close(
+                code=1003,
+                reason=f"Invalid variables passed to invocation: unknown={extra_vars} not-set={unset_vars}",
+            )
+
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid variables passed to invocation: unknown={extra_vars} not-set={unset_vars}",
+            )
+
+        rendered_prompt = task_info.prompt_template.format(**request.variables)
+        if task_info.output_grammar is None:
+            grammar = None
+        else:
+            grammar = task_info.output_grammar.grammar_generated
+
+        # Generate the Llama context
+        rendered_invocation = RenderedTaskInvocation(
+            model_path=found_model.internal_params.model_path,
+            rendered_prompt=rendered_prompt,
+            grammar=grammar,
+            temperature=request.temperature,
+        )
+
+        async for item in task_worker.run_task_async(rendered_invocation):
+            await websocket.send_text(str(item))
+        await websocket.close(1000)
+    except WebSocketDisconnect:
+        logger.info("WebSocket disconnected from streaming session")

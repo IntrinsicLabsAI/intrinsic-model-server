@@ -97,7 +97,7 @@ function TaskStatus() {
                             buttonText="Disable"
                             buttonIcon="disable"
                             color="dark"
-                            onAction={() => setStatusActive(!statusActive)}
+                            onAction={() => setStatusActive(false)}
                         />
                     </div>
                 </Callout>
@@ -106,7 +106,7 @@ function TaskStatus() {
                     <div className=" flex flex-row gap-2 items-center">
                         <div className="mr-auto">
                             <h3 className="text-lg font-semibold text-dark-300 leading-none">
-                                This task is disable and not accepting requests.
+                                This task is disabled and not accepting requests.
                             </h3>
                         </div>
                         <Button
@@ -115,7 +115,7 @@ function TaskStatus() {
                             buttonText="Active"
                             buttonIcon="offline"
                             color="dark"
-                            onAction={() => setStatusActive(!statusActive)}
+                            onAction={() => setStatusActive(true)}
                         />
                     </div>
                 </Callout>

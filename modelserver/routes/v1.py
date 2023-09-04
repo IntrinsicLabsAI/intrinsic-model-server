@@ -2,6 +2,7 @@ import logging
 import multiprocessing as M
 import re
 import time
+import typing
 from typing import Annotated
 
 from fastapi import (
@@ -9,6 +10,7 @@ from fastapi import (
     Body,
     Depends,
     HTTPException,
+    Request,
     Response,
     WebSocket,
     WebSocketDisconnect,
@@ -315,12 +317,22 @@ async def task_set_grammar(
     response_class=Response,
 )
 async def task_set_prompt_template(
-    task_name: str,
-    prompt_template: Annotated[str | None, Body(media_type="text/plain")],
+    # task_name: str,
+    # prompt_template: Annotated[str | None, Body(media_type="text/plain")],
+    request: Request,
     component: Annotated[AppComponent, Depends(AppComponent)],
 ) -> None:
-    if prompt_template is None:
+    task_name: str = typing.cast(str, request.path_params.get("task_name"))
+    if request.headers.get("Content-Type") != "text/plain":
+        raise HTTPException(
+            status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+            detail="prompt_template must be text/plain",
+        )
+    body = await request.body()
+    if body is None:
         prompt_template = ""
+    else:
+        prompt_template = str(body, encoding="utf8")
     component.db.update_task_prompt_template(task_name, prompt_template)
 
 

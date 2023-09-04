@@ -22,7 +22,7 @@ import { TaskInfo } from "../api";
 import Dropdown from "../components/core/Dropdown";
 import { Icon } from "@blueprintjs/core";
 
-let inputValidation: RegExp = /^[a-zA-Z0-9-_.]+$/;
+const inputValidation = /^[a-zA-Z0-9-_.]+$/;
 
 function TaskHeader({ task }: { task: string }) {
     const navigate = useNavigate();

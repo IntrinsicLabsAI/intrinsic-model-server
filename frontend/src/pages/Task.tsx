@@ -22,6 +22,8 @@ import { TaskInfo } from "../api";
 import Dropdown from "../components/core/Dropdown";
 import { Icon } from "@blueprintjs/core";
 
+let inputValidation: RegExp = /^[a-zA-Z0-9-_.]+$/;
+
 function TaskHeader({ task }: { task: string }) {
     const navigate = useNavigate();
     const [isEditing, setEditing] = useState<boolean>(false);
@@ -343,6 +345,11 @@ function TaskSidebarInputs({
     const [isEditing, setIsEditing] = useState<boolean>(false);
 
     const toggleEditing = () => {
+        if (inputValidation.test(inputName) === false) {
+            console.log("Error: Input name is invalid based upon rules.");
+            return;
+        }
+
         if (!isEditing) {
             setIsEditing(true);
             return;
@@ -526,7 +533,7 @@ function TaskSidebar({ task }: { task: TaskInfo }) {
             updatedInputs[pName] = "string";
         }
 
-        updatedInputs[`new-input ${Object.getOwnPropertyNames(updatedInputs).length + 1}`] =
+        updatedInputs[`new-input-${Object.getOwnPropertyNames(updatedInputs).length + 1}`] =
             "string";
         updateInputsAction({ taskName: task.name, inputs: updatedInputs });
     };

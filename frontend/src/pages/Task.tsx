@@ -244,6 +244,10 @@ function TaskValidation({ task }: { task: TaskInfo }) {
         }
     };
 
+    const onDisable = () => {
+        setValidationActive(false);
+    };
+
     return (
         <Card>
             <div className=" flex flex-row gap-2 items-center">
@@ -266,19 +270,19 @@ function TaskValidation({ task }: { task: TaskInfo }) {
                         buttonText="Enabled"
                         color="default"
                         outline={true}
-                        onAction={() => setValidationActive(false)}
+                        onAction={() => onDisable()}
                     />
                 )}
             </div>
             {validationActive && (
                 <div className="flex flex-col gap-2 mt-4">
-                    <p className=" leading-tight pb-2">
-                        If your model supports grammer defined output validation, you can use this
-                        feature to constrain the output generated when running this task. Learn more
-                        here.
-                    </p>
                     {editingGrammer && (
                         <>
+                            <p className=" leading-tight pb-2">
+                                If your model supports grammer defined output validation, you can
+                                use this feature to constrain the output generated when running this
+                                task. Learn more here.
+                            </p>
                             <textarea
                                 value={taskGrammar}
                                 onChange={(evt) => setTaskGrammar(evt.target.value)}
@@ -299,6 +303,15 @@ function TaskValidation({ task }: { task: TaskInfo }) {
                     )}
                     {!editingGrammer && (
                         <>
+                            <Callout color="blue" icon="endorsed">
+                                <p className=" text-dark-400 font-semibold leading-tight">
+                                    Generation validation active
+                                </p>
+                                <p className=" text-dark-400 leading-tight">
+                                    The output of this task will be validated against the grammar
+                                    when this task is called.
+                                </p>
+                            </Callout>
                             <textarea
                                 value={taskGrammar}
                                 disabled
@@ -472,11 +485,19 @@ function TaskSidebarModel({ task }: { task: TaskInfo }) {
                     <div className="flex flex-row gap-2 items-center pb-2">
                         <p className=" font-semibold text-lg mr-auto">Linked Model</p>
                         <Button
-                            buttonText="Save"
+                            buttonIcon="cross"
                             size="medium"
                             style="minimal"
                             color="default"
-                            outline={true}
+                            outline={false}
+                            onAction={() => setIsEditing(false)}
+                        />
+                        <Button
+                            buttonIcon="tick"
+                            size="medium"
+                            style="bold"
+                            color="default"
+                            outline={false}
                             onAction={() => saveModel()}
                         />
                     </div>

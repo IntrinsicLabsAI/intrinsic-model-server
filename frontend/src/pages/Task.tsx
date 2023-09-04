@@ -29,13 +29,13 @@ function TaskHeader({ task }: { task: string }) {
     const [isEditing, setEditing] = useState<boolean>(false);
     const [taskName, setTaskName] = useState<string>(task);
 
-    const [createTaskAction] = useRenameTaskMutation();
+    const [renameTaskAction] = useRenameTaskMutation();
 
     const toggleEditing = () => {
         if (!isEditing) {
             setEditing(true);
         } else if (isEditing) {
-            createTaskAction({ taskName: task, newName: taskName });
+            renameTaskAction({ taskName: task, newName: taskName });
             navigate(`/task/${taskName}`);
             setEditing(false);
         }

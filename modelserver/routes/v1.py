@@ -323,7 +323,7 @@ async def task_set_prompt_template(
     component: Annotated[AppComponent, Depends(AppComponent)],
 ) -> None:
     task_name: str = typing.cast(str, request.path_params.get("task_name"))
-    if request.headers.get("Content-Type") != "text/plain":
+    if not request.headers.get("Content-Type").startswith("text/plain"):
         raise HTTPException(
             status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
             detail="prompt_template must be text/plain",

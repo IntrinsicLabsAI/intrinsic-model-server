@@ -1,6 +1,6 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { useState } from "react";
-import { useRenameTaskMutation } from "../api/services/v1";
+import { useGetTasksQuery, useRenameTaskMutation, useUpdateTaskPromptMutation } from "../api/services/v1";
 // import { BlueprintIcons_16Id } from "@blueprintjs/icons/src/generated/16px/blueprint-icons-16.ts";
 // import { Icon } from "@blueprintjs/core";
 
@@ -11,6 +11,7 @@ import Card from "../components/core/Card";
 import Button from "../components/core/Button";
 import Callout from "../components/core/Callout";
 import { Icon } from "@blueprintjs/core";
+import { TaskInfo } from "../api";
 
 function TaskHeader({ task }: { task: string }) {
     const navigate = useNavigate();
@@ -104,9 +105,21 @@ function TaskStatus(){
     )
 }
 
-function TaskInstructions() {
-    const [taskPrompt, setTaskPrompt] = useState<string | undefined>();
+function TaskInstructions({ task }: { task: TaskInfo }) {
+    const [taskPrompt, setTaskPrompt] = useState<string>(task.prompt_template);
     const [isEditingTaskPrompt, setIsEditingTaskPrompt] = useState<boolean>(false);
+    const [updatePromptAction] = useUpdateTaskPromptMutation();
+
+    const savePrompt = () => {
+        if(taskPrompt){
+            updatePromptAction({ taskName: task.name, prompt: taskPrompt })
+            setIsEditingTaskPrompt(false)
+        } else {
+            updatePromptAction({ taskName: task.name, prompt: "" })
+            setIsEditingTaskPrompt(false)
+        }
+    }
+
     return (
         <Card className="mb-5">
             <div className="flex flex-col w-full gap-4">
@@ -125,7 +138,7 @@ function TaskInstructions() {
                                 style="bold"
                                 outline={false}
                                 buttonIcon="tick"
-                                onAction={() => setIsEditingTaskPrompt(false)}
+                                onAction={() => savePrompt()}
                             />
                         ) : (
                             <Button
@@ -311,14 +324,14 @@ function TaskSidebar() {
     )
 }
 
-function TaskPage({ task }: { task: string }) {
+function TaskPage({ task }: { task: TaskInfo }) {
     return (
         <TwoColumnLayout type="right">
             <Column>
                 <TaskSidebar />
             </Column>
             <Column>
-                <TaskInstructions />
+                <TaskInstructions task={task} />
                 <TaskValidation />
             </Column>
         </TwoColumnLayout>
@@ -326,15 +339,29 @@ function TaskPage({ task }: { task: string }) {
 } 
 
 export default function Task() {
+    const navigate = useNavigate();
     const { taskid } = useParams<"taskid">();
 
     // eslint-disable-next-line  @typescript-eslint/no-non-null-assertion
-    const task = decodeURI(taskid!);
+    const taskName = taskid!;
+
+    const { registeredTask, isLoading } = useGetTasksQuery(undefined, {
+        selectFromResult: ({ data, isLoading }) => ({
+            registeredTask: data?.find((m) => m.name === taskName),
+            isLoading
+        }),
+    });
+
+    if(registeredTask === undefined && !isLoading) {
+        navigate("/404")
+    }
 
     return (
-        <Page header={<TaskHeader task={task} />}>
+        <Page header={<TaskHeader task={taskName} />}>
             <TaskStatus />
-            <TaskPage task={task} />
+            {registeredTask && (
+                <TaskPage task={registeredTask} />
+            )}
         </Page>
     );
 }

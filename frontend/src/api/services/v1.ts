@@ -120,6 +120,14 @@ export const v1API = createApi({
                 method: "POST",
             }),
         }),
+        updateTaskPrompt: builder.mutation<string, { taskName: string; prompt: string }>({
+            invalidatesTags: ["tasks"],
+            query: (body) => ({
+                url: `tasks/${body.taskName}/prompt`,
+                body: body.prompt,
+                method: "POST",
+            }),
+        }),
         getTasks: builder.query<TaskInfo[], void>({
             query: () => `tasks`,
             providesTags: ["tasks"],
@@ -141,6 +149,7 @@ export const {
     useImportModelMutation,
     useGetTasksQuery,
     useCreateTaskMutation,
+    useUpdateTaskPromptMutation,
     useRenameTaskMutation
 } = v1API;
 

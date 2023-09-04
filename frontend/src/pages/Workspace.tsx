@@ -33,7 +33,7 @@ export default function Workspace() {
         else if (key === "new-task") {
             const name = "new-task_" + DateTime.now().year + "-" + DateTime.now().month + "-" + DateTime.now().day + "_" + DateTime.now().hour + DateTime.now().minute
             createTaskAction({name: name})
-            navigate("/task/" + encodeURIComponent(name))
+            navigate("/task/" + name)
         }
     };
 

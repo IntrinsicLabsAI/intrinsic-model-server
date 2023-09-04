@@ -145,6 +145,14 @@ export const v1API = createApi({
                 method: "POST",
             }),
         }),
+        updateGrammarMode: builder.mutation<string, {task:string, grammar:string}>({
+            invalidatesTags: ["tasks"],
+            query: (body) => ({
+                url: `tasks/${body.task}/grammar`,
+                body: body.grammar,
+                method: "POST",
+            }),
+        }),
         getTasks: builder.query<TaskInfo[], void>({
             query: () => `tasks`,
             providesTags: ["tasks"],
@@ -169,6 +177,7 @@ export const {
     useUpdateTaskPromptMutation,
     useUpdateTaskInputsMutation,
     useUpdateTaskModelMutation,
+    useUpdateGrammarModeMutation,
     useRenameTaskMutation
 } = v1API;
 

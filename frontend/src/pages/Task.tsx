@@ -4,11 +4,13 @@ import {
     useGetModelsQuery,
     useGetTasksQuery,
     useRenameTaskMutation,
-    useUpdateModelNameMutation,
+    useUpdateGrammarModeMutation,
     useUpdateTaskInputsMutation,
     useUpdateTaskModelMutation,
     useUpdateTaskPromptMutation,
 } from "../api/services/v1";
+import { compile, serializeGrammar } from "@intrinsicai/gbnfgen";
+import ts from "typescript";
 
 import Page from "../components/layout/Page";
 import TwoColumnLayout from "../components/layout/TwoColumnLayout";
@@ -181,8 +183,52 @@ function TaskInstructions({ task }: { task: TaskInfo }) {
     );
 }
 
-function TaskValidation() {
-    const [validationActive, setValidationActive] = useState<boolean>(false);
+function TaskValidation({ task }: { task: TaskInfo }) {
+    // State Management for Component
+    const isActive = task.output_grammar ? true : false;
+    const [validationActive, setValidationActive] = useState<boolean>(isActive);
+    const [editingGrammer, setEditingGrammar] = useState<boolean>(!isActive);
+    const [taskGrammar, setTaskGrammar] = useState<string>(`${task.output_grammar ? task.output_grammar : ""}`);
+
+    // Query and Mutation Hooks
+    const [updateGrammarModelAction] = useUpdateGrammarModeMutation();
+
+    // Event Handlers
+    const onDownload = () => {
+        const file = new File([taskGrammar], 'grammar.gbnf', {
+            type: 'text/plain',
+        })
+
+        const link = document.createElement('a')
+        const url = URL.createObjectURL(file)
+
+        link.href = url
+        link.download = file.name
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        window.URL.revokeObjectURL(url)
+    }
+
+    const onGenerate = () => {
+        try {
+            const srcFile = ts.createSourceFile("source.ts", taskGrammar, ts.ScriptTarget.ESNext);
+            const ifaces: Array<string> = [];
+            srcFile.forEachChild(child => {
+                if (ts.isInterfaceDeclaration(child)) {
+                  ifaces.push(child.name.getText(srcFile));
+                }
+              });
+            const grammarArray = compile(taskGrammar, ifaces[0]);
+            const grammarFile = serializeGrammar(grammarArray);
+
+            updateGrammarModelAction({ task: task.name, grammar: grammarFile });
+            setEditingGrammar(false);
+        } catch (e) {
+            console.log(`Failed to compile or serialize grammar definition: ${e}`);
+        }
+    }
+
     return (
         <Card>
             <div className=" flex flex-row gap-2 items-center">
@@ -211,11 +257,56 @@ function TaskValidation() {
             </div>
             {validationActive && (
                 <div className="flex flex-col gap-2 mt-4">
-                    <p className=" leading-tight ">
+                    <p className=" leading-tight pb-2">
                         If your model supports grammer defined output validation, you can use this
                         feature to constrain the output generated when running this task. Learn more
                         here.
                     </p>
+                    {editingGrammer && (
+                        <>
+                            <textarea 
+                                value={taskGrammar}
+                                onChange={(evt) => setTaskGrammar(evt.target.value)}
+                                className=" bg-dark-200 focus:border-primary-100 border-gray-200/60 focus:ring-0 focus:shadow-none shadow-none rounded-sm h-80 text-gray-400" />
+                            <div className=" flex flex-row ">
+                                <div className=" w-fit h-fit ml-auto">
+                                    <Button
+                                        buttonText="Save and Generate"
+                                        size="medium"
+                                        style="bold"
+                                        color="primary"
+                                        onAction={() => onGenerate()}
+                                    />
+                                </div>
+                            </div>
+                        </>
+                    )}
+                    {!editingGrammer && (
+                        <>
+                            <textarea 
+                                value={taskGrammar}
+                                disabled 
+                                className=" bg-transparent focus:border-primary-100 border-gray-200/60 focus:ring-0 focus:shadow-none shadow-none rounded-sm h-36 text-gray-400" />
+                            <div className=" flex flex-row ">
+                                <div className=" ml-auto">
+                                    <Button
+                                        buttonIcon="cloud-download"
+                                        size="medium"
+                                        style="minimal" 
+                                        outline={false}
+                                        onAction={() => onDownload()}
+                                    />
+                                </div>
+                                    <Button
+                                        buttonIcon="edit"
+                                        size="medium"
+                                        style="minimal" 
+                                        outline={false}
+                                        onAction={() => setEditingGrammar(!editingGrammer)}
+                                    />
+                            </div>
+                        </>
+                    )}
                 </div>
             )}
         </Card>
@@ -302,16 +393,16 @@ function TaskSidebarModel({ task }: { task: TaskInfo }) {
     const [updateTaskModel] = useUpdateTaskModelMutation();
 
     const saveModel = () => {
-        const modelId = data?.models.find(m => m.name == selectedModel)?.id;
+        const modelId = data?.models.find((m) => m.name == selectedModel)?.id;
         updateTaskModel({
-            task: task.name, 
+            task: task.name,
             model: {
                 model_version: selectedModelVersion,
-                model_id: modelId
-            }
-        })
+                model_id: modelId,
+            },
+        });
         setIsEditing(!isEditing);
-    }
+    };
 
     return (
         <Card className="mb-2">
@@ -333,9 +424,12 @@ function TaskSidebarModel({ task }: { task: TaskInfo }) {
                             <Icon icon="application" size={20} color="#1C2127" />
                         </div>
                         <div className="flex flex-col whitespace-nowrap truncate">
-                            <Link to={`/model/${data?.models.find(m => m.id == task.model_id)?.name}`}>
+                            <Link
+                                to={`/model/${data?.models.find((m) => m.id == task.model_id)
+                                    ?.name}`}
+                            >
                                 <p className=" font-semibold leading-snug truncate cursor-pointer">
-                                    {data?.models.find(m => m.id == task.model_id)?.name}
+                                    {data?.models.find((m) => m.id == task.model_id)?.name}
                                 </p>
                             </Link>
                             <p className=" text-gray-200/80 leading-snug">
@@ -360,30 +454,41 @@ function TaskSidebarModel({ task }: { task: TaskInfo }) {
                     </div>
                     <div className=" flex flex-col gap-2">
                         <p className=" whitespace-pre-wrap leading-tight text-slate-200/90 mb-2">
-                            Select which model your task uses when it runs. You can select any model currently registered.
+                            Select which model your task uses when it runs. You can select any model
+                            currently registered.
                         </p>
-                        {!isLoading &&
+                        {!isLoading && (
                             <>
                                 <div className="flex flex-row gap-2 items-start mb-2">
-                                    <p className="hover:cursor-pointer w-20">
-                                        Model
-                                    </p>
+                                    <p className="hover:cursor-pointer w-20">Model</p>
                                     <Dropdown
-                                        buttonText="Models" 
+                                        buttonText="Models"
                                         onSelectionChange={(k) => setSelectedModel(`${k}`)}
-                                        items={data?.models.map((m) => ({ id: m.name, value: m.name })) ?? []}/>
+                                        items={
+                                            data?.models.map((m) => ({
+                                                id: m.name,
+                                                value: m.name,
+                                            })) ?? []
+                                        }
+                                    />
                                 </div>
                                 <div className="flex flex-row gap-2 items-start">
-                                    <p className="hover:cursor-pointer w-20">
-                                        Version
-                                    </p>
+                                    <p className="hover:cursor-pointer w-20">Version</p>
                                     <Dropdown
-                                        buttonText="Versions" 
+                                        buttonText="Versions"
                                         onSelectionChange={(k) => setSelectedModelVersion(`${k}`)}
-                                        items={data?.models.find(m => m.name == selectedModel)?.versions.map(v => ({id: v.version, value: v.version})) ?? []}/>
+                                        items={
+                                            data?.models
+                                                .find((m) => m.name == selectedModel)
+                                                ?.versions.map((v) => ({
+                                                    id: v.version,
+                                                    value: v.version,
+                                                })) ?? []
+                                        }
+                                    />
                                 </div>
                             </>
-                        }
+                        )}
                     </div>
                 </>
             )}
@@ -471,7 +576,7 @@ function TaskPage({ task }: { task: TaskInfo }) {
             </Column>
             <Column>
                 <TaskInstructions task={task} />
-                <TaskValidation />
+                <TaskValidation task={task} />
             </Column>
         </TwoColumnLayout>
     );

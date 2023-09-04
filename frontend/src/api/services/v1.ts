@@ -7,12 +7,16 @@ import {
     HFImportSource,
     Locator,
     TaskState,
+    CreateTaskRequest,
+    TaskInfo,
+    SetTaskBackingModelRequest,
+    GrammarDefinition,
 } from "..";
 import { isDevServer } from "./util";
 
 export const v1API = createApi({
     reducerPath: "baseServiceAPI",
-    tagTypes: ["models", "description", "experiments"],
+    tagTypes: ["models", "description", "experiments", "tasks"],
     baseQuery: fetchBaseQuery({ baseUrl: isDevServer() ? "http://0.0.0.0:8000/v1" : "/v1" }),
     endpoints: (builder) => ({
         getModels: builder.query<GetRegisteredModelsResponse, void>({
@@ -102,6 +106,64 @@ export const v1API = createApi({
                 method: "DELETE",
             }),
         }),
+        createTask: builder.mutation<string, CreateTaskRequest>({
+            invalidatesTags: ["tasks"],
+            query: (createRequest) => ({
+                url: "tasks",
+                body: createRequest,
+                method: "POST",
+            }),
+        }),
+        renameTask: builder.mutation<string, { taskName: string; newName: string }>({
+            invalidatesTags: ["tasks"],
+            query: (body) => ({
+                url: `tasks/${body.taskName}/name`,
+                body: body.newName,
+                method: "POST",
+            }),
+        }),
+        updateTaskPrompt: builder.mutation<string, { taskName: string; prompt: string }>({
+            invalidatesTags: ["tasks"],
+            query: (body) => ({
+                url: `tasks/${body.taskName}/prompt`,
+                body: body.prompt,
+                method: "POST",
+            }),
+        }),
+        updateTaskInputs: builder.mutation<
+            string,
+            { taskName: string; inputs: Record<string, string> }
+        >({
+            invalidatesTags: ["tasks"],
+            query: (body) => ({
+                url: `tasks/${body.taskName}/input-schema`,
+                body: body.inputs,
+                method: "POST",
+            }),
+        }),
+        updateTaskModel: builder.mutation<
+            string,
+            { task: string; model: SetTaskBackingModelRequest }
+        >({
+            invalidatesTags: ["tasks"],
+            query: (body) => ({
+                url: `tasks/${body.task}/model`,
+                body: body.model,
+                method: "POST",
+            }),
+        }),
+        updateGrammarMode: builder.mutation<string, { task: string; grammar: GrammarDefinition }>({
+            invalidatesTags: ["tasks"],
+            query: (body) => ({
+                url: `tasks/${body.task}/grammar`,
+                body: body.grammar,
+                method: "POST",
+            }),
+        }),
+        getTasks: builder.query<TaskInfo[], void>({
+            query: () => `tasks`,
+            providesTags: ["tasks"],
+        }),
     }),
 });
 
@@ -117,6 +179,13 @@ export const {
     useUpdateDescriptionMutation,
     useUpdateModelNameMutation,
     useImportModelMutation,
+    useGetTasksQuery,
+    useCreateTaskMutation,
+    useUpdateTaskPromptMutation,
+    useUpdateTaskInputsMutation,
+    useUpdateTaskModelMutation,
+    useUpdateGrammarModeMutation,
+    useRenameTaskMutation,
 } = v1API;
 
 // Custom type guards

@@ -1,4 +1,5 @@
-import { useGetModelsQuery } from "../api/services/v1";
+import { useGetModelsQuery, useGetTasksQuery } from "../api/services/v1";
+import { Link } from "react-router-dom";
 
 import Callout from "../components/core/Callout";
 import ModelCardView from "../components/ModelCardView";
@@ -16,6 +17,8 @@ import Button from "../components/core/Button";
 export default function Home() {
     // All models
     const { data, isLoading } = useGetModelsQuery();
+    const { data: taskData, isLoading: taskIsLoading } = useGetTasksQuery();
+
     const navigate = useNavigate();
 
     return (
@@ -117,6 +120,26 @@ export default function Home() {
                                 </div>
                             </Card>
                         )}
+                        <Widget title="Tasks">
+                            <div className="grid grid-cols-2 gap-4 my-2">
+                                {!taskIsLoading && taskData
+                                    ? taskData.map((task) => (
+                                          <Link to={`/task/${task.name}`}>
+                                              <div className="flex flex-row gap-4 outline outline-gray-200 hover:outline-blue-600 rounded-sm px-4 py-2 cursor-pointer items-center">
+                                                  <p className=" flex-grow font-semibold text-dark-600 text-sm lg:text-xl leading-none truncate">
+                                                      {task.name}
+                                                  </p>
+                                                  <Icon
+                                                      icon="arrow-right"
+                                                      size={24}
+                                                      color="#DCE0E5"
+                                                  />
+                                              </div>
+                                          </Link>
+                                      ))
+                                    : null}
+                            </div>
+                        </Widget>
                     </Column>
 
                     <Column>

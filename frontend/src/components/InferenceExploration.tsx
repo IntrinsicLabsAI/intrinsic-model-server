@@ -20,7 +20,7 @@ import {
     addActiveExperiment,
     addCompletedExperiment,
     removeExperiment,
-} from "../state/appSlice";
+} from "../state/modelSlice";
 
 import {
     useSaveExperimentMutation,

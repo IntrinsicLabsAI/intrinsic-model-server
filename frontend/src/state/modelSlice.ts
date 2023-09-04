@@ -1,6 +1,7 @@
 import { createListenerMiddleware, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { createDefaultClient } from "../api/services/completion";
 
+// Model Slice
 export type ExperimentId = string;
 
 export interface Experiment {
@@ -26,7 +27,7 @@ export interface ModelState {
 
 const initialState: Record<string, ModelState> = {};
 
-export const appSlice = createSlice({
+export const modelSlice = createSlice({
     name: "app",
     initialState,
     reducers: {
@@ -128,7 +129,7 @@ export const {
     completeExperiment,
     removeExperiment,
     failExperiment,
-} = appSlice.actions;
+} = modelSlice.actions;
 
 // TODO(aduffy): move to own file?
 export const wsMiddleware = createListenerMiddleware();

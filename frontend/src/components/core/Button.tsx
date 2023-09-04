@@ -32,7 +32,7 @@ export default function Button({
     onAction?: () => void;
     disabled?: boolean;
     outline?: boolean;
-    color?: "default" | "primary" | "danger";
+    color?: "default" | "primary" | "danger" | "dark";
 }) {
     const outlineProp = outline === undefined ? true : outline;
     const colorProp = color === undefined ? "default" : color;
@@ -84,6 +84,13 @@ export default function Button({
                 icon: "#f1616f",
                 hover: "hover:bg-red-400/10",
             },
+            dark: {
+                outline: "outline outline-dark-400",
+                background: "",
+                text: "text-dark-200",
+                icon: "#383E47",
+                hover: "hover:bg-slate-400/20",
+            },
             disabled: {
                 outline: "",
                 background: "bg-gray-200/20",
@@ -113,6 +120,13 @@ export default function Button({
                 text: "text-dark-400",
                 icon: "#383E47",
                 hover: "hover:bg-red-400/80",
+            },
+            dark: {
+                outline: "",
+                background: "bg-dark-400",
+                text: "text-slate-200",
+                icon: "#383E47",
+                hover: "hover:bg-dark-400/60",
             },
             disabled: {
                 outline: "",

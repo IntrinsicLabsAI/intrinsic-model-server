@@ -10,6 +10,7 @@ import {
     CreateTaskRequest,
     TaskInfo,
     SetTaskBackingModelRequest,
+    GrammarDefinition,
 } from "..";
 import { isDevServer } from "./util";
 
@@ -145,7 +146,7 @@ export const v1API = createApi({
                 method: "POST",
             }),
         }),
-        updateGrammarMode: builder.mutation<string, {task:string, grammar:string}>({
+        updateGrammarMode: builder.mutation<string, {task:string, grammar:GrammarDefinition}>({
             invalidatesTags: ["tasks"],
             query: (body) => ({
                 url: `tasks/${body.task}/grammar`,

@@ -188,14 +188,18 @@ function TaskValidation({ task }: { task: TaskInfo }) {
     const isActive = task.output_grammar ? true : false;
     const [validationActive, setValidationActive] = useState<boolean>(isActive);
     const [editingGrammer, setEditingGrammar] = useState<boolean>(!isActive);
-    const [taskGrammar, setTaskGrammar] = useState<string>(`${task.output_grammar ? task.output_grammar : ""}`);
+    const [taskGrammar, setTaskGrammar] = useState<string>(`${task.output_grammar?.grammar_user_code ? task.output_grammar?.grammar_user_code : ""}`);
 
     // Query and Mutation Hooks
     const [updateGrammarModelAction] = useUpdateGrammarModeMutation();
 
     // Event Handlers
     const onDownload = () => {
-        const file = new File([taskGrammar], 'grammar.gbnf', {
+        if(!task.output_grammar?.grammar_generated) {
+            console.log("Error: No generated grammar was loaded from the server.");
+            return;
+        }
+        const file = new File([task.output_grammar?.grammar_generated], 'grammar.gbnf', {
             type: 'text/plain',
         })
 
@@ -222,7 +226,11 @@ function TaskValidation({ task }: { task: TaskInfo }) {
             const grammarArray = compile(taskGrammar, ifaces[0]);
             const grammarFile = serializeGrammar(grammarArray);
 
-            updateGrammarModelAction({ task: task.name, grammar: grammarFile });
+            updateGrammarModelAction({ task: task.name, grammar: {
+                grammar_user_code: taskGrammar,
+                grammar_generated: grammarFile
+            }});
+
             setEditingGrammar(false);
         } catch (e) {
             console.log(`Failed to compile or serialize grammar definition: ${e}`);

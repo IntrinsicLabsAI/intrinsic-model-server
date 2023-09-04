@@ -1,8 +1,6 @@
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { useState, useCallback, useMemo } from "react";
+import { useState } from "react";
 import {
-    useDeleteGrammarModeMutation,
-    useDeleteTaskMutation,
     useGetModelsQuery,
     useGetTasksQuery,
     useRenameTaskMutation,
@@ -29,28 +27,19 @@ const inputValidation = /^[a-zA-Z0-9-_.]+$/;
 function TaskHeader({ task }: { task: string }) {
     const navigate = useNavigate();
     const [isEditing, setEditing] = useState<boolean>(false);
-    const [updatedName, setUpdatedName] = useState<string>(task);
+    const [taskName, setTaskName] = useState<string>(task);
 
     const [renameTaskAction] = useRenameTaskMutation();
-    const [deleteTaskAction] = useDeleteTaskMutation();
 
-    const menuActions = [{ id: "delete", value: "Delete Task" }];
-
-    const handleMenuAction = (type: string) => {
-        if (type === "delete") {
-            deleteTaskAction(task);
-            navigate("/");
+    const toggleEditing = () => {
+        if (!isEditing) {
+            setEditing(true);
+        } else if (isEditing) {
+            renameTaskAction({ taskName: task, newName: taskName });
+            navigate(`/task/${taskName}`);
+            setEditing(false);
         }
     };
-
-    const renameAction = useCallback(() => {
-        renameTaskAction({
-            taskName: task,
-            newName: updatedName,
-        }).then(() => {
-            navigate(`/task/${updatedName}`);
-        });
-    }, [task, updatedName, navigate, renameTaskAction]);
 
     return (
         <div className="flex flex-row items-start pb-5">
@@ -60,10 +49,10 @@ function TaskHeader({ task }: { task: string }) {
                         {isEditing ? (
                             <>
                                 <input
-                                    value={updatedName}
+                                    value={taskName}
                                     type="text"
-                                    onChange={(evt) => setUpdatedName(evt.target.value)}
-                                    className=" font-semibold text-xl text-gray-400 bg-transparent focus:ring-0 focus:outline-primary-400 shadow-none outline border-none p-1 rounded-sm w-80"
+                                    onChange={(evt) => setTaskName(evt.target.value)}
+                                    className=" font-semibold text-xl text-gray-400 bg-transparent focus:ring-0 focus:outline-primary-400 shadow-none outline border-none p-1 rounded-sm w-1/2"
                                 />
                                 <Button
                                     buttonIcon="tick"
@@ -71,16 +60,13 @@ function TaskHeader({ task }: { task: string }) {
                                     style="bold"
                                     size="medium"
                                     outline={false}
-                                    onAction={() => {
-                                        setEditing(false);
-                                        renameAction();
-                                    }}
+                                    onAction={() => toggleEditing()}
                                 />
                             </>
                         ) : (
                             <h2
                                 className=" font-semibold text-2xl cursor-text "
-                                onClick={() => setEditing(true)}
+                                onClick={() => toggleEditing()}
                             >
                                 {task}
                             </h2>
@@ -88,11 +74,52 @@ function TaskHeader({ task }: { task: string }) {
                     </>
                 </div>
             </div>
-            <Dropdown
-                onSelectionChange={(k) => handleMenuAction(k.toString())}
-                buttonText="Actions"
-                items={menuActions}
-            />
+            <Button buttonText="Actions" style="minimal" size="medium" />
+        </div>
+    );
+}
+
+function TaskStatus() {
+    const [statusActive, setStatusActive] = useState<boolean>(true);
+    return (
+        <div className="mb-5">
+            {statusActive ? (
+                <Callout color="green">
+                    <div className=" flex flex-row gap-2 items-center">
+                        <div className="mr-auto">
+                            <h3 className="text-lg font-semibold text-dark-300 leading-none">
+                                This task is active and accepting requests
+                            </h3>
+                        </div>
+                        <Button
+                            size="small"
+                            style="minimal"
+                            buttonText="Disable"
+                            buttonIcon="disable"
+                            color="dark"
+                            onAction={() => setStatusActive(false)}
+                        />
+                    </div>
+                </Callout>
+            ) : (
+                <Callout color="red">
+                    <div className=" flex flex-row gap-2 items-center">
+                        <div className="mr-auto">
+                            <h3 className="text-lg font-semibold text-dark-300 leading-none">
+                                This task is disabled and not accepting requests.
+                            </h3>
+                        </div>
+                        <Button
+                            size="small"
+                            style="minimal"
+                            buttonText="Active"
+                            buttonIcon="offline"
+                            color="dark"
+                            onAction={() => setStatusActive(true)}
+                        />
+                    </div>
+                </Callout>
+            )}
         </div>
     );
 }
@@ -169,7 +196,7 @@ function TaskValidation({ task }: { task: TaskInfo }) {
 
     // Query and Mutation Hooks
     const [updateGrammarModelAction] = useUpdateGrammarModeMutation();
-    const [removeGrammarMode] = useDeleteGrammarModeMutation();
+
     // Event Handlers
     const onDownload = () => {
         if (!task.output_grammar?.grammar_generated) {
@@ -218,7 +245,6 @@ function TaskValidation({ task }: { task: TaskInfo }) {
     };
 
     const onDisable = () => {
-        removeGrammarMode(task.name);
         setValidationActive(false);
     };
 
@@ -396,9 +422,7 @@ function TaskSidebarInputs({
 function TaskSidebarModel({ task }: { task: TaskInfo }) {
     const { data, isLoading } = useGetModelsQuery();
 
-    const startingValue = task.model_id ? false : true;
-
-    const [isEditing, setIsEditing] = useState<boolean>(startingValue);
+    const [isEditing, setIsEditing] = useState<boolean>(false);
     const [selectedModel, setSelectedModel] = useState<string>("");
     const [selectedModelVersion, setSelectedModelVersion] = useState<string>("");
     const [updateTaskModel] = useUpdateTaskModelMutation();
@@ -460,16 +484,14 @@ function TaskSidebarModel({ task }: { task: TaskInfo }) {
                 <>
                     <div className="flex flex-row gap-2 items-center pb-2">
                         <p className=" font-semibold text-lg mr-auto">Linked Model</p>
-                        {task.model_id && (
-                            <Button
-                                buttonIcon="cross"
-                                size="medium"
-                                style="minimal"
-                                color="default"
-                                outline={false}
-                                onAction={() => setIsEditing(false)}
-                            />
-                        )}
+                        <Button
+                            buttonIcon="cross"
+                            size="medium"
+                            style="minimal"
+                            color="default"
+                            outline={false}
+                            onAction={() => setIsEditing(false)}
+                        />
                         <Button
                             buttonIcon="tick"
                             size="medium"
@@ -481,8 +503,8 @@ function TaskSidebarModel({ task }: { task: TaskInfo }) {
                     </div>
                     <div className=" flex flex-col gap-2">
                         <p className=" whitespace-pre-wrap leading-tight text-slate-200/90 mb-2">
-                            Select which model your task uses. Any model currently registered with
-                            the server can be used.
+                            Select which model your task uses when it runs. You can select any model
+                            currently registered.
                         </p>
                         {!isLoading && (
                             <>
@@ -578,15 +600,6 @@ function TaskSidebar({ task }: { task: TaskInfo }) {
                     />
                 </div>
                 <div className=" flex flex-col gap-4 ">
-                    {Object.getOwnPropertyNames(task.task_params).length === 0 && (
-                        <div className=" outline outline-slate-200 rounded-sm py-4 px-2">
-                            <p className=" text-center font-semibold ">Add a Parameter</p>
-                            <p className=" text-center leading-tight ">
-                                This Task does not have any parameters at the moment. Input
-                                parameters allow your Task to accept dynamic input when running.
-                            </p>
-                        </div>
-                    )}
                     {Object.getOwnPropertyNames(task.task_params)
                         .sort()
                         .map((name) => (
@@ -619,19 +632,26 @@ function TaskPage({ task }: { task: TaskInfo }) {
 }
 
 export default function Task() {
+    const navigate = useNavigate();
     const { taskid } = useParams<"taskid">();
 
     // eslint-disable-next-line  @typescript-eslint/no-non-null-assertion
     const taskName = taskid!;
 
-    const { data } = useGetTasksQuery();
-    const registeredTask = useMemo(
-        () => data?.find((task) => task.name === taskName),
-        [data, taskName]
-    );
+    const { registeredTask, isLoading } = useGetTasksQuery(undefined, {
+        selectFromResult: ({ data, isLoading }) => ({
+            registeredTask: data?.find((m) => m.name === taskName),
+            isLoading,
+        }),
+    });
+
+    if (registeredTask === undefined && !isLoading) {
+        navigate("/404");
+    }
 
     return (
         <Page header={<TaskHeader task={taskName} />}>
+            <TaskStatus />
             {registeredTask && <TaskPage task={registeredTask} />}
         </Page>
     );

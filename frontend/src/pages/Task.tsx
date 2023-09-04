@@ -1,5 +1,5 @@
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import {
     useGetModelsQuery,
     useGetTasksQuery,

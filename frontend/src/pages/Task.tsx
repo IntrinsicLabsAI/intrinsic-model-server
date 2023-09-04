@@ -1,5 +1,5 @@
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import {
     useGetModelsQuery,
     useGetTasksQuery,
@@ -257,7 +257,7 @@ function TaskValidation({ task }: { task: TaskInfo }) {
                         buttonText="Disabled"
                         color="default"
                         outline={true}
-                        onAction={() => setValidationActive(!validationActive)}
+                        onAction={() => setValidationActive(true)}
                     />
                 ) : (
                     <Button
@@ -266,7 +266,7 @@ function TaskValidation({ task }: { task: TaskInfo }) {
                         buttonText="Enabled"
                         color="default"
                         outline={true}
-                        onAction={() => setValidationActive(!validationActive)}
+                        onAction={() => setValidationActive(false)}
                     />
                 )}
             </div>
@@ -415,7 +415,7 @@ function TaskSidebarModel({ task }: { task: TaskInfo }) {
     const [updateTaskModel] = useUpdateTaskModelMutation();
 
     const saveModel = () => {
-        const modelId = data?.models.find((m) => m.name == selectedModel)?.id;
+        const modelId = data?.models.find((m) => m.name === selectedModel)?.id;
         if (modelId) {
             updateTaskModel({
                 task: task.name,

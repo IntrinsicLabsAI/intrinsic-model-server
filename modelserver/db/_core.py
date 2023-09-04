@@ -153,6 +153,12 @@ class DataManager(ABC):
         """
 
     @abstractmethod
+    def clear_task_grammar(self, task_name: str) -> None:
+        """
+        Clear the grammar from the task, resetting the generation behavior to unbounded free-text
+        """
+
+    @abstractmethod
     def update_task_input_schema(
         self, task_name: str, input_schema: dict[str, str]
     ) -> None:
@@ -166,4 +172,15 @@ class DataManager(ABC):
         Lookup a task by name.
 
         :param task_name: The unique name of the task
+        """
+
+    @abstractmethod
+    def delete_task(
+        self, *, task_name: str | None = None, task_id: str | None = None
+    ) -> None:
+        """
+        Delete a task by name.
+
+        :param task_name: Unique name of the task to delete. Optional, must be set if `task_id` is not.
+        :param task_id: UUID for the task. Optional, must be set if `task_name` is not.
         """

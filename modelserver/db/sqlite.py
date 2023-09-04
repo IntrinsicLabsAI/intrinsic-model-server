@@ -567,6 +567,48 @@ class PersistentDataManager(DataManager):
                 )
             conn.commit()
 
+    def clear_task_grammar(self, task_name: str) -> None:
+        with self.engine.connect() as conn:
+            if (
+                conn.execute(
+                    update(task_def_table)
+                    .values(output_grammar=None, output_grammar_user_code=None)
+                    .where(task_def_table.c.name == task_name)
+                ).rowcount
+                == 0
+            ):
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"No task found with name {task_name}",
+                )
+            conn.commit()
+
+    def delete_task(
+        self, *, task_name: str | None = None, task_id: str | None = None
+    ) -> None:
+        if not (task_name is None) ^ (task_id is None):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="exactly one of task_name or task_id must be provided",
+            )
+
+        if task_name is not None:
+            cond = task_def_table.c.name == task_name
+        elif task_id is not None:
+            cond = task_def_table.c.id == task_id
+        else:
+            # This is not reachable due to the XOR check above, but we need it to
+            # make the mypy typechecker believe that `cond` can never be `None`.
+            raise ValueError("never reachable")
+
+        with self.engine.connect() as conn:
+            if conn.execute(delete(task_def_table).where(cond)).rowcount == 0:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"No task found with name {task_name}",
+                )
+            conn.commit()
+
     def update_task_prompt_template(self, task_name: str, prompt_template: str) -> None:
         """
         Set the prompt template that a Task will format into a rendered prompt at invocation time.

@@ -28,12 +28,20 @@ export default function Workspace() {
 
     const actionsButton = (key: string) => {
         if (key === "new-model") {
-            navigate(key)
-        }
-        else if (key === "new-task") {
-            const name = "new-task_" + DateTime.now().year + "-" + DateTime.now().month + "-" + DateTime.now().day + "_" + DateTime.now().hour + DateTime.now().minute
-            createTaskAction({name: name})
-            navigate("/task/" + name)
+            navigate(key);
+        } else if (key === "new-task") {
+            const name =
+                "new-task_" +
+                DateTime.now().year +
+                "-" +
+                DateTime.now().month +
+                "-" +
+                DateTime.now().day +
+                "_" +
+                DateTime.now().hour +
+                DateTime.now().minute;
+            createTaskAction({ name: name });
+            navigate("/task/" + name);
         }
     };
 
@@ -56,8 +64,10 @@ export default function Workspace() {
                         type="icon"
                         buttonIcon="cube-add"
                         onSelectionChange={actionsButton}
-                        items={[{ id: "new-model", value: "Add a Model" },
-                                { id: "new-task", value: "Create a Task" }]}
+                        items={[
+                            { id: "new-model", value: "Add a Model" },
+                            { id: "new-task", value: "Create a Task" },
+                        ]}
                     />
                     <div className="pl-3">
                         <div className="flex flex-col items-center outline outline-gray-400 rounded px-2 py-1">

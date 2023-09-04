@@ -130,7 +130,10 @@ export const v1API = createApi({
                 method: "POST",
             }),
         }),
-        updateTaskInputs: builder.mutation<string, {taskName: string, inputs: Record<string, string>}>({
+        updateTaskInputs: builder.mutation<
+            string,
+            { taskName: string; inputs: Record<string, string> }
+        >({
             invalidatesTags: ["tasks"],
             query: (body) => ({
                 url: `tasks/${body.taskName}/input-schema`,
@@ -138,7 +141,10 @@ export const v1API = createApi({
                 method: "POST",
             }),
         }),
-        updateTaskModel: builder.mutation<string, {task:string, model:SetTaskBackingModelRequest}>({
+        updateTaskModel: builder.mutation<
+            string,
+            { task: string; model: SetTaskBackingModelRequest }
+        >({
             invalidatesTags: ["tasks"],
             query: (body) => ({
                 url: `tasks/${body.task}/model`,
@@ -146,7 +152,7 @@ export const v1API = createApi({
                 method: "POST",
             }),
         }),
-        updateGrammarMode: builder.mutation<string, {task:string, grammar:GrammarDefinition}>({
+        updateGrammarMode: builder.mutation<string, { task: string; grammar: GrammarDefinition }>({
             invalidatesTags: ["tasks"],
             query: (body) => ({
                 url: `tasks/${body.task}/grammar`,
@@ -179,7 +185,7 @@ export const {
     useUpdateTaskInputsMutation,
     useUpdateTaskModelMutation,
     useUpdateGrammarModeMutation,
-    useRenameTaskMutation
+    useRenameTaskMutation,
 } = v1API;
 
 // Custom type guards

@@ -188,54 +188,59 @@ function TaskValidation({ task }: { task: TaskInfo }) {
     const isActive = task.output_grammar ? true : false;
     const [validationActive, setValidationActive] = useState<boolean>(isActive);
     const [editingGrammer, setEditingGrammar] = useState<boolean>(!isActive);
-    const [taskGrammar, setTaskGrammar] = useState<string>(`${task.output_grammar?.grammar_user_code ? task.output_grammar?.grammar_user_code : ""}`);
+    const [taskGrammar, setTaskGrammar] = useState<string>(
+        `${task.output_grammar?.grammar_user_code ? task.output_grammar?.grammar_user_code : ""}`
+    );
 
     // Query and Mutation Hooks
     const [updateGrammarModelAction] = useUpdateGrammarModeMutation();
 
     // Event Handlers
     const onDownload = () => {
-        if(!task.output_grammar?.grammar_generated) {
+        if (!task.output_grammar?.grammar_generated) {
             console.log("Error: No generated grammar was loaded from the server.");
             return;
         }
-        const file = new File([task.output_grammar?.grammar_generated], 'grammar.gbnf', {
-            type: 'text/plain',
-        })
+        const file = new File([task.output_grammar?.grammar_generated], "grammar.gbnf", {
+            type: "text/plain",
+        });
 
-        const link = document.createElement('a')
-        const url = URL.createObjectURL(file)
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(file);
 
-        link.href = url
-        link.download = file.name
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
-        window.URL.revokeObjectURL(url)
-    }
+        link.href = url;
+        link.download = file.name;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+    };
 
     const onGenerate = () => {
         try {
             const srcFile = ts.createSourceFile("source.ts", taskGrammar, ts.ScriptTarget.ESNext);
             const ifaces: Array<string> = [];
-            srcFile.forEachChild(child => {
+            srcFile.forEachChild((child) => {
                 if (ts.isInterfaceDeclaration(child)) {
-                  ifaces.push(child.name.getText(srcFile));
+                    ifaces.push(child.name.getText(srcFile));
                 }
-              });
+            });
             const grammarArray = compile(taskGrammar, ifaces[0]);
             const grammarFile = serializeGrammar(grammarArray);
 
-            updateGrammarModelAction({ task: task.name, grammar: {
-                grammar_user_code: taskGrammar,
-                grammar_generated: grammarFile
-            }});
+            updateGrammarModelAction({
+                task: task.name,
+                grammar: {
+                    grammar_user_code: taskGrammar,
+                    grammar_generated: grammarFile,
+                },
+            });
 
             setEditingGrammar(false);
         } catch (e) {
             console.log(`Failed to compile or serialize grammar definition: ${e}`);
         }
-    }
+    };
 
     return (
         <Card>
@@ -272,10 +277,11 @@ function TaskValidation({ task }: { task: TaskInfo }) {
                     </p>
                     {editingGrammer && (
                         <>
-                            <textarea 
+                            <textarea
                                 value={taskGrammar}
                                 onChange={(evt) => setTaskGrammar(evt.target.value)}
-                                className=" bg-dark-200 focus:border-primary-100 border-gray-200/60 focus:ring-0 focus:shadow-none shadow-none rounded-sm h-80 text-gray-400" />
+                                className=" bg-dark-200 focus:border-primary-100 border-gray-200/60 focus:ring-0 focus:shadow-none shadow-none rounded-sm h-80 text-gray-400"
+                            />
                             <div className=" flex flex-row ">
                                 <div className=" w-fit h-fit ml-auto">
                                     <Button
@@ -291,27 +297,28 @@ function TaskValidation({ task }: { task: TaskInfo }) {
                     )}
                     {!editingGrammer && (
                         <>
-                            <textarea 
+                            <textarea
                                 value={taskGrammar}
-                                disabled 
-                                className=" bg-transparent focus:border-primary-100 border-gray-200/60 focus:ring-0 focus:shadow-none shadow-none rounded-sm h-36 text-gray-400" />
+                                disabled
+                                className=" bg-transparent focus:border-primary-100 border-gray-200/60 focus:ring-0 focus:shadow-none shadow-none rounded-sm h-36 text-gray-400"
+                            />
                             <div className=" flex flex-row ">
                                 <div className=" ml-auto">
                                     <Button
                                         buttonIcon="cloud-download"
                                         size="medium"
-                                        style="minimal" 
+                                        style="minimal"
                                         outline={false}
                                         onAction={() => onDownload()}
                                     />
                                 </div>
-                                    <Button
-                                        buttonIcon="edit"
-                                        size="medium"
-                                        style="minimal" 
-                                        outline={false}
-                                        onAction={() => setEditingGrammar(!editingGrammer)}
-                                    />
+                                <Button
+                                    buttonIcon="edit"
+                                    size="medium"
+                                    style="minimal"
+                                    outline={false}
+                                    onAction={() => setEditingGrammar(!editingGrammer)}
+                                />
                             </div>
                         </>
                     )}
@@ -542,7 +549,7 @@ function TaskSidebar({ task }: { task: TaskInfo }) {
         updateInputsAction({ taskName: task.name, inputs: updatedInputs });
     };
 
-        return (
+    return (
         <>
             <Card className="mb-5">
                 <div className="flex flex-row gap-2 items-center pb-2">

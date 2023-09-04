@@ -1,13 +1,13 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { v1API } from "../api/services/v1";
 import { huggingFaceServiceAPI } from "../api/services/hfService";
-import { appSlice, wsMiddleware } from "./appSlice";
+import { modelSlice, wsMiddleware } from "./modelSlice";
 
 export const store = configureStore({
     reducer: {
         [v1API.reducerPath]: v1API.reducer,
         [huggingFaceServiceAPI.reducerPath]: huggingFaceServiceAPI.reducer,
-        app: appSlice.reducer,
+        app: modelSlice.reducer,
     },
     middleware: (getDefaultMiddleware) =>
         getDefaultMiddleware().concat(

@@ -9,6 +9,7 @@ import {
     TaskState,
     CreateTaskRequest,
     TaskInfo,
+    SetTaskBackingModelRequest,
 } from "..";
 import { isDevServer } from "./util";
 
@@ -128,6 +129,22 @@ export const v1API = createApi({
                 method: "POST",
             }),
         }),
+        updateTaskInputs: builder.mutation<string, {taskName: string, inputs: Record<string, string>}>({
+            invalidatesTags: ["tasks"],
+            query: (body) => ({
+                url: `tasks/${body.taskName}/input-schema`,
+                body: body.inputs,
+                method: "POST",
+            }),
+        }),
+        updateTaskModel: builder.mutation<string, {task:string, model:SetTaskBackingModelRequest}>({
+            invalidatesTags: ["tasks"],
+            query: (body) => ({
+                url: `tasks/${body.task}/model`,
+                body: body.model,
+                method: "POST",
+            }),
+        }),
         getTasks: builder.query<TaskInfo[], void>({
             query: () => `tasks`,
             providesTags: ["tasks"],
@@ -150,6 +167,8 @@ export const {
     useGetTasksQuery,
     useCreateTaskMutation,
     useUpdateTaskPromptMutation,
+    useUpdateTaskInputsMutation,
+    useUpdateTaskModelMutation,
     useRenameTaskMutation
 } = v1API;
 

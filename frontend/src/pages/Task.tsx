@@ -45,18 +45,13 @@ function TaskHeader({ task }: { task: string }) {
                                 <Button buttonIcon="tick" color="primary" style="bold" size="medium" outline={false} onAction={() => toggleEditing()} />
                             </>
                         ) : (
-                            <>
-                                <h2 className=" font-semibold text-2xl leading-none cursor-default ">{task}</h2>
-                                <div className="hidden group-hover:block">
-                                    <Button buttonIcon="edit" style="minimal" size="small" outline={false} onAction={() => toggleEditing()} />
-                                </div>
-                            </>
+                            <h2 className=" font-semibold text-2xl cursor-text " 
+                                onClick={() => toggleEditing()}>
+                                    {task}
+                            </h2>
                         )}
                     </>
                 </div>
-                <p className=" text-gray-400/80">
-                    Description of this task. This is shown in other UIs to provide context on what this task does.
-                </p>
             </div>
             <Button buttonText="Actions" style="minimal" size="medium" />
         </div>

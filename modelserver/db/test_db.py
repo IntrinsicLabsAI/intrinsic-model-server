@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Generator
 
 import pytest
@@ -8,7 +8,12 @@ from sqlalchemy import create_engine
 
 from modelserver.types.tasks import InProgressState, TaskState
 
-from ..types.api import RegisterModelRequest, SavedExperimentIn, SemVer
+from ..types.api import (
+    CreateTaskRequest,
+    RegisterModelRequest,
+    SavedExperimentIn,
+    SemVer,
+)
 from .sqlite import PersistentDataManager
 
 REGISTER_V1 = RegisterModelRequest.model_validate(
@@ -174,6 +179,42 @@ def test_experiments(db: PersistentDataManager) -> None:
     # Test 4: Delete logic
     db.delete_experiment(saved.experiment_id)
     assert len(db.get_experiments("anewmodel")) == 0
+
+
+def test_task_defs(db: PersistentDataManager) -> None:
+    db.register_model(REGISTER_V1)
+    task_id = db.create_task(create_request=CreateTaskRequest(name="new_task"))
+
+    # Ensure all lookups work
+    [stored_task] = db.get_tasks()
+    assert stored_task.task_id == task_id
+    assert db.get_task_by_name(task_name="new_task").task_id == task_id
+
+    # Validate that updated-at works:
+    #   1. At creation time, updated_at == created_at
+    #   2. Only arbitrary modifications, updated_at is advanced to current UTC time
+    assert stored_task.created_at == stored_task.updated_at
+
+    db.update_task_prompt_template(
+        task_name="new_task", prompt_template="my new template"
+    )
+    updated_task = db.get_task_by_name("new_task")
+    assert updated_task.updated_at > updated_task.created_at
+
+    #
+    # Validate name uniqueness is enforced at the DB layer
+    #
+    with pytest.raises(sqlalchemy.exc.IntegrityError):
+        db.create_task(create_request=CreateTaskRequest(name="new_task"))
+
+    #
+    # Verify that names are screened for reasonableness
+    #
+    with pytest.raises(HTTPException) as http_ex:
+        db.create_task(
+            create_request=CreateTaskRequest(name="~~absolutely WILD name!~~")
+        )
+    assert http_ex.value.status_code == status.HTTP_400_BAD_REQUEST
 
 
 def test_taskdb() -> None:

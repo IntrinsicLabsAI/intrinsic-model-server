@@ -12,6 +12,7 @@ from sqlalchemy.exc import IntegrityError, NoResultFound
 from sqlalchemy.pool import ConnectionPoolEntry
 
 from modelserver.types.api import (
+    VALID_MODEL_NAME,
     CompletionModelParams,
     CreateTaskRequest,
     GrammarDefinition,
@@ -445,14 +446,21 @@ class PersistentDataManager(DataManager):
             conn.commit()
 
     def create_task(self, create_request: CreateTaskRequest) -> UUID4:
+        if VALID_MODEL_NAME.match(create_request.name) is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Malformed Task name: {create_request.name}",
+            )
+
         with self.engine.connect() as conn:
             freshid = str(uuid4())
             # Attempt to create if not already in there
+            now = datetime.utcnow()
             row = {
                 "id": freshid,
                 "name": create_request.name,
-                "created_at": datetime.utcnow(),
-                "updated_at": datetime.utcnow(),
+                "created_at": now,
+                "updated_at": now,
                 "prompt_template": "",
                 "input_schema": "{}",
                 "output_grammar": None,
@@ -472,6 +480,8 @@ class PersistentDataManager(DataManager):
                 select(
                     task_def_table.c.id,
                     task_def_table.c.name,
+                    task_def_table.c.created_at,
+                    task_def_table.c.updated_at,
                     task_def_table.c.backing_model_id,
                     task_def_table.c.backing_model_version,
                     task_def_table.c.prompt_template,
@@ -486,6 +496,8 @@ class PersistentDataManager(DataManager):
                 (
                     task_id,
                     task_name,
+                    created_at,
+                    updated_at,
                     model_id,
                     model_version,
                     prompt_template,
@@ -505,8 +517,10 @@ class PersistentDataManager(DataManager):
                     )
                 tasks.append(
                     TaskInfo(
-                        name=task_name,
                         task_id=task_id,
+                        name=task_name,
+                        created_at=created_at,
+                        updated_at=updated_at,
                         model_id=model_id,
                         model_version=semver,
                         prompt_template=prompt_template,
@@ -520,7 +534,7 @@ class PersistentDataManager(DataManager):
         with self.engine.connect() as conn:
             conn.execute(
                 update(task_def_table)
-                .values(name=new_task_name)
+                .values(name=new_task_name, updated_at=datetime.utcnow())
                 .where(task_def_table.c.name == old_task_name)
             )
             conn.commit()
@@ -536,7 +550,9 @@ class PersistentDataManager(DataManager):
                 conn.execute(
                     update(task_def_table)
                     .values(
-                        backing_model_id=model_id, backing_model_version=model_version
+                        backing_model_id=model_id,
+                        backing_model_version=model_version,
+                        updated_at=datetime.now(),
                     )
                     .where(task_def_table.c.name == task_name)
                 ).rowcount
@@ -556,7 +572,11 @@ class PersistentDataManager(DataManager):
             if (
                 conn.execute(
                     update(task_def_table)
-                    .values(backing_model_id=None, backing_model_version=None)
+                    .values(
+                        backing_model_id=None,
+                        backing_model_version=None,
+                        updated_at=datetime.utcnow(),
+                    )
                     .where(task_def_table.c.name == task_name)
                 ).rowcount
                 == 0
@@ -572,7 +592,11 @@ class PersistentDataManager(DataManager):
             if (
                 conn.execute(
                     update(task_def_table)
-                    .values(output_grammar=None, output_grammar_user_code=None)
+                    .values(
+                        output_grammar=None,
+                        output_grammar_user_code=None,
+                        updated_at=datetime.utcnow(),
+                    )
                     .where(task_def_table.c.name == task_name)
                 ).rowcount
                 == 0
@@ -617,7 +641,9 @@ class PersistentDataManager(DataManager):
             if (
                 conn.execute(
                     update(task_def_table)
-                    .values(prompt_template=prompt_template)
+                    .values(
+                        prompt_template=prompt_template, updated_at=datetime.utcnow()
+                    )
                     .where(task_def_table.c.name == task_name)
                 ).rowcount
                 == 0
@@ -641,6 +667,7 @@ class PersistentDataManager(DataManager):
                     .values(
                         output_grammar=grammar_def.grammar_generated,
                         output_grammar_user_code=grammar_def.grammar_user_code,
+                        updated_at=datetime.utcnow(),
                     )
                     .where(task_def_table.c.name == task_name)
                 ).rowcount
@@ -662,7 +689,10 @@ class PersistentDataManager(DataManager):
             if (
                 conn.execute(
                     update(task_def_table)
-                    .values(input_schema=json.dumps(input_schema))
+                    .values(
+                        input_schema=json.dumps(input_schema),
+                        updated_at=datetime.utcnow(),
+                    )
                     .where(task_def_table.c.name == task_name)
                 ).rowcount
                 == 0
@@ -678,6 +708,8 @@ class PersistentDataManager(DataManager):
             task = conn.execute(
                 select(
                     task_def_table.c.id,
+                    task_def_table.c.created_at,
+                    task_def_table.c.updated_at,
                     task_def_table.c.backing_model_id,
                     task_def_table.c.backing_model_version,
                     task_def_table.c.prompt_template,
@@ -696,6 +728,8 @@ class PersistentDataManager(DataManager):
 
             (
                 task_id,
+                created_at,
+                updated_at,
                 model_id,
                 model_version,
                 prompt_template,
@@ -719,6 +753,8 @@ class PersistentDataManager(DataManager):
             return TaskInfo(
                 name=task_name,
                 task_id=task_id,
+                created_at=created_at,
+                updated_at=updated_at,
                 model_id=model_id,
                 model_version=semver,
                 prompt_template=prompt_template,

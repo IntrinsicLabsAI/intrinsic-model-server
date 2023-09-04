@@ -11,6 +11,8 @@ from .locator import DiskLocator, HFLocator
 SEMVER_PATTERN = r"(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)"
 SEMVER_RE = re.compile(SEMVER_PATTERN)
 
+VALID_MODEL_NAME = re.compile(r"^[a-zA-Z0-9-_.]+$")
+
 
 class SemVer(RootModel[str]):
     root: Annotated[str, Field(pattern=SEMVER_PATTERN)]
@@ -321,6 +323,8 @@ class TaskInfo(BaseModel):
     task_params: dict[str, str]
     output_grammar: GrammarDefinition | None
     prompt_template: str
+    created_at: datetime
+    updated_at: datetime
 
     model_config = ConfigDict(
         protected_namespaces=(),

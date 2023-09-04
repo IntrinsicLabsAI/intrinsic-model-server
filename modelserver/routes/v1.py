@@ -26,6 +26,7 @@ from modelserver.types.workers import RenderedTaskInvocation
 from ..db import DataManager
 from ..dependencies import AppComponent, get_db
 from ..types.api import (
+    VALID_MODEL_NAME,
     CompletionInference,
     CompletionInferenceRequest,
     CreateTaskRequest,
@@ -50,8 +51,6 @@ from ..types.tasks import (
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/v1")
-
-VALID_MODEL_NAME = re.compile(r"^[a-zA-Z0-9-_.]+$")
 
 
 @router.get("/models")

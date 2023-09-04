@@ -169,7 +169,7 @@ function TaskInstructions({ task }: { task: TaskInfo }) {
 
                 <div className="flex flex-col w-full gap-2">
                     <textarea
-                        className=" bg-dark-200 focus:border-primary-100 border-gray-200/60 focus:ring-0 focus:shadow-none rounded-sm h-56 text-gray-400"
+                        className=" bg-dark-200 disabled:bg-transparent focus:border-primary-100 border-gray-200/60 focus:ring-0 focus:shadow-none rounded-sm h-56 text-gray-400"
                         disabled={!isEditingTaskPrompt}
                         value={taskPrompt}
                         placeholder="Enter prompt..."

@@ -409,14 +409,20 @@ function TaskSidebarModel({ task }: { task: TaskInfo }) {
 
     const saveModel = () => {
         const modelId = data?.models.find((m) => m.name == selectedModel)?.id;
-        updateTaskModel({
-            task: task.name,
-            model: {
-                model_version: selectedModelVersion,
-                model_id: modelId,
-            },
-        });
-        setIsEditing(!isEditing);
+        if (modelId) {
+            updateTaskModel({
+                task: task.name,
+                model: {
+                    model_version: selectedModelVersion,
+                    model_id: modelId,
+                },
+            });
+            setIsEditing(!isEditing);
+        } else {
+            console.log(
+                "Error: Could not save the updated Model information. Selected model ID was not found."
+            );
+        }
     };
 
     return (

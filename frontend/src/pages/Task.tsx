@@ -579,9 +579,9 @@ function TaskSidebar({ task }: { task: TaskInfo }) {
                 </div>
                 <div className=" flex flex-col gap-4 ">
                     {Object.getOwnPropertyNames(task.task_params).length === 0 && (
-                        <div className=" outline outline-slate-200 rounded-sm w-3/4 mx-auto">
+                        <div className=" outline outline-slate-200 rounded-sm">
                             <p className=" text-center font-semibold ">Add a Parameter</p>
-                            <p className=" text-center ">Add a Parameter</p>
+                            <p className=" text-center ">Add a parameter</p>
                         </div>
                     )}
                     {Object.getOwnPropertyNames(task.task_params)
@@ -620,20 +620,12 @@ export default function Task() {
 
     // eslint-disable-next-line  @typescript-eslint/no-non-null-assertion
     const taskName = taskid!;
-    console.log(`NAVIGATED TO task=${taskName}`);
 
-    const { data, isSuccess } = useGetTasksQuery();
+    const { data } = useGetTasksQuery();
     const registeredTask = useMemo(
         () => data?.find((task) => task.name === taskName),
         [data, taskName]
     );
-
-    console.log(`registeredTask=${registeredTask?.name} isSuccess=${isSuccess}`);
-
-    if (registeredTask == null && isSuccess) {
-        // navigate("/404");
-        return <></>;
-    }
 
     return (
         <Page header={<TaskHeader task={taskName} />}>

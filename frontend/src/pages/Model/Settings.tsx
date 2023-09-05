@@ -71,8 +71,6 @@ export default function Settings() {
             registeredModel?.versions[0].import_metadata.imported_at
         );
 
-        console.log(data);
-
         data?.files.forEach((f) => {
             if (importTime < DateTime.fromISO(f.committed_at)) {
                 availableFiles.push(f);

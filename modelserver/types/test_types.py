@@ -36,10 +36,14 @@ def test_tasks() -> None:
         {
             "type": "taskv1/download-disk",
             "locator": {"type": "locatorv1/disk", "path": "/my/new/file.bin"},
+            "model_name": "model",
+            "model_version": "0.1.0",
         }
     )
     assert parsed_task1.root == DownloadDiskModelTask(
-        locator=DiskLocator(path="/my/new/file.bin")
+        locator=DiskLocator(path="/my/new/file.bin"),
+        model_name="model",
+        model_version="0.1.0",
     )
 
     parsed_task2 = Task.model_validate(
@@ -50,6 +54,8 @@ def test_tasks() -> None:
                 "repo": "vicuna/7b",
                 "file": "ggml.bin",
             },
+            "model_name": "model",
+            "model_version": "0.1.0",
         }
     )
 
@@ -57,7 +63,9 @@ def test_tasks() -> None:
         locator=HFLocator(
             repo="vicuna/7b",
             file="ggml.bin",
-        )
+        ),
+        model_name="model",
+        model_version="0.1.0",
     )
 
     # Ensuer mismatched tasks/locators reject

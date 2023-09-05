@@ -1,7 +1,7 @@
 from typing import Annotated, Any, Literal, TypeAlias
 from uuid import UUID
 
-from pydantic import BaseModel, Field, RootModel
+from pydantic import BaseModel, ConfigDict, Field, RootModel
 from pydantic_core import PydanticUndefined
 
 from modelserver.types.locator import DiskLocator, HFLocator
@@ -17,11 +17,23 @@ class DownloadHFModelTask(BaseModel):
     type: Literal["taskv1/download-hf"] = "taskv1/download-hf"
     locator: HFLocator
     cache_dir: str | None = None
+    model_name: str
+    model_version: str
+
+    model_config = ConfigDict(
+        protected_namespaces=(),
+    )
 
 
 class DownloadDiskModelTask(BaseModel):
     type: Literal["taskv1/download-disk"] = "taskv1/download-disk"
     locator: DiskLocator
+    model_name: str
+    model_version: str
+
+    model_config = ConfigDict(
+        protected_namespaces=(),
+    )
 
 
 class Task(

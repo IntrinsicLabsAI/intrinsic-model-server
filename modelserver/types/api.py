@@ -6,7 +6,7 @@ from typing import Annotated, Any, List, Literal, TypeAlias
 
 from pydantic import UUID4, BaseModel, ConfigDict, Field, RootModel, field_validator
 
-from .locator import DiskLocator, HFLocator
+from .locator import DiskLocator, HFLocator, Locator
 
 SEMVER_PATTERN = r"(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)"
 SEMVER_RE = re.compile(SEMVER_PATTERN)
@@ -112,6 +112,16 @@ class CompletionModelParams(BaseModel):
     type: Literal["paramsv1/completion"] = "paramsv1/completion"
 
     model_path: str
+
+    model_config = ConfigDict(
+        protected_namespaces=(),
+    )
+
+
+class ImportRequest(BaseModel):
+    locator: Locator
+    model_name: str
+    model_version: str
 
     model_config = ConfigDict(
         protected_namespaces=(),

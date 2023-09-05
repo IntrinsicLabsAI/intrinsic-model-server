@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { useGetRepoFilesQuery } from "../../api/services/hfService";
-import { SkipToken, skipToken } from "@reduxjs/toolkit/dist/query";
+import { skipToken } from "@reduxjs/toolkit/dist/query";
 
 import {
     useUpdateModelNameMutation,
@@ -39,9 +39,9 @@ function isHFImportSource(source: HFImportSource | DiskImportSource): source is 
     return source.type === "importv1/hf";
 }
 
-function isDiskImportSource(source: HFImportSource | DiskImportSource): source is DiskImportSource {
-    return source.type === "importv1/disk";
-}
+// function isDiskImportSource(source: HFImportSource | DiskImportSource): source is DiskImportSource {
+//     return source.type === "importv1/disk";
+// }
 
 export default function Settings() {
     const { name } = useParams<"name">();

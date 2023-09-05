@@ -92,6 +92,7 @@ function HuggingFaceForm() {
     const { data, isLoading } = useGetRepoFilesQuery(selectedModel ?? skipToken, {
         skip: selectedModel === undefined,
     });
+
     const [importModelMutation] = useImportModelMutation();
 
     const [, setImportError] = useState<string | undefined>();

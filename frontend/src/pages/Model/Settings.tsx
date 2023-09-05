@@ -3,6 +3,9 @@ import { useParams } from "react-router-dom";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+import { useGetRepoFilesQuery } from "../../api/services/hfService";
+import { skipToken } from "@reduxjs/toolkit/dist/query";
+
 import {
     useUpdateModelNameMutation,
     useDeleteModelMutation,
@@ -17,6 +20,8 @@ import { Icon } from "@blueprintjs/core";
 import Button from "../../components/core/Button";
 import InteractiveTable from "../../components/core/InteractiveTable";
 import TwoColumnLayout from "../../components/layout/TwoColumnLayout";
+import { HFFile } from "../../api";
+import prettyBytes from "pretty-bytes";
 
 const VALIDATION_REGEX = /^[a-zA-Z0-9-_.]+$/;
 
@@ -34,6 +39,9 @@ export default function Settings() {
     const [newName, setNewName] = useState<string>("");
     const [settingsTab, setSettingTab] = useState<string>("general");
     const [versionSelection, setVersionSelection] = useState<string>("");
+    const [checkedForUpdate, setCheckedForUpdate] = useState<boolean>(false);
+    const [availableFilesForImport, setAvailableFilesForImport] = useState<HFFile[]>([]);
+    const [selectedFileForImport, setSelectedFileForImport] = useState<string>("");
 
     const [updateNameAction] = useUpdateModelNameMutation();
     const [deleteModelAction] = useDeleteModelMutation();
@@ -44,6 +52,36 @@ export default function Settings() {
     const isValid = useMemo(() => {
         return VALIDATION_REGEX.test(newName);
     }, [newName]);
+
+    const { data } = useGetRepoFilesQuery(
+        registeredModel?.versions[0].import_metadata.source.source.repo ?? skipToken,
+        {
+            skip: registeredModel?.name === undefined,
+        }
+    );
+
+    const checkForUpdate = () => {
+        if (!registeredModel) {
+            return;
+        }
+
+        const availableFiles: HFFile[] = [];
+
+        const importTime = DateTime.fromISO(
+            registeredModel?.versions[0].import_metadata.imported_at
+        );
+
+        console.log(data);
+
+        data?.files.forEach((f) => {
+            if (importTime < DateTime.fromISO(f.committed_at)) {
+                availableFiles.push(f);
+            }
+        });
+
+        setAvailableFilesForImport(availableFiles);
+        setCheckedForUpdate(true);
+    };
 
     const rows =
         registeredModel?.versions.map((v) => ({
@@ -58,6 +96,69 @@ export default function Settings() {
     const modelVersions = (
         <>
             <h3 className="text-2xl font-semibold">Model Versions</h3>
+            <div>
+                <h3 className="text-xl font-semibold">Import New Version</h3>
+                <p className=" text-gray-400/80 ">
+                    Update the currently registered versions of this model. This update will not
+                    impact experiments or tasks that have already been created. You will need to
+                    update those independently.
+                </p>
+                {!checkedForUpdate && (
+                    <div className="w-fit mt-4">
+                        <Button
+                            buttonText="Check for Updates"
+                            onAction={() => {
+                                checkForUpdate();
+                            }}
+                        />
+                    </div>
+                )}
+                {checkedForUpdate && (
+                    <>
+                        {availableFilesForImport.length ? (
+                            <div className="mt-2">
+                                <InteractiveTable
+                                    enableSelection
+                                    onRowSelect={setSelectedFileForImport}
+                                    rows={availableFilesForImport.map((f) => ({
+                                        row_key: f.filename,
+                                        "File Name": f.filename,
+                                        "File Size": prettyBytes(f.size_bytes),
+                                        Date: DateTime.fromISO(f.committed_at).toLocaleString(
+                                            DateTime.DATETIME_MED
+                                        ),
+                                    }))}
+                                    columns={["File Name", "File Size", "Date"]}
+                                />
+                                <div className="flex gap-2 w-fit mt-4">
+                                    <Button
+                                        buttonText="Import Version"
+                                        disabled={!selectedFileForImport}
+                                        onAction={() => {
+                                            console.log("Import Model Now!");
+                                            // Add import here to finalize this feature.
+                                        }}
+                                    />
+                                    <Button
+                                        buttonText="Cancel"
+                                        outline={false}
+                                        onAction={() => {
+                                            setCheckedForUpdate(false);
+                                        }}
+                                    />
+                                </div>
+                            </div>
+                        ) : (
+                            <div className=" mt-2">
+                                <p className=" font-semibold">
+                                    There are no new versions of this model available from
+                                    HuggingFace.
+                                </p>
+                            </div>
+                        )}
+                    </>
+                )}
+            </div>
             <div>
                 <h3 className="text-xl font-semibold">Delete Version</h3>
                 <p className=" text-gray-400/80 ">

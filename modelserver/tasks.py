@@ -44,11 +44,10 @@ class Tasks:
         """
         "Download" disk model, i.e. import it into our DB.
         """
-        model_name = os.path.basename(task.locator.path)
         [model_id, version] = self.db.register_model(
             RegisterModelRequest(
-                model=model_name,
-                version=SemVer("0.1.0"),
+                model=task.model_name,
+                version=SemVer(task.model_version),
                 model_type=ModelType.completion,
                 runtime=ModelRuntime.ggml,
                 internal_params=CompletionModelParams(
@@ -64,9 +63,9 @@ class Tasks:
             task_id,
             TaskState.model_construct(
                 FinishedTaskState(
-                    info=model_name,
+                    info=task.model_name,
                     metadata=dict(
-                        model_name=model_name,
+                        model_name=task.model_name,
                         model_id=model_id,
                         version=str(version),
                     ),
@@ -115,12 +114,12 @@ class Tasks:
             #         "Invalid GGML file: must be LLaMa-formatted to be run with llama.cpp"
             #     )
 
-            modelname = f"{os.path.basename(locator.repo)}__{locator.file}"
+            # modelname = f"{os.path.basename(locator.repo)}__{locator.file}"
 
             [model_id, version] = self.db.register_model(
                 RegisterModelRequest(
-                    model=modelname,
-                    version=SemVer("0.1.0"),
+                    model=task.model_name,
+                    version=SemVer(task.model_version),
                     model_type=ModelType.completion,
                     runtime=ModelRuntime.ggml,
                     import_metadata=ImportMetadata(
@@ -136,11 +135,11 @@ class Tasks:
                 task_id,
                 TaskState(
                     FinishedTaskState(
-                        info=f"Successfully registered {modelname}",
+                        info=f"Successfully registered {task.model_name}@{task.model_version}",
                         metadata=dict(
-                            model_name=modelname,
+                            model_name=task.model_name,
                             model_id=model_id,
-                            version=str(version),
+                            version=task.model_version,
                         ),
                     )
                 ),

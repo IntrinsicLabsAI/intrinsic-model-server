@@ -1,5 +1,6 @@
 import logging
 import multiprocessing as M
+import os
 import re
 import time
 import typing
@@ -33,6 +34,7 @@ from ..types.api import (
     GetRegisteredModelsResponse,
     GetSavedExperimentsResponse,
     GrammarDefinition,
+    ImportRequest,
     RegisteredModel,
     SavedExperimentIn,
     SavedExperimentOut,
@@ -169,11 +171,61 @@ async def import_model(
 
     match locator.root:
         case HFLocator() as hf:
-            # Store a task for this shit
-            task_id = component.taskdb.store_task(Task(DownloadHFModelTask(locator=hf)))
+            model_name = os.path.basename(hf.file)
+            task_id = component.taskdb.store_task(
+                Task(
+                    DownloadHFModelTask(
+                        locator=hf, model_name=model_name, model_version="0.1.0"
+                    )
+                )
+            )
+        case DiskLocator() as disk:
+            model_name = os.path.basename(disk.path)
+            model_version = "0.1.0"
+            task_id = component.taskdb.store_task(
+                Task(
+                    DownloadDiskModelTask(
+                        locator=disk, model_name=model_name, model_version=model_version
+                    )
+                ),
+            )
+        case _:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid locator type {locator.model_dump_json()}",
+            )
+
+    return task_id
+
+
+@router.post("/import-version")
+async def import_model_verson(
+    import_request: Annotated[ImportRequest, Body()],
+    component: Annotated[AppComponent, Depends(AppComponent)],
+) -> TaskId:
+    locator = import_request.locator
+    logger.info(f"Received import request: {locator.model_dump_json()}")
+
+    match locator.root:
+        case HFLocator() as hf:
+            task_id = component.taskdb.store_task(
+                Task(
+                    DownloadHFModelTask(
+                        locator=hf,
+                        model_name=import_request.model_name,
+                        model_version=import_request.model_version,
+                    )
+                )
+            )
         case DiskLocator() as disk:
             task_id = component.taskdb.store_task(
-                Task(DownloadDiskModelTask(locator=disk)),
+                Task(
+                    DownloadDiskModelTask(
+                        locator=disk,
+                        model_name=import_request.model_name,
+                        model_version=import_request.model_version,
+                    )
+                ),
             )
         case _:
             raise HTTPException(

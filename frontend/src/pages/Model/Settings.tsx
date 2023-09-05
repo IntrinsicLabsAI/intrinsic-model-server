@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 
 import { useGetRepoFilesQuery } from "../../api/services/hfService";
 import { skipToken } from "@reduxjs/toolkit/dist/query";
-
+import { HFImportSource } from "../../api";
 import {
     useUpdateModelNameMutation,
     useDeleteModelMutation,
@@ -52,6 +52,11 @@ export default function Settings() {
     const isValid = useMemo(() => {
         return VALIDATION_REGEX.test(newName);
     }, [newName]);
+
+    const modeRepo: HFImportSource =
+        registeredModel?.versions[0].import_metadata.source.type === "importv1/hf"
+            ? registeredModel?.versions[0].import_metadata.source
+            : {};
 
     const { data } = useGetRepoFilesQuery(
         registeredModel?.versions[0].import_metadata.source.source.repo ?? skipToken,

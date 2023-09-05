@@ -579,9 +579,12 @@ function TaskSidebar({ task }: { task: TaskInfo }) {
                 </div>
                 <div className=" flex flex-col gap-4 ">
                     {Object.getOwnPropertyNames(task.task_params).length === 0 && (
-                        <div className=" outline outline-slate-200 rounded-sm">
+                        <div className=" outline outline-slate-200 rounded-sm py-4 px-2">
                             <p className=" text-center font-semibold ">Add a Parameter</p>
-                            <p className=" text-center ">Add a parameter</p>
+                            <p className=" text-center leading-tight ">
+                                This Task does not have any parameters at the moment. Input
+                                parameters allow your Task to accept dynamic input when running.
+                            </p>
                         </div>
                     )}
                     {Object.getOwnPropertyNames(task.task_params)

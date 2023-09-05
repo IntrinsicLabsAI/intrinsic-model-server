@@ -1,4 +1,4 @@
-import { BlueprintIcons_16Id } from "@blueprintjs/icons/src/generated/16px/blueprint-icons-16.ts";
+import { BlueprintIcons_16Id } from "@blueprintjs/icons/src/generated/16px/blueprint-icons-16";
 import { Icon } from "@blueprintjs/core";
 
 /**

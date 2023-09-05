@@ -21,6 +21,7 @@
         "@uiw/react-textarea-code-editor": "^2.1.7",
         "axios": "^1.4.0",
         "form-data": "^4.0.0",
+        "intrinsic-ui": "file:../intrinsic-ui",
         "luxon": "^3.3.0",
         "pretty-bytes": "^6.1.0",
         "react": "^18.2.0",

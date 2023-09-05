@@ -2,7 +2,7 @@ import { Menu } from "@headlessui/react";
 import React from "react";
 import Button from "./Button";
 
-import { BlueprintIcons_16Id } from "@blueprintjs/icons/src/generated/16px/blueprint-icons-16.ts";
+import { BlueprintIcons_16Id } from "@blueprintjs/icons/src/generated/16px/blueprint-icons-16";
 import { Icon } from "@blueprintjs/core";
 
 export default function DropdownMenu<

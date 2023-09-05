@@ -1,0 +1,11 @@
+{
+    "name": "modelserver",
+    "workspaces": [
+        "packages/frontend"
+    ],
+    "scripts": {
+        "ui:build": "npm run build -w ./packages/intrinsic-ui",
+        "fe:build": "npm run ui:build && npm run build -w ./packages/frontend",
+        "fe:dev": "npm run dev -w ./packages/frontend"
+    }
+}

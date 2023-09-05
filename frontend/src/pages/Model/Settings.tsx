@@ -1,13 +1,18 @@
-import { useGetModelsQuery } from "../../api/services/v1";
 import { useParams } from "react-router-dom";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+
+import { useGetRepoFilesQuery } from "../../api/services/hfService";
+import { skipToken } from "@reduxjs/toolkit/dist/query";
 
 import {
     useUpdateModelNameMutation,
     useDeleteModelMutation,
     useDeleteModelVersionMutation,
+    useImportModelVersionMutation,
+    useGetModelsQuery,
 } from "../../api/services/v1";
+
 import { DateTime } from "luxon";
 
 import TextInput from "../../components/form/TextInput";
@@ -17,47 +22,184 @@ import { Icon } from "@blueprintjs/core";
 import Button from "../../components/core/Button";
 import InteractiveTable from "../../components/core/InteractiveTable";
 import TwoColumnLayout from "../../components/layout/TwoColumnLayout";
+import { DiskImportSource, HFFile, HFImportSource } from "../../api";
+import prettyBytes from "pretty-bytes";
 
 const VALIDATION_REGEX = /^[a-zA-Z0-9-_.]+$/;
+
+function incrementVersionString(versionString: string): string {
+    const versionParts = versionString.split(".");
+
+    versionParts[1] = `${parseInt(versionParts[1]) + 1}`;
+
+    return versionParts.join(".");
+}
+
+function isHFImportSource(source: HFImportSource | DiskImportSource): source is HFImportSource {
+    return source.type === "importv1/hf";
+}
+
+// function isDiskImportSource(source: HFImportSource | DiskImportSource): source is DiskImportSource {
+//     return source.type === "importv1/disk";
+// }
 
 export default function Settings() {
     const { name } = useParams<"name">();
     // eslint-disable-next-line  @typescript-eslint/no-non-null-assertion
     const modelName = name!;
 
+    // rtk queries
     const { registeredModel } = useGetModelsQuery(undefined, {
         selectFromResult: ({ data }) => ({
             registeredModel: data?.models.find((m) => m.name === modelName),
         }),
     });
 
-    const [newName, setNewName] = useState<string>("");
-    const [settingsTab, setSettingTab] = useState<string>("general");
-    const [versionSelection, setVersionSelection] = useState<string>("");
-
     const [updateNameAction] = useUpdateModelNameMutation();
     const [deleteModelAction] = useDeleteModelMutation();
     const [deleteModelVersionAction] = useDeleteModelVersionMutation();
+    const [importModelVersionAction] = useImportModelVersionMutation();
+
+    // state management
+    const [newName, setNewName] = useState<string>("");
+    const [settingsTab, setSettingTab] = useState<string>("general");
+    const [versionSelection, setVersionSelection] = useState<string>("");
+    const [checkedForUpdate, setCheckedForUpdate] = useState<boolean>(false);
+    const [availableFilesForImport, setAvailableFilesForImport] = useState<HFFile[]>([]);
+    const [selectedFileForImport, setSelectedFileForImport] = useState<string>("");
 
     const navigate = useNavigate();
 
+    // validate any new name for the model
     const isValid = useMemo(() => {
         return VALIDATION_REGEX.test(newName);
     }, [newName]);
 
-    const rows =
-        registeredModel?.versions.map((v) => ({
-            row_key: v.version,
-            Version: v.version,
-            Type: v.import_metadata?.source.type || "Unkown",
-            Date: DateTime.fromISO(v.import_metadata?.imported_at).toLocaleString(
-                DateTime.DATETIME_MED
-            ),
-        })) || [];
+    // Typescript safe way to idenitfy the repo needed for the component
+    const importSource = registeredModel?.versions[0].import_metadata.source;
+    let repoId: string | typeof skipToken = skipToken;
+    if (importSource != null && isHFImportSource(importSource)) {
+        repoId = importSource.source.repo;
+    }
+    const { data } = useGetRepoFilesQuery(repoId);
+
+    // adds any new versions of model to the availableFilesForImport[]
+    const checkForUpdate = () => {
+        if (!registeredModel) {
+            return;
+        }
+
+        const availableFiles: HFFile[] = [];
+
+        const importTime = DateTime.fromISO(
+            registeredModel?.versions[registeredModel?.versions.length - 1].import_metadata
+                .imported_at
+        );
+
+        data?.files.forEach((f) => {
+            if (importTime < DateTime.fromISO(f.committed_at)) {
+                availableFiles.push(f);
+            }
+        });
+
+        setAvailableFilesForImport(availableFiles);
+        setCheckedForUpdate(true);
+    };
 
     const modelVersions = (
         <>
             <h3 className="text-2xl font-semibold">Model Versions</h3>
+            <div>
+                <h3 className="text-xl font-semibold">Import New Version</h3>
+                <p className=" text-gray-400/80 ">
+                    Update the currently registered versions of this model. This update will not
+                    impact experiments or tasks that have already been created. You will need to
+                    update those independently.
+                </p>
+                {!checkedForUpdate && (
+                    <div className="w-fit mt-4">
+                        <Button
+                            buttonText="Check for Updates"
+                            onAction={() => {
+                                checkForUpdate();
+                            }}
+                        />
+                    </div>
+                )}
+                {checkedForUpdate && (
+                    <>
+                        {availableFilesForImport.length ? (
+                            <div className="mt-2">
+                                <InteractiveTable
+                                    enableSelection
+                                    onRowSelect={setSelectedFileForImport}
+                                    rows={availableFilesForImport.map((f) => ({
+                                        row_key: f.filename,
+                                        "File Name": f.filename,
+                                        "File Size": prettyBytes(f.size_bytes),
+                                        Date: DateTime.fromISO(f.committed_at).toLocaleString(
+                                            DateTime.DATETIME_MED
+                                        ),
+                                    }))}
+                                    columns={["File Name", "File Size", "Date"]}
+                                />
+                                <div className="flex gap-2 w-fit mt-4">
+                                    <Button
+                                        buttonText="Import Version"
+                                        disabled={!selectedFileForImport}
+                                        onAction={() => {
+                                            if (!registeredModel) {
+                                                return;
+                                            }
+
+                                            let maxVersion = "0.0.0";
+
+                                            registeredModel.versions.forEach((v) => {
+                                                if (v.version > maxVersion) {
+                                                    maxVersion = v.version;
+                                                }
+                                            });
+
+                                            maxVersion = incrementVersionString(maxVersion);
+
+                                            if (repoId === skipToken) {
+                                                return;
+                                            }
+
+                                            importModelVersionAction({
+                                                model_name: registeredModel.name,
+                                                model_version: maxVersion,
+                                                locator: {
+                                                    type: "locatorv1/hf",
+                                                    repo: repoId,
+                                                    file: selectedFileForImport,
+                                                    revision: null,
+                                                },
+                                            });
+
+                                            setCheckedForUpdate(false);
+                                        }}
+                                    />
+                                    <Button
+                                        buttonText="Cancel"
+                                        outline={false}
+                                        onAction={() => {
+                                            setCheckedForUpdate(false);
+                                        }}
+                                    />
+                                </div>
+                            </div>
+                        ) : (
+                            <div className=" mt-2">
+                                <p className=" font-semibold">
+                                    There are no new versions of this model available from
+                                    HuggingFace.
+                                </p>
+                            </div>
+                        )}
+                    </>
+                )}
+            </div>
             <div>
                 <h3 className="text-xl font-semibold">Delete Version</h3>
                 <p className=" text-gray-400/80 ">
@@ -68,7 +210,16 @@ export default function Settings() {
             <InteractiveTable
                 enableSelection
                 onRowSelect={setVersionSelection}
-                rows={rows}
+                rows={
+                    registeredModel?.versions.map((v) => ({
+                        row_key: v.version,
+                        Version: v.version,
+                        Type: v.import_metadata?.source.type || "Unkown",
+                        Date: DateTime.fromISO(v.import_metadata?.imported_at).toLocaleString(
+                            DateTime.DATETIME_MED
+                        ),
+                    })) || []
+                }
                 columns={["Version", "Type", "Date"]}
             />
             <div className="w-fit">

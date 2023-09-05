@@ -22,6 +22,7 @@ export type { HFImportSource } from './models/HFImportSource';
 export type { HFLocator } from './models/HFLocator';
 export type { HTTPValidationError } from './models/HTTPValidationError';
 export type { ImportMetadata } from './models/ImportMetadata';
+export type { ImportRequest } from './models/ImportRequest';
 export type { InProgressState } from './models/InProgressState';
 export type { ListHFFilesResponse } from './models/ListHFFilesResponse';
 export type { Locator } from './models/Locator';

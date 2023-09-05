@@ -1,5 +1,5 @@
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { useState } from "react";
+import { useState, useCallback, useMemo } from "react";
 import {
     useDeleteGrammarModeMutation,
     useDeleteTaskMutation,
@@ -29,27 +29,28 @@ const inputValidation = /^[a-zA-Z0-9-_.]+$/;
 function TaskHeader({ task }: { task: string }) {
     const navigate = useNavigate();
     const [isEditing, setEditing] = useState<boolean>(false);
-    const [taskName, setTaskName] = useState<string>(task);
+    const [updatedName, setUpdatedName] = useState<string>(task);
 
     const [renameTaskAction] = useRenameTaskMutation();
     const [deleteTaskAction] = useDeleteTaskMutation();
 
-    const onAction = (type: string) => {
+    const menuActions = [{ id: "delete", value: "Delete Task" }];
+
+    const handleMenuAction = (type: string) => {
         if (type === "delete") {
             deleteTaskAction(task);
             navigate("/");
         }
     };
 
-    const toggleEditing = () => {
-        if (!isEditing) {
-            setEditing(true);
-        } else if (isEditing) {
-            renameTaskAction({ taskName: task, newName: taskName });
-            navigate(`/task/${taskName}`);
-            setEditing(false);
-        }
-    };
+    const renameAction = useCallback(() => {
+        renameTaskAction({
+            taskName: task,
+            newName: updatedName,
+        }).then(() => {
+            navigate(`/task/${updatedName}`);
+        });
+    }, [task, updatedName, navigate, renameTaskAction]);
 
     return (
         <div className="flex flex-row items-start pb-5">
@@ -59,10 +60,10 @@ function TaskHeader({ task }: { task: string }) {
                         {isEditing ? (
                             <>
                                 <input
-                                    value={taskName}
+                                    value={updatedName}
                                     type="text"
-                                    onChange={(evt) => setTaskName(evt.target.value)}
-                                    className=" font-semibold text-xl text-gray-400 bg-transparent focus:ring-0 focus:outline-primary-400 shadow-none outline border-none p-1 rounded-sm w-1/2"
+                                    onChange={(evt) => setUpdatedName(evt.target.value)}
+                                    className=" font-semibold text-xl text-gray-400 bg-transparent focus:ring-0 focus:outline-primary-400 shadow-none outline border-none p-1 rounded-sm w-80"
                                 />
                                 <Button
                                     buttonIcon="tick"
@@ -70,13 +71,16 @@ function TaskHeader({ task }: { task: string }) {
                                     style="bold"
                                     size="medium"
                                     outline={false}
-                                    onAction={() => toggleEditing()}
+                                    onAction={() => {
+                                        setEditing(false);
+                                        renameAction();
+                                    }}
                                 />
                             </>
                         ) : (
                             <h2
                                 className=" font-semibold text-2xl cursor-text "
-                                onClick={() => toggleEditing()}
+                                onClick={() => setEditing(true)}
                             >
                                 {task}
                             </h2>
@@ -85,9 +89,9 @@ function TaskHeader({ task }: { task: string }) {
                 </div>
             </div>
             <Dropdown
-                onSelectionChange={(k) => onAction(`${k}`)}
+                onSelectionChange={(k) => handleMenuAction(k.toString())}
                 buttonText="Actions"
-                items={[{ id: "delete", value: "Delete Task" }]}
+                items={menuActions}
             />
         </div>
     );
@@ -392,7 +396,9 @@ function TaskSidebarInputs({
 function TaskSidebarModel({ task }: { task: TaskInfo }) {
     const { data, isLoading } = useGetModelsQuery();
 
-    const [isEditing, setIsEditing] = useState<boolean>(false);
+    const startingValue = task.model_id ? false : true;
+
+    const [isEditing, setIsEditing] = useState<boolean>(startingValue);
     const [selectedModel, setSelectedModel] = useState<string>("");
     const [selectedModelVersion, setSelectedModelVersion] = useState<string>("");
     const [updateTaskModel] = useUpdateTaskModelMutation();
@@ -454,14 +460,16 @@ function TaskSidebarModel({ task }: { task: TaskInfo }) {
                 <>
                     <div className="flex flex-row gap-2 items-center pb-2">
                         <p className=" font-semibold text-lg mr-auto">Linked Model</p>
-                        <Button
-                            buttonIcon="cross"
-                            size="medium"
-                            style="minimal"
-                            color="default"
-                            outline={false}
-                            onAction={() => setIsEditing(false)}
-                        />
+                        {task.model_id && (
+                            <Button
+                                buttonIcon="cross"
+                                size="medium"
+                                style="minimal"
+                                color="default"
+                                outline={false}
+                                onAction={() => setIsEditing(false)}
+                            />
+                        )}
                         <Button
                             buttonIcon="tick"
                             size="medium"
@@ -473,8 +481,8 @@ function TaskSidebarModel({ task }: { task: TaskInfo }) {
                     </div>
                     <div className=" flex flex-col gap-2">
                         <p className=" whitespace-pre-wrap leading-tight text-slate-200/90 mb-2">
-                            Select which model your task uses when it runs. You can select any model
-                            currently registered.
+                            Select which model your task uses. Any model currently registered with
+                            the server can be used.
                         </p>
                         {!isLoading && (
                             <>
@@ -570,6 +578,12 @@ function TaskSidebar({ task }: { task: TaskInfo }) {
                     />
                 </div>
                 <div className=" flex flex-col gap-4 ">
+                    {Object.getOwnPropertyNames(task.task_params).length === 0 && (
+                        <div className=" outline outline-slate-200 rounded-sm w-3/4 mx-auto">
+                            <p className=" text-center font-semibold ">Add a Parameter</p>
+                            <p className=" text-center ">Add a Parameter</p>
+                        </div>
+                    )}
                     {Object.getOwnPropertyNames(task.task_params)
                         .sort()
                         .map((name) => (
@@ -602,21 +616,23 @@ function TaskPage({ task }: { task: TaskInfo }) {
 }
 
 export default function Task() {
-    const navigate = useNavigate();
     const { taskid } = useParams<"taskid">();
 
     // eslint-disable-next-line  @typescript-eslint/no-non-null-assertion
     const taskName = taskid!;
+    console.log(`NAVIGATED TO task=${taskName}`);
 
-    const { registeredTask, isLoading } = useGetTasksQuery(undefined, {
-        selectFromResult: ({ data, isLoading }) => ({
-            registeredTask: data?.find((m) => m.name === taskName),
-            isLoading,
-        }),
-    });
+    const { data, isSuccess } = useGetTasksQuery();
+    const registeredTask = useMemo(
+        () => data?.find((task) => task.name === taskName),
+        [data, taskName]
+    );
 
-    if (registeredTask === undefined && !isLoading) {
-        navigate("/404");
+    console.log(`registeredTask=${registeredTask?.name} isSuccess=${isSuccess}`);
+
+    if (registeredTask == null && isSuccess) {
+        // navigate("/404");
+        return <></>;
     }
 
     return (

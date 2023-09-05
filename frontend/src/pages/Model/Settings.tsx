@@ -53,11 +53,6 @@ export default function Settings() {
         return VALIDATION_REGEX.test(newName);
     }, [newName]);
 
-    const modeRepo: HFImportSource =
-        registeredModel?.versions[0].import_metadata.source.type === "importv1/hf"
-            ? registeredModel?.versions[0].import_metadata.source
-            : {};
-
     const { data } = useGetRepoFilesQuery(
         registeredModel?.versions[0].import_metadata.source.source.repo ?? skipToken,
         {

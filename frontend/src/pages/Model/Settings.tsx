@@ -68,10 +68,12 @@ export default function Settings() {
 
     const navigate = useNavigate();
 
+    // validate any new name for the model
     const isValid = useMemo(() => {
         return VALIDATION_REGEX.test(newName);
     }, [newName]);
 
+    // Typescript safe way to idenitfy the repo needed for the component
     const importSource = registeredModel?.versions[0].import_metadata.source;
     let repoId: string | typeof skipToken = skipToken;
     if (importSource != null && isHFImportSource(importSource)) {
@@ -79,6 +81,7 @@ export default function Settings() {
     }
     const { data } = useGetRepoFilesQuery(repoId);
 
+    // adds any new versions of model to the availableFilesForImport[]
     const checkForUpdate = () => {
         if (!registeredModel) {
             return;
@@ -87,7 +90,8 @@ export default function Settings() {
         const availableFiles: HFFile[] = [];
 
         const importTime = DateTime.fromISO(
-            registeredModel?.versions[0].import_metadata.imported_at
+            registeredModel?.versions[registeredModel?.versions.length - 1].import_metadata
+                .imported_at
         );
 
         data?.files.forEach((f) => {
@@ -99,16 +103,6 @@ export default function Settings() {
         setAvailableFilesForImport(availableFiles);
         setCheckedForUpdate(true);
     };
-
-    const rows =
-        registeredModel?.versions.map((v) => ({
-            row_key: v.version,
-            Version: v.version,
-            Type: v.import_metadata?.source.type || "Unkown",
-            Date: DateTime.fromISO(v.import_metadata?.imported_at).toLocaleString(
-                DateTime.DATETIME_MED
-            ),
-        })) || [];
 
     const modelVersions = (
         <>
@@ -152,7 +146,6 @@ export default function Settings() {
                                         buttonText="Import Version"
                                         disabled={!selectedFileForImport}
                                         onAction={() => {
-                                            console.log("Import Model Now!");
                                             if (!registeredModel) {
                                                 return;
                                             }
@@ -215,7 +208,16 @@ export default function Settings() {
             <InteractiveTable
                 enableSelection
                 onRowSelect={setVersionSelection}
-                rows={rows}
+                rows={
+                    registeredModel?.versions.map((v) => ({
+                        row_key: v.version,
+                        Version: v.version,
+                        Type: v.import_metadata?.source.type || "Unkown",
+                        Date: DateTime.fromISO(v.import_metadata?.imported_at).toLocaleString(
+                            DateTime.DATETIME_MED
+                        ),
+                    })) || []
+                }
                 columns={["Version", "Type", "Date"]}
             />
             <div className="w-fit">

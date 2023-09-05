@@ -1,4 +1,5 @@
 import os
+import pathlib
 from pathlib import Path
 from typing import Annotated
 
@@ -7,6 +8,8 @@ from sqlalchemy import create_engine
 
 from modelserver.db import DataManager, PersistentDataManager
 from modelserver.db.tasks import PersistentTaskStore, TaskStore
+from modelserver.metrics._core import MetricStore
+from modelserver.metrics._duckdb import DuckDBMetricStore
 
 PWD = Path(os.curdir)
 
@@ -15,9 +18,11 @@ Datastores
 """
 
 engine = create_engine("sqlite+pysqlite:///v0.db")
+metrics_path = pathlib.Path(".")
 
 persistent_db = PersistentDataManager(engine)
 task_store = PersistentTaskStore()
+metric_store = DuckDBMetricStore(metrics_path)
 
 
 def get_db() -> DataManager:
@@ -26,6 +31,10 @@ def get_db() -> DataManager:
 
 def get_task_db() -> TaskStore:
     return task_store
+
+
+def get_metric_store() -> MetricStore:
+    return metric_store
 
 
 class AppComponent:
@@ -37,6 +46,8 @@ class AppComponent:
         self,
         db: Annotated[DataManager, Depends(get_db)],
         taskdb: Annotated[TaskStore, Depends(get_task_db)],
+        metric_store: Annotated[MetricStore, Depends(get_metric_store)],
     ) -> None:
         self.db = db
         self.taskdb = taskdb
+        self.metrics = metric_store

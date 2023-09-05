@@ -1,9 +1,9 @@
 import logging
 import multiprocessing as M
 import os
-import re
 import time
 import typing
+from datetime import datetime
 from typing import Annotated
 
 from fastapi import (
@@ -21,6 +21,7 @@ from pydantic import UUID4
 from pydantic_core import ValidationError
 
 from modelserver import model_worker, task_worker
+from modelserver.metrics._core import InvocationMeasurements
 from modelserver.types.locator import DiskLocator, HFLocator, Locator
 from modelserver.types.workers import RenderedTaskInvocation
 
@@ -467,6 +468,17 @@ async def task_clear_backing_model(
     component.db.clear_task_backing_model(task_name=task_name)
 
 
+@router.post("/metrics/tasks/{task_name}/summary")
+async def get_task_metrics(
+    # Get the name of the task
+    task_name: str,
+) -> None:
+    """
+    Retrieves summary metrics for a task
+    """
+    pass
+
+
 @router.post("/tasks/{task_name}/invoke")
 async def invoke_task_sync(
     task_name: str,
@@ -519,6 +531,22 @@ async def invoke_task_sync(
         completion += token
 
     elapsed = time.time() - starttime
+
+    # Update metrics before returning
+    component.metrics.insert_invocations(
+        [
+            InvocationMeasurements(
+                task_id=task_info.task_id,
+                ts=datetime.utcnow(),
+                input_tokens=len(rendered_prompt),
+                output_tokens=len(completion),
+                generate_ms=1000 * elapsed,
+                used_grammar=grammar is not None,
+                used_variables=len(provided_vars) > 0,
+            )
+        ]
+    )
+
     return TaskInvocation(
         task_name=task_name,
         elapsed_seconds=elapsed,

@@ -124,7 +124,7 @@ export default function Home() {
                             <div className="grid grid-cols-2 gap-4 my-2">
                                 {!taskIsLoading && taskData
                                     ? taskData.map((task) => (
-                                          <Link to={`/task/${task.name}`}>
+                                          <Link key={task.task_id} to={`/task/${task.name}`}>
                                               <div className="flex flex-row gap-4 outline outline-gray-200 hover:outline-blue-600 rounded-sm px-4 py-2 cursor-pointer items-center">
                                                   <p className=" flex-grow font-semibold text-dark-600 text-sm lg:text-xl leading-none truncate">
                                                       {task.name}

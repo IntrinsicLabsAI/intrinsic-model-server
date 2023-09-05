@@ -160,6 +160,20 @@ export const v1API = createApi({
                 method: "POST",
             }),
         }),
+        deleteGrammarMode: builder.mutation<string, string>({
+            invalidatesTags: ["tasks"],
+            query: (taskName) => ({
+                url: `tasks/${taskName}/grammar`,
+                method: "DELETE",
+            }),
+        }),
+        deleteTask: builder.mutation<string, string>({
+            invalidatesTags: ["tasks"],
+            query: (taskName) => ({
+                url: `tasks/${taskName}`,
+                method: "DELETE",
+            }),
+        }),
         getTasks: builder.query<TaskInfo[], void>({
             query: () => `tasks`,
             providesTags: ["tasks"],
@@ -185,6 +199,8 @@ export const {
     useUpdateTaskInputsMutation,
     useUpdateTaskModelMutation,
     useUpdateGrammarModeMutation,
+    useDeleteGrammarModeMutation,
+    useDeleteTaskMutation,
     useRenameTaskMutation,
 } = v1API;
 

@@ -14,4 +14,11 @@ export const featureUpdates: Array<{ id: number; date: Date; title: string; desc
             description:
                 "Model settings have been consolidated to a new tab in the model page. In addition, the option to delete a model or model version has been added to the App and API.",
         },
+        {
+            id: 3,
+            date: new Date("2023-09-04"),
+            title: "Task Endpoints",
+            description:
+                "Users can now create Tasks based upon models deployed on their server. A Task allows you to curate input and output for a specific model.",
+        },
     ];

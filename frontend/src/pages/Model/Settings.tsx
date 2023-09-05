@@ -1,11 +1,11 @@
-import { useGetModelsQuery } from "../../api/services/v1";
+import { useGetModelsQuery, useImportModelVersionMutation } from "../../api/services/v1";
 import { useParams } from "react-router-dom";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { useGetRepoFilesQuery } from "../../api/services/hfService";
 import { skipToken } from "@reduxjs/toolkit/dist/query";
-import { HFImportSource } from "../../api";
+
 import {
     useUpdateModelNameMutation,
     useDeleteModelMutation,
@@ -24,6 +24,14 @@ import { HFFile } from "../../api";
 import prettyBytes from "pretty-bytes";
 
 const VALIDATION_REGEX = /^[a-zA-Z0-9-_.]+$/;
+
+function incrementVersionString(versionString: string): string {
+    const versionParts = versionString.split(".");
+
+    versionParts[1] = `${parseInt(versionParts[1]) + 1}`;
+
+    return versionParts.join(".");
+}
 
 export default function Settings() {
     const { name } = useParams<"name">();
@@ -46,6 +54,7 @@ export default function Settings() {
     const [updateNameAction] = useUpdateModelNameMutation();
     const [deleteModelAction] = useDeleteModelMutation();
     const [deleteModelVersionAction] = useDeleteModelVersionMutation();
+    const [importModelVersionAction] = useImportModelVersionMutation();
 
     const navigate = useNavigate();
 
@@ -134,7 +143,33 @@ export default function Settings() {
                                         disabled={!selectedFileForImport}
                                         onAction={() => {
                                             console.log("Import Model Now!");
-                                            // Add import here to finalize this feature.
+                                            if (!registeredModel) {
+                                                return;
+                                            }
+
+                                            let maxVersion = "0.0.0";
+
+                                            registeredModel.versions.forEach((v) => {
+                                                if (v.version > maxVersion) {
+                                                    maxVersion = v.version;
+                                                }
+                                            });
+
+                                            maxVersion = incrementVersionString(maxVersion);
+
+                                            importModelVersionAction({
+                                                model_name: registeredModel.name,
+                                                model_version: maxVersion,
+                                                locator: {
+                                                    type: "locatorv1/hf",
+                                                    repo: registeredModel?.versions[0]
+                                                        .import_metadata.source.source.repo,
+                                                    file: selectedFileForImport,
+                                                    revision: null,
+                                                },
+                                            });
+
+                                            setCheckedForUpdate(false);
                                         }}
                                     />
                                     <Button

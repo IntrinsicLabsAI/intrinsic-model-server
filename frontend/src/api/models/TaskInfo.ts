@@ -13,5 +13,7 @@ export type TaskInfo = {
     task_params: Record<string, string>;
     output_grammar: (GrammarDefinition | null);
     prompt_template: string;
+    created_at: string;
+    updated_at: string;
 };
 

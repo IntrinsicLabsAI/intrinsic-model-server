@@ -11,6 +11,7 @@ import {
     TaskInfo,
     SetTaskBackingModelRequest,
     GrammarDefinition,
+    ImportRequest,
 } from "..";
 import { isDevServer } from "./util";
 
@@ -75,6 +76,14 @@ export const v1API = createApi({
             query: (locator) => ({
                 url: "imports",
                 body: locator,
+                method: "POST",
+            }),
+        }),
+        importModelVersion: builder.mutation<string, ImportRequest>({
+            invalidatesTags: ["models"],
+            query: (importRequest) => ({
+                url: "import-version",
+                body: importRequest,
                 method: "POST",
             }),
         }),
@@ -193,6 +202,7 @@ export const {
     useUpdateDescriptionMutation,
     useUpdateModelNameMutation,
     useImportModelMutation,
+    useImportModelVersionMutation,
     useGetTasksQuery,
     useCreateTaskMutation,
     useUpdateTaskPromptMutation,

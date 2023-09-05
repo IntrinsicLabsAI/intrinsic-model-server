@@ -48,23 +48,25 @@ export default function Settings() {
     // eslint-disable-next-line  @typescript-eslint/no-non-null-assertion
     const modelName = name!;
 
+    // rtk queries
     const { registeredModel } = useGetModelsQuery(undefined, {
         selectFromResult: ({ data }) => ({
             registeredModel: data?.models.find((m) => m.name === modelName),
         }),
     });
 
+    const [updateNameAction] = useUpdateModelNameMutation();
+    const [deleteModelAction] = useDeleteModelMutation();
+    const [deleteModelVersionAction] = useDeleteModelVersionMutation();
+    const [importModelVersionAction] = useImportModelVersionMutation();
+
+    // state management
     const [newName, setNewName] = useState<string>("");
     const [settingsTab, setSettingTab] = useState<string>("general");
     const [versionSelection, setVersionSelection] = useState<string>("");
     const [checkedForUpdate, setCheckedForUpdate] = useState<boolean>(false);
     const [availableFilesForImport, setAvailableFilesForImport] = useState<HFFile[]>([]);
     const [selectedFileForImport, setSelectedFileForImport] = useState<string>("");
-
-    const [updateNameAction] = useUpdateModelNameMutation();
-    const [deleteModelAction] = useDeleteModelMutation();
-    const [deleteModelVersionAction] = useDeleteModelVersionMutation();
-    const [importModelVersionAction] = useImportModelVersionMutation();
 
     const navigate = useNavigate();
 

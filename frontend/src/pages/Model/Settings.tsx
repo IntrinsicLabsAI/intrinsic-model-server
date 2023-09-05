@@ -1,16 +1,18 @@
-import { useGetModelsQuery, useImportModelVersionMutation } from "../../api/services/v1";
 import { useParams } from "react-router-dom";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { useGetRepoFilesQuery } from "../../api/services/hfService";
-import { skipToken } from "@reduxjs/toolkit/dist/query";
+import { SkipToken, skipToken } from "@reduxjs/toolkit/dist/query";
 
 import {
     useUpdateModelNameMutation,
     useDeleteModelMutation,
     useDeleteModelVersionMutation,
+    useImportModelVersionMutation,
+    useGetModelsQuery,
 } from "../../api/services/v1";
+
 import { DateTime } from "luxon";
 
 import TextInput from "../../components/form/TextInput";
@@ -20,7 +22,7 @@ import { Icon } from "@blueprintjs/core";
 import Button from "../../components/core/Button";
 import InteractiveTable from "../../components/core/InteractiveTable";
 import TwoColumnLayout from "../../components/layout/TwoColumnLayout";
-import { HFFile } from "../../api";
+import { DiskImportSource, HFFile, HFImportSource } from "../../api";
 import prettyBytes from "pretty-bytes";
 
 const VALIDATION_REGEX = /^[a-zA-Z0-9-_.]+$/;
@@ -31,6 +33,14 @@ function incrementVersionString(versionString: string): string {
     versionParts[1] = `${parseInt(versionParts[1]) + 1}`;
 
     return versionParts.join(".");
+}
+
+function isHFImportSource(source: HFImportSource | DiskImportSource): source is HFImportSource {
+    return source.type === "importv1/hf";
+}
+
+function isDiskImportSource(source: HFImportSource | DiskImportSource): source is DiskImportSource {
+    return source.type === "importv1/disk";
 }
 
 export default function Settings() {
@@ -62,12 +72,12 @@ export default function Settings() {
         return VALIDATION_REGEX.test(newName);
     }, [newName]);
 
-    const { data } = useGetRepoFilesQuery(
-        registeredModel?.versions[0].import_metadata.source.source.repo ?? skipToken,
-        {
-            skip: registeredModel?.name === undefined,
-        }
-    );
+    const importSource = registeredModel?.versions[0].import_metadata.source;
+    let repoId: string | typeof skipToken = skipToken;
+    if (importSource != null && isHFImportSource(importSource)) {
+        repoId = importSource.source.repo;
+    }
+    const { data } = useGetRepoFilesQuery(repoId);
 
     const checkForUpdate = () => {
         if (!registeredModel) {
@@ -157,13 +167,16 @@ export default function Settings() {
 
                                             maxVersion = incrementVersionString(maxVersion);
 
+                                            if (repoId === skipToken) {
+                                                return;
+                                            }
+
                                             importModelVersionAction({
                                                 model_name: registeredModel.name,
                                                 model_version: maxVersion,
                                                 locator: {
                                                     type: "locatorv1/hf",
-                                                    repo: registeredModel?.versions[0]
-                                                        .import_metadata.source.source.repo,
+                                                    repo: repoId,
                                                     file: selectedFileForImport,
                                                     revision: null,
                                                 },

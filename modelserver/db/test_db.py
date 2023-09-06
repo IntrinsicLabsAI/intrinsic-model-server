@@ -338,12 +338,12 @@ def test_metrics_db(tmp_path: pathlib.Path) -> None:
     # Pagination
     #
     assert metrics.search_invocations(
-        task_id=TASK_1, page_token=ID_2, page_size=2
+        task_id=TASK_1, page_token=str(ID_2), page_size=2
     ) == SearchInvocationsResponsePage(
         page=[INVOKE_2_OUT, INVOKE_3_OUT], page_token=None
     )
     assert metrics.search_invocations(
-        task_id=TASK_1, page_token=ID_2, page_size=1
+        task_id=TASK_1, page_token=str(ID_2), page_size=1
     ) == SearchInvocationsResponsePage(page=[INVOKE_2_OUT], page_token=str(ID_3))
 
     #

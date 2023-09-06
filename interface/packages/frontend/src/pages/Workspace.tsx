@@ -8,7 +8,7 @@ import { baseURL } from "../utils/prod";
 import { useCreateTaskMutation } from "../api/services/v1";
 import { DateTime } from "luxon";
 
-import { Test } from "intrinsic-ui";
+// import { Test } from "intrinsic-ui";
 
 export default function Workspace() {
     // Setup status checker in background.
@@ -62,7 +62,7 @@ export default function Workspace() {
                             onAction={() => window.open(`${baseURL()}/docs`, "_blank")}
                         />
                     </div>
-                    <Test />
+                    {/* <Test /> */}
                     <DropdownMenu
                         type="icon"
                         buttonIcon="cube-add"

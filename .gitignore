@@ -1,6 +1,8 @@
 # SQlite DB files
 *.db
 *.db-journal
+*.duckdb
+*.duckdb.wal
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

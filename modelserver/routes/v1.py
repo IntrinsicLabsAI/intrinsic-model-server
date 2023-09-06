@@ -1,9 +1,9 @@
 import logging
 import multiprocessing as M
 import os
-import re
 import time
 import typing
+from datetime import datetime
 from typing import Annotated
 
 from fastapi import (
@@ -11,6 +11,7 @@ from fastapi import (
     Body,
     Depends,
     HTTPException,
+    Query,
     Request,
     Response,
     WebSocket,
@@ -21,6 +22,11 @@ from pydantic import UUID4
 from pydantic_core import ValidationError
 
 from modelserver import model_worker, task_worker
+from modelserver.metrics._core import (
+    InvocationMeasurementsIn,
+    InvocationsSummary,
+    SearchInvocationsResponsePage,
+)
 from modelserver.types.locator import DiskLocator, HFLocator, Locator
 from modelserver.types.workers import RenderedTaskInvocation
 
@@ -467,6 +473,17 @@ async def task_clear_backing_model(
     component.db.clear_task_backing_model(task_name=task_name)
 
 
+@router.post("/metrics/tasks/{task_name}/summary")
+async def get_task_metrics(
+    # Get the name of the task
+    task_name: str,
+) -> None:
+    """
+    Retrieves summary metrics for a task
+    """
+    pass
+
+
 @router.post("/tasks/{task_name}/invoke")
 async def invoke_task_sync(
     task_name: str,
@@ -519,6 +536,22 @@ async def invoke_task_sync(
         completion += token
 
     elapsed = time.time() - starttime
+
+    # Update metrics before returning
+    component.metrics.insert_invocations(
+        [
+            InvocationMeasurementsIn(
+                task_id=task_info.task_id,
+                ts=datetime.utcnow(),
+                input_tokens=len(rendered_prompt),
+                output_tokens=len(completion),
+                generate_ms=1000 * elapsed,
+                used_grammar=grammar is not None,
+                used_variables=len(provided_vars) > 0,
+            )
+        ]
+    )
+
     return TaskInvocation(
         task_name=task_name,
         elapsed_seconds=elapsed,
@@ -589,3 +622,32 @@ async def invoke_task_async(
         await websocket.close(1000)
     except WebSocketDisconnect:
         logger.info("WebSocket disconnected from streaming session")
+
+
+#
+# Metrics
+#
+@router.post("/tasks/{task_name}/metrics")
+async def query_task_invocations(
+    task_name: str,
+    page_size: Annotated[int, Query(default=100)],
+    page_token: Annotated[str | None, Query(default=None)],
+    component: Annotated[AppComponent, Depends(AppComponent)],
+) -> SearchInvocationsResponsePage:
+    """
+    Retrieve all of the task invocations, filtered to the most recent set based on the
+    """
+    # Decode to a date filter
+    task_id = component.db.get_task_by_name(task_name).task_id
+    return component.metrics.search_invocations(
+        task_id=task_id, page_size=page_size, page_token=page_token
+    )
+
+
+@router.post("/tasks/{task_name}/metrics")
+async def summarize_task_invocations(
+    task_name: str,
+    component: Annotated[AppComponent, Depends(AppComponent)],
+) -> InvocationsSummary:
+    task_id = component.db.get_task_by_name(task_name).task_id
+    return component.metrics.summarize_invocations(task_id=task_id)

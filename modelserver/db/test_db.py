@@ -1,6 +1,9 @@
+import pathlib
+import uuid
 from datetime import datetime, timedelta
 from typing import Generator
 
+import numpy
 import pytest
 import sqlalchemy.exc
 from fastapi import HTTPException, status
@@ -228,4 +231,138 @@ def test_taskdb() -> None:
     """
     assert TaskState.model_validate_json(task_json).root == InProgressState(
         progress=0.8
+    )
+
+
+def test_metrics_db(tmp_path: pathlib.Path) -> None:
+    from datetime import datetime
+
+    from modelserver.metrics._core import (
+        InvocationMeasurementsIn,
+        InvocationMeasurementsOut,
+        InvocationsSummary,
+        PercentileMetrics,
+        SearchInvocationsResponsePage,
+    )
+    from modelserver.metrics._duckdb import DuckDBMetricStore
+
+    #
+    # Fixtures
+    #
+    TS_1 = datetime.utcfromtimestamp(0)
+    TS_2 = datetime.utcfromtimestamp(1)
+    TS_3 = datetime.utcfromtimestamp(2)
+
+    TASK_1 = uuid.uuid4()
+
+    metrics = DuckDBMetricStore(tmp_path)
+
+    #
+    # Initialize MetricStore
+    #
+    INVOKE_1 = InvocationMeasurementsIn(
+        task_id=TASK_1,
+        generate_ms=1000,
+        input_tokens=100,
+        output_tokens=100,
+        ts=TS_1,
+        used_grammar=False,
+        used_variables=False,
+    )
+    INVOKE_2 = InvocationMeasurementsIn(
+        task_id=TASK_1,
+        generate_ms=2000,
+        input_tokens=200,
+        output_tokens=200,
+        ts=TS_2,
+        used_grammar=True,
+        used_variables=False,
+    )
+    INVOKE_3 = InvocationMeasurementsIn(
+        task_id=TASK_1,
+        generate_ms=3000,
+        input_tokens=300,
+        output_tokens=300,
+        ts=TS_3,
+        used_grammar=False,
+        used_variables=True,
+    )
+    [ID_1, ID_2, ID_3] = metrics.insert_invocations([INVOKE_1, INVOKE_2, INVOKE_3])
+
+    INVOKE_1_OUT = InvocationMeasurementsOut(
+        invocation_id=ID_1, **INVOKE_1.model_dump()
+    )
+    INVOKE_2_OUT = InvocationMeasurementsOut(
+        invocation_id=ID_2, **INVOKE_2.model_dump()
+    )
+    INVOKE_3_OUT = InvocationMeasurementsOut(
+        invocation_id=ID_3, **INVOKE_3.model_dump()
+    )
+
+    # Ensure that we can retrieve all the tasks, properly ordered by timestamps
+    # Also verifies that all timestamps are properly formatted.
+    assert metrics.search_invocations(
+        task_id=TASK_1, page_size=10
+    ) == SearchInvocationsResponsePage(
+        page=[
+            INVOKE_1_OUT,
+            INVOKE_2_OUT,
+            INVOKE_3_OUT,
+        ],
+        page_token=None,
+    )
+    assert metrics.search_invocations(
+        task_id=TASK_1, min_input_tokens=200, page_size=10
+    ) == SearchInvocationsResponsePage(
+        page=[
+            INVOKE_2_OUT,
+            INVOKE_3_OUT,
+        ],
+        page_token=None,
+    )
+    assert metrics.search_invocations(
+        task_id=TASK_1, max_input_tokens=200, page_size=10
+    ) == SearchInvocationsResponsePage(
+        page=[
+            INVOKE_1_OUT,
+            INVOKE_2_OUT,
+        ],
+        page_token=None,
+    )
+    assert metrics.search_invocations(
+        task_id=TASK_1, min_input_tokens=200, max_input_tokens=200, page_size=10
+    ) == SearchInvocationsResponsePage(page=[INVOKE_2_OUT], page_token=None)
+
+    #
+    # Pagination
+    #
+    assert metrics.search_invocations(
+        task_id=TASK_1, page_token=str(ID_2), page_size=2
+    ) == SearchInvocationsResponsePage(
+        page=[INVOKE_2_OUT, INVOKE_3_OUT], page_token=None
+    )
+    assert metrics.search_invocations(
+        task_id=TASK_1, page_token=str(ID_2), page_size=1
+    ) == SearchInvocationsResponsePage(page=[INVOKE_2_OUT], page_token=str(ID_3))
+
+    #
+    # Summarize
+    #
+    assert metrics.summarize_invocations(task_id=TASK_1) == InvocationsSummary(
+        total=3,
+        generate_ms=PercentileMetrics(min=1000, max=3000, p50=2000, p95=2000, p99=2000),
+    )
+
+    assert metrics.summarize_invocations(
+        task_id=TASK_1, min_input_tokens=200
+    ) == InvocationsSummary(
+        total=2,
+        generate_ms=PercentileMetrics(min=2000, max=3000, p50=2000, p95=2000, p99=2000),
+    )
+
+    assert metrics.summarize_invocations(
+        task_id=TASK_1, max_input_tokens=200
+    ) == InvocationsSummary(
+        total=2,
+        generate_ms=PercentileMetrics(min=1000, max=2000, p50=1000, p95=1000, p99=1000),
     )

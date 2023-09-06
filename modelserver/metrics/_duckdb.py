@@ -27,8 +27,6 @@ class DuckDBMetricStore(MetricStore):
         return "duckdb"
 
     def _initialize(self) -> None:
-        # how do i make sure this stays valid for the whole session?
-        # self.db.execute('SET TimeZone="UTC"')
         cursor = self.db.cursor()
         try:
             cursor.begin()

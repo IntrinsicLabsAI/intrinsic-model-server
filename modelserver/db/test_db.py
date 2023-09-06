@@ -238,9 +238,11 @@ def test_metrics_db(tmp_path: pathlib.Path) -> None:
     from datetime import datetime
 
     from modelserver.metrics._core import (
-        InvocationMeasurements,
+        InvocationMeasurementsIn,
+        InvocationMeasurementsOut,
         InvocationsSummary,
         PercentileMetrics,
+        SearchInvocationsResponsePage,
     )
     from modelserver.metrics._duckdb import DuckDBMetricStore
 
@@ -259,7 +261,7 @@ def test_metrics_db(tmp_path: pathlib.Path) -> None:
     #
     # Initialize MetricStore
     #
-    INVOKE_1 = InvocationMeasurements(
+    INVOKE_1 = InvocationMeasurementsIn(
         task_id=TASK_1,
         generate_ms=1000,
         input_tokens=100,
@@ -268,7 +270,7 @@ def test_metrics_db(tmp_path: pathlib.Path) -> None:
         used_grammar=False,
         used_variables=False,
     )
-    INVOKE_2 = InvocationMeasurements(
+    INVOKE_2 = InvocationMeasurementsIn(
         task_id=TASK_1,
         generate_ms=2000,
         input_tokens=200,
@@ -277,7 +279,7 @@ def test_metrics_db(tmp_path: pathlib.Path) -> None:
         used_grammar=True,
         used_variables=False,
     )
-    INVOKE_3 = InvocationMeasurements(
+    INVOKE_3 = InvocationMeasurementsIn(
         task_id=TASK_1,
         generate_ms=3000,
         input_tokens=300,
@@ -286,22 +288,63 @@ def test_metrics_db(tmp_path: pathlib.Path) -> None:
         used_grammar=False,
         used_variables=True,
     )
-    metrics.insert_invocations([INVOKE_1, INVOKE_2, INVOKE_3])
+    [ID_1, ID_2, ID_3] = metrics.insert_invocations([INVOKE_1, INVOKE_2, INVOKE_3])
+
+    INVOKE_1_OUT = InvocationMeasurementsOut(
+        invocation_id=ID_1, **INVOKE_1.model_dump()
+    )
+    INVOKE_2_OUT = InvocationMeasurementsOut(
+        invocation_id=ID_2, **INVOKE_2.model_dump()
+    )
+    INVOKE_3_OUT = InvocationMeasurementsOut(
+        invocation_id=ID_3, **INVOKE_3.model_dump()
+    )
 
     # Ensure that we can retrieve all the tasks, properly ordered by timestamps
     # Also verifies that all timestamps are properly formatted.
-    assert metrics.search_invocations(task_id=TASK_1) == [INVOKE_1, INVOKE_2, INVOKE_3]
-    assert metrics.search_invocations(task_id=TASK_1, min_input_tokens=200) == [
-        INVOKE_2,
-        INVOKE_3,
-    ]
-    assert metrics.search_invocations(task_id=TASK_1, max_input_tokens=200) == [
-        INVOKE_1,
-        INVOKE_2,
-    ]
     assert metrics.search_invocations(
-        task_id=TASK_1, min_input_tokens=200, max_input_tokens=200
-    ) == [INVOKE_2]
+        task_id=TASK_1, page_size=10
+    ) == SearchInvocationsResponsePage(
+        page=[
+            INVOKE_1_OUT,
+            INVOKE_2_OUT,
+            INVOKE_3_OUT,
+        ],
+        page_token=None,
+    )
+    assert metrics.search_invocations(
+        task_id=TASK_1, min_input_tokens=200, page_size=10
+    ) == SearchInvocationsResponsePage(
+        page=[
+            INVOKE_2_OUT,
+            INVOKE_3_OUT,
+        ],
+        page_token=None,
+    )
+    assert metrics.search_invocations(
+        task_id=TASK_1, max_input_tokens=200, page_size=10
+    ) == SearchInvocationsResponsePage(
+        page=[
+            INVOKE_1_OUT,
+            INVOKE_2_OUT,
+        ],
+        page_token=None,
+    )
+    assert metrics.search_invocations(
+        task_id=TASK_1, min_input_tokens=200, max_input_tokens=200, page_size=10
+    ) == SearchInvocationsResponsePage(page=[INVOKE_2_OUT], page_token=None)
+
+    #
+    # Pagination
+    #
+    assert metrics.search_invocations(
+        task_id=TASK_1, page_token=ID_2, page_size=2
+    ) == SearchInvocationsResponsePage(
+        page=[INVOKE_2_OUT, INVOKE_3_OUT], page_token=None
+    )
+    assert metrics.search_invocations(
+        task_id=TASK_1, page_token=ID_2, page_size=1
+    ) == SearchInvocationsResponsePage(page=[INVOKE_2_OUT], page_token=str(ID_3))
 
     #
     # Summarize

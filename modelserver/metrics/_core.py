@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import UUID4, BaseModel
+from pydantic import UUID1, UUID4, BaseModel
 
 
 class PercentileMetrics(BaseModel):
@@ -17,9 +17,9 @@ class PercentileMetrics(BaseModel):
     p99: float
 
 
-class InvocationMeasurements(BaseModel):
+class InvocationMeasurementsIn(BaseModel):
     """
-    Measurements (timings, counts, etc.) emitted from a single Task Invocation.
+    Recording of invocation measurements from other components that use the MetricStore.
     """
 
     task_id: UUID4
@@ -29,6 +29,34 @@ class InvocationMeasurements(BaseModel):
     generate_ms: float
     used_grammar: bool
     used_variables: bool
+
+
+class InvocationMeasurementsOut(BaseModel):
+    """
+    Measurements (timings, counts, etc.) emitted from a single Task Invocation.
+    """
+
+    invocation_id: UUID1
+    task_id: UUID4
+    ts: datetime
+    input_tokens: int
+    output_tokens: int
+    generate_ms: float
+    used_grammar: bool
+    used_variables: bool
+
+
+class SearchInvocationsResponsePage(BaseModel):
+    """
+    A page of results from the search_invocations query.
+
+    `page` contains the results as a page of `InvocationMeasurements` objects, and
+    the page_token is used for paginating through the query result. A page_token
+    of null indicates that there are no more pages.
+    """
+
+    page: list[InvocationMeasurementsOut]
+    page_token: str | None
 
 
 class InvocationsSummary(BaseModel):
@@ -53,7 +81,9 @@ class MetricStore(ABC):
         """
 
     @abstractmethod
-    def insert_invocations(self, invocations: list[InvocationMeasurements]) -> None:
+    def insert_invocations(
+        self, invocations: list[InvocationMeasurementsIn]
+    ) -> list[UUID]:
         """
         Insert a set of new invocations into the store.
 
@@ -71,7 +101,9 @@ class MetricStore(ABC):
         max_input_tokens: int | None = None,
         min_output_tokens: int | None = None,
         max_output_tokens: int | None = None,
-    ) -> list[InvocationMeasurements]:
+        page_size: int,
+        page_token: str | None = None,
+    ) -> SearchInvocationsResponsePage:
         """
         Retrieve discrete measurements from the set of Task Invocations matching the provided filters
         """
@@ -80,7 +112,7 @@ class MetricStore(ABC):
     def summarize_invocations(
         self,
         *,
-        task_id: str,
+        task_id: UUID,
         min_input_tokens: int | None = None,
         max_input_tokens: int | None = None,
         min_output_tokens: int | None = None,

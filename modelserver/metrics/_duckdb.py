@@ -1,14 +1,16 @@
 from pathlib import Path
 from typing import final
-from uuid import UUID
+from uuid import UUID, uuid1
 
 import duckdb
 
 from modelserver.metrics._core import (
-    InvocationMeasurements,
+    InvocationMeasurementsIn,
+    InvocationMeasurementsOut,
     InvocationsSummary,
     MetricStore,
     PercentileMetrics,
+    SearchInvocationsResponsePage,
 )
 
 
@@ -33,6 +35,7 @@ class DuckDBMetricStore(MetricStore):
             cursor.execute(
                 """
                 create table if not exists invocations_v0 (
+                    invocation_id UUID,
                     task_id UUID,
                     ts TIMESTAMPTZ,
                     input_tokens INTEGER,
@@ -48,13 +51,19 @@ class DuckDBMetricStore(MetricStore):
             cursor.rollback()
             raise e
 
-    def insert_invocations(self, invocations: list[InvocationMeasurements]) -> None:
+    def insert_invocations(
+        self, invocations: list[InvocationMeasurementsIn]
+    ) -> list[UUID]:
         cursor = self.db.cursor()
         cursor.begin()
+        generated_ids = []
         for invocation in invocations:
+            invocation_id = uuid1(node=0)
+            generated_ids.append(invocation_id)
             cursor.execute(
-                "insert into invocations_v0 values (?, ? at time zone 'utc', ?, ?, ?, ?, ?)",
+                "insert into invocations_v0 values (?, ?, ? at time zone 'utc', ?, ?, ?, ?, ?)",
                 [
+                    invocation_id,
                     invocation.task_id,
                     invocation.ts,
                     invocation.input_tokens,
@@ -65,6 +74,7 @@ class DuckDBMetricStore(MetricStore):
                 ],
             )
         cursor.commit()
+        return generated_ids
 
     def search_invocations(
         self,
@@ -74,7 +84,9 @@ class DuckDBMetricStore(MetricStore):
         max_input_tokens: int | None = None,
         min_output_tokens: int | None = None,
         max_output_tokens: int | None = None,
-    ) -> list[InvocationMeasurements]:
+        page_size: int,
+        page_token: str | None = None,
+    ) -> SearchInvocationsResponsePage:
         """
         Retrieve discrete measurements from the set of Task Invocations matching the provided filters
         """
@@ -85,18 +97,30 @@ class DuckDBMetricStore(MetricStore):
             max_input_tokens=max_input_tokens,
             min_output_tokens=min_output_tokens,
             max_output_tokens=max_output_tokens,
+            page_token=page_token,
         )
-        results: list[InvocationMeasurements] = []
-        for row in self.db.execute(
+        results: list[InvocationMeasurementsOut] = []
+        rows = self.db.execute(
             f"""
             select
-                task_id, ts at time zone 'utc', generate_ms, input_tokens, output_tokens, used_grammar, used_variables
+                invocation_id, task_id, ts at time zone 'utc', generate_ms, input_tokens, output_tokens, used_grammar, used_variables
             from invocations_v0
             {suffix}
-            ORDER BY task_id, ts
+            ORDER BY task_id, ts, invocation_id
+            LIMIT {page_size + 1}
             """
-        ).fetchall():
+        ).fetchall()
+
+        has_next_page = len(rows) == page_size + 1
+        if has_next_page:
+            next_page_token = str(rows[-1][0])  # invocation ID
+            rows = rows[:-1]
+        else:
+            next_page_token = None
+
+        for row in rows:
             (
+                invocation_id,
                 db_task_id,
                 ts,
                 generate_ms,
@@ -107,7 +131,8 @@ class DuckDBMetricStore(MetricStore):
             ) = row
 
             results.append(
-                InvocationMeasurements(
+                InvocationMeasurementsOut(
+                    invocation_id=invocation_id,
                     task_id=db_task_id,
                     ts=ts,
                     generate_ms=generate_ms,
@@ -118,7 +143,7 @@ class DuckDBMetricStore(MetricStore):
                 )
             )
 
-        return results
+        return SearchInvocationsResponsePage(page=results, page_token=next_page_token)
 
     def summarize_invocations(
         self,
@@ -185,6 +210,7 @@ class DuckDBMetricStore(MetricStore):
         max_input_tokens: int | None = None,
         min_output_tokens: int | None = None,
         max_output_tokens: int | None = None,
+        page_token: str | None = None,
     ) -> str:
         conds = []
         if task_id is not None:
@@ -197,6 +223,8 @@ class DuckDBMetricStore(MetricStore):
             conds.append(f"output_tokens >= {min_output_tokens}")
         if max_output_tokens is not None:
             conds.append(f"output_tokens <= {max_output_tokens}")
+        if page_token is not None:
+            conds.append(f"invocation_id >= '{page_token}'")
 
         if len(conds) == 0:
             suffix = ""

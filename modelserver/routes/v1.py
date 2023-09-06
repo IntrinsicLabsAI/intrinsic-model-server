@@ -11,6 +11,7 @@ from fastapi import (
     Body,
     Depends,
     HTTPException,
+    Query,
     Request,
     Response,
     WebSocket,
@@ -21,7 +22,11 @@ from pydantic import UUID4
 from pydantic_core import ValidationError
 
 from modelserver import model_worker, task_worker
-from modelserver.metrics._core import InvocationMeasurements
+from modelserver.metrics._core import (
+    InvocationMeasurementsIn,
+    InvocationsSummary,
+    SearchInvocationsResponsePage,
+)
 from modelserver.types.locator import DiskLocator, HFLocator, Locator
 from modelserver.types.workers import RenderedTaskInvocation
 
@@ -535,7 +540,7 @@ async def invoke_task_sync(
     # Update metrics before returning
     component.metrics.insert_invocations(
         [
-            InvocationMeasurements(
+            InvocationMeasurementsIn(
                 task_id=task_info.task_id,
                 ts=datetime.utcnow(),
                 input_tokens=len(rendered_prompt),
@@ -617,3 +622,32 @@ async def invoke_task_async(
         await websocket.close(1000)
     except WebSocketDisconnect:
         logger.info("WebSocket disconnected from streaming session")
+
+
+#
+# Metrics
+#
+@router.post("/tasks/{task_name}/metrics")
+async def query_task_invocations(
+    task_name: str,
+    page_size: Annotated[int, Query(default=100)],
+    page_token: Annotated[str | None, Query(default=None)],
+    component: Annotated[AppComponent, Depends(AppComponent)],
+) -> SearchInvocationsResponsePage:
+    """
+    Retrieve all of the task invocations, filtered to the most recent set based on the
+    """
+    # Decode to a date filter
+    task_id = component.db.get_task_by_name(task_name).task_id
+    return component.metrics.search_invocations(
+        task_id=task_id, page_size=page_size, page_token=page_token
+    )
+
+
+@router.post("/tasks/{task_name}/metrics")
+async def summarize_task_invocations(
+    task_name: str,
+    component: Annotated[AppComponent, Depends(AppComponent)],
+) -> InvocationsSummary:
+    task_id = component.db.get_task_by_name(task_name).task_id
+    return component.metrics.summarize_invocations(task_id=task_id)

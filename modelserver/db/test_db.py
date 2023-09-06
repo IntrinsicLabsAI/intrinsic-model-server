@@ -255,8 +255,7 @@ def test_metrics_db(tmp_path: pathlib.Path) -> None:
 
     TASK_1 = uuid.uuid4()
 
-    # metrics = DuckDBMetricStore(tmp_path)
-    metrics = DuckDBMetricStore(pathlib.Path("/Users/aduffy/Downloads"))
+    metrics = DuckDBMetricStore(tmp_path)
 
     #
     # Initialize MetricStore

@@ -14,6 +14,8 @@ import { Icon } from "@blueprintjs/core";
 import { useNavigate } from "react-router";
 import Button from "../components/core/Button";
 
+import { Button as IButton, Section } from "intrinsic-ui";
+
 export default function Home() {
     // All models
     const { data, isLoading } = useGetModelsQuery();
@@ -56,23 +58,9 @@ export default function Home() {
                 <TwoColumnLayout type="left">
                     <Column>
                         {(data?.models.length ?? 0) > 0 ? (
-                            <Widget title="Registered Models">
+                            <Section title="Registered Models">
                                 <div className="flex flex-col h-full">
-                                    <div className="flex flex-row items-center w-full">
-                                        <p className=" text-lg font-base leading-tight text-gray-200">
-                                            The models listed below are currently active and
-                                            available for use with Intrinsic Server. Different
-                                            versions of each model can be used by indicating the
-                                            version when invoking the model. You can register new
-                                            models using this App or via API.
-                                        </p>
-                                    </div>
-                                    <div className="flex flex-row items-center w-full mt-4">
-                                        <h3 className=" text-xl font-semibold">
-                                            Completion Models
-                                        </h3>
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-4 mt-4 mb-4">
+                                    <div className="grid grid-cols-2 gap-4">
                                         {!isLoading && data
                                             ? data.models.map((model) => (
                                                   <div key={model.name} className=" w-full ">
@@ -82,7 +70,7 @@ export default function Home() {
                                             : null}
                                     </div>
                                 </div>
-                            </Widget>
+                            </Section>
                         ) : (
                             <Card>
                                 <h2 className=" text-xl font-semibold pb-2 ">
@@ -140,6 +128,7 @@ export default function Home() {
                                     : null}
                             </div>
                         </Widget>
+                        <IButton />
                     </Column>
 
                     <Column>

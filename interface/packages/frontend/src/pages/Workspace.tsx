@@ -48,11 +48,11 @@ export default function Workspace() {
     };
 
     return (
-        <div className="bg-dark-300 ">
+        <div className=" bg-base-100 ">
             <header className=" sticky top-0 z-50">
-                <div className="flex flex-row h-16 p-4 items-center bg-dark-100">
+                <div className="flex flex-row h-16 p-4 items-center bg-base-200">
                     <Link to="/">
-                        <p className="text-lg font-semibold">Intrinsic Server</p>
+                        <p className=" text-base-content text-lg font-semibold">Intrinsic Server</p>
                     </Link>
                     <div className="ml-auto">
                         <Button
@@ -73,20 +73,18 @@ export default function Workspace() {
                         ]}
                     />
                     <div className="pl-3">
-                        <div className="flex flex-col items-center outline outline-gray-400 rounded px-2 py-1">
+                        <div className="flex flex-col items-center outline outline-base-content rounded px-2 py-1">
                             {onlineState === "online" && (
                                 <div className="flex flex-row items-center gap-2">
-                                    <div className="w-3 h-3 bg-primary-600 rounded-full" />
-                                    <p className=" text-sm font-semibold text-primary-400">
-                                        Online
-                                    </p>
+                                    <div className="w-3 h-3 bg-success rounded-full" />
+                                    <p className=" text-sm font-semibold text-success">Online</p>
                                 </div>
                             )}
 
                             {onlineState !== "online" && (
                                 <div className="flex flex-row items-center gap-2">
-                                    <div className="w-3 h-3 bg-red-500 rounded-full" />
-                                    <p className=" text-sm font-semibold text-red-600">Offline</p>
+                                    <div className="w-3 h-3 bg-error rounded-full" />
+                                    <p className=" text-sm font-semibold text-error">Offline</p>
                                 </div>
                             )}
                         </div>

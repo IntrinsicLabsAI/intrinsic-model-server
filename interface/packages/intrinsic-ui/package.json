@@ -10,10 +10,13 @@
   "license": "MIT",
   "devDependencies": {
     "autoprefixer": "^10.4.15",
+    "daisyui": "^3.7.3",
     "postcss": "^8.4.29",
     "tailwindcss": "^3.3.3"
   },
   "dependencies": {
+    "@blueprintjs/core": "^5.3.0",
+    "@blueprintjs/icons": "^5.1.6",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
     "typescript": "^5.2.2"

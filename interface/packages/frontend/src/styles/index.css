@@ -2,24 +2,3 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-@layer base {
-    h1 {
-        @apply text-gray-400;
-    }
-    h2 {
-        @apply text-gray-400;
-    }
-    h3 {
-        @apply text-gray-400;
-    }
-    h4 {
-        @apply text-gray-400;
-    }
-    h5 {
-        @apply text-gray-400;
-    }
-    p {
-        @apply text-gray-400;
-    }
-}

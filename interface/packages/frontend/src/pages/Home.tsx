@@ -6,22 +6,17 @@ import ModelCardView from "../components/ModelCardView";
 import Page from "../components/layout/Page";
 import OneColumnLayout from "../components/layout/OneColumnLayout";
 import TwoColumnLayout from "../components/layout/TwoColumnLayout";
-import Widget from "../components/core/Widget";
 import Column from "../components/layout/Column";
 import { featureUpdates } from "../data/featureUpdates";
 import Card from "../components/core/Card";
 import { Icon } from "@blueprintjs/core";
-import { useNavigate } from "react-router";
-import Button from "../components/core/Button";
 
-import { Button as IButton, Section } from "intrinsic-ui";
+import { Section, Button } from "intrinsic-ui";
 
 export default function Home() {
     // All models
     const { data, isLoading } = useGetModelsQuery();
     const { data: taskData, isLoading: taskIsLoading } = useGetTasksQuery();
-
-    const navigate = useNavigate();
 
     return (
         <>
@@ -57,58 +52,20 @@ export default function Home() {
 
                 <TwoColumnLayout type="left">
                     <Column>
-                        {(data?.models.length ?? 0) > 0 ? (
-                            <Section title="Registered Models">
-                                <div className="flex flex-col h-full">
-                                    <div className="grid grid-cols-2 gap-4">
-                                        {!isLoading && data
-                                            ? data.models.map((model) => (
-                                                  <div key={model.name} className=" w-full ">
-                                                      <ModelCardView modelName={model.name} />
-                                                  </div>
-                                              ))
-                                            : null}
-                                    </div>
+                        <Section title="Registered Models">
+                            <div className="flex flex-col h-full">
+                                <div className="grid grid-cols-2 gap-4">
+                                    {!isLoading && data
+                                        ? data.models.map((model) => (
+                                              <div key={model.name} className=" w-full ">
+                                                  <ModelCardView modelName={model.name} />
+                                              </div>
+                                          ))
+                                        : null}
                                 </div>
-                            </Section>
-                        ) : (
-                            <Card>
-                                <h2 className=" text-xl font-semibold pb-2 ">
-                                    Getting Started with Intrinsic Server
-                                </h2>
-                                <p className=" leading-snug">
-                                    Import a model to start using Intrinsic Server. You can import
-                                    from a{" "}
-                                    <a
-                                        href="https://huggingface.co/"
-                                        className="text-cyan-400/70 font-semibold hover:underline hover:underline-offset-4"
-                                    >
-                                        HuggingFace
-                                    </a>{" "}
-                                    repository or upload a model from disk. Questions?{" "}
-                                    <a
-                                        href="https://intrinsiclabsai.github.io/intrinsic-model-server"
-                                        className="text-cyan-400/70 font-semibold hover:underline hover:underline-offset-4"
-                                    >
-                                        Check out the documentation
-                                    </a>
-                                    .
-                                </p>
-                                <div className="mt-4 w-fit mx-auto">
-                                    <Button
-                                        color="primary"
-                                        size="large"
-                                        style="bold"
-                                        buttonIcon="cloud-upload"
-                                        buttonText="Import a model"
-                                        onAction={() => {
-                                            navigate("/new-model");
-                                        }}
-                                    />
-                                </div>
-                            </Card>
-                        )}
-                        <Widget title="Tasks">
+                            </div>
+                        </Section>
+                        <Section title="Tasks">
                             <div className="grid grid-cols-2 gap-4 my-2">
                                 {!taskIsLoading && taskData
                                     ? taskData.map((task) => (
@@ -127,12 +84,12 @@ export default function Home() {
                                       ))
                                     : null}
                             </div>
-                        </Widget>
-                        <IButton />
+                        </Section>
+                        <Button icon="plus" text="Hello" style="bold" color="accent" outline />
                     </Column>
 
                     <Column>
-                        <Widget title="Feature Updates">
+                        <Section title="Feature Updates">
                             <div>
                                 {featureUpdates
                                     .sort((a, b) => b.id - a.id)
@@ -161,7 +118,7 @@ export default function Home() {
                                         </div>
                                     ))}
                             </div>
-                        </Widget>
+                        </Section>
                     </Column>
                 </TwoColumnLayout>
             </Page>

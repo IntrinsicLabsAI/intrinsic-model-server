@@ -2,11 +2,11 @@ import { Outlet, Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import DropdownMenu from "../components/core/DropdownMenu";
-import Button from "../components/core/Button";
 import { Status, StatusChecker } from "../api/services/statusService";
 import { baseURL } from "../utils/prod";
 import { useCreateTaskMutation } from "../api/services/v1";
 import { DateTime } from "luxon";
+import { Button } from "intrinsic-ui";
 
 // import { Test } from "intrinsic-ui";
 
@@ -57,7 +57,7 @@ export default function Workspace() {
                     <div className="ml-auto">
                         <Button
                             outline={false}
-                            buttonIcon="manual"
+                            icon="manual"
                             size="large"
                             onAction={() => window.open(`${baseURL()}/docs`, "_blank")}
                         />

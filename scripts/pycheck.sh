@@ -10,6 +10,7 @@ function check() {
   ./venv/bin/black modelserver --check --diff
   ./venv/bin/mypy --strict modelserver --ignore-missing-imports
   ./venv/bin/pytest -v
+  ./venv/bin/ruff check modelserver
 }
 
 function fix() {

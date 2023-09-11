@@ -2,11 +2,10 @@ import logging
 import os
 from typing import Annotated
 
-import fsspec
-from fastapi import APIRouter, Query, Response
+from fastapi import APIRouter, Query
 from fastapi.responses import RedirectResponse
 from huggingface_hub import HfFileSystem
-from huggingface_hub.constants import HUGGINGFACE_CO_URL_HOME, default_home
+from huggingface_hub.constants import HUGGINGFACE_CO_URL_HOME
 
 from modelserver.types.api import HFFile, ListHFFilesResponse
 

@@ -1,4 +1,4 @@
-from typing import Annotated, Any, Literal, Union
+from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, Field, RootModel
 

@@ -1,6 +1,4 @@
 import logging
-import os
-import pathlib
 import threading
 import time
 from datetime import datetime

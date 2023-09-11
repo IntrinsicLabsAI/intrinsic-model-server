@@ -1,7 +1,7 @@
 import functools
 import pathlib
 import struct
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from io import SEEK_CUR, BufferedReader
 from typing import List, Tuple, Union
 

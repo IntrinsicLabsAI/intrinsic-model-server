@@ -2,7 +2,6 @@ from typing import Annotated, Any, Literal, TypeAlias
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, RootModel
-from pydantic_core import PydanticUndefined
 
 from modelserver.types.locator import DiskLocator, HFLocator
 

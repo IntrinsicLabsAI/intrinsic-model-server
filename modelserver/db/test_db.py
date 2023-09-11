@@ -1,9 +1,8 @@
 import pathlib
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Generator
 
-import numpy
 import pytest
 import sqlalchemy.exc
 from fastapi import HTTPException, status

@@ -1,10 +1,7 @@
-from enum import member, nonmember
-from typing import Annotated, Any, Literal, TypeAlias
-
 import pytest
-from pydantic import Field, ValidationError, constr
+from pydantic import ValidationError
 
-from modelserver.types.api import ModelVersion, SemVer
+from modelserver.types.api import SemVer
 from modelserver.types.locator import DiskLocator, HFLocator
 from modelserver.types.tasks import DownloadDiskModelTask, DownloadHFModelTask, Task
 

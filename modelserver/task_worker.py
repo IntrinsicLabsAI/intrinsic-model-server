@@ -7,7 +7,6 @@ import typing
 from concurrent.futures import ProcessPoolExecutor
 from typing import AsyncGenerator
 
-import llama_cpp
 from llama_cpp import CompletionChunk, Llama
 from llama_cpp.llama_grammar import LlamaGrammar
 

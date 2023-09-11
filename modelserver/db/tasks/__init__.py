@@ -1,8 +1,5 @@
 import logging
 import sqlite3
-
-sqlite3.threadsafety = 3
-
 import uuid
 from abc import ABC, abstractmethod
 from typing import Mapping, final

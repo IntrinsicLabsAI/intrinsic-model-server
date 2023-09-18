@@ -28,7 +28,7 @@ platformdirs==3.8.0
 pluggy==1.2.0
 pycodestyle==2.10.0
 pydantic==2.0.2
-pydantic_core==2.1.2
+pydantic_core==2.8.0
 pyflakes==3.0.1
 Pygments==2.15.1
 pytest==7.4.0

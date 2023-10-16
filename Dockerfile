@@ -26,7 +26,9 @@ RUN mkdir /app
 RUN mkdir /app/frontend
 
 WORKDIR /app
-COPY requirements.txt .
+COPY pyproject.toml .
+COPY poetry.toml .
+COPY poetry.lock .
 COPY modelserver/ ./modelserver
 COPY --from=build-frontend /app/dist/ ./frontend/dist
 

@@ -629,9 +629,10 @@ async def invoke_task_async(
 @router.post("/tasks/{task_name}/metrics")
 async def query_task_invocations(
     task_name: str,
-    page_size: Annotated[int, Query(default=100)],
-    page_token: Annotated[str | None, Query(default=None)],
     component: Annotated[AppComponent, Depends(AppComponent)],
+    *,
+    page_size: Annotated[int, Query()] = 100,
+    page_token: Annotated[str | None, Query()] = None,
 ) -> SearchInvocationsResponsePage:
     """
     Retrieve all of the task invocations, filtered to the most recent set based on the

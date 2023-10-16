@@ -26,6 +26,7 @@ RUN mkdir /app
 RUN mkdir /app/frontend
 
 WORKDIR /app
+COPY README.md .
 COPY pyproject.toml .
 COPY poetry.toml .
 COPY poetry.lock .

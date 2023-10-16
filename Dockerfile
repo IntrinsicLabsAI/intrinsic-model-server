@@ -30,8 +30,8 @@ COPY requirements.txt .
 COPY modelserver/ ./modelserver
 COPY --from=build-frontend /app/dist/ ./frontend/dist
 
-RUN python -m venv ./venv
-RUN ./venv/bin/pip install --no-cache-dir -r requirements.txt
+RUN pip install poetry
+RUN poetry install --without=dev,remoteworker
 
 EXPOSE 8000
 CMD ["./venv/bin/uvicorn", "modelserver.app:app", "--host", "0.0.0.0", "--port", "8000"]

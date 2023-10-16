@@ -176,17 +176,18 @@ git clone git@github.com:IntrinsicLabsAI/intrinsic-model-server.git
 
 ### Project setup
 
-Create the virtual environment and rehydrate the dependencies from the requirements file:
+First, [Install Poetry](https://python-poetry.org/docs/#installation).
+
+Create the virtual environment and fetch the dependencies into a local virtuanenv:
 
 ```bash
-python -m venv ./venv
-./venv/bin/pip install -r requirements.txt
+poetry install
 ```
 
 You should now be able to startup the server
 
 ```bash
-$ ./venv/bin/uvicorn modelserver.app:app --host 0.0.0.0 --port 8000
+$ poetry run uvicorn modelserver.app:app --host 0.0.0.0 --port 8000
 INFO:     Started server process [38742]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.

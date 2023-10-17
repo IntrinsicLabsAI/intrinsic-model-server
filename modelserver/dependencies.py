@@ -7,6 +7,7 @@ from fastapi import Depends
 from sqlalchemy import create_engine
 
 from modelserver.db import DataManager, PersistentDataManager
+from modelserver.db.remoteworker import InMemoryRemoteWorkerStore, RemoteWorkerStore
 from modelserver.db.tasks import PersistentTaskStore, TaskStore
 from modelserver.metrics._core import MetricStore
 from modelserver.metrics._duckdb import DuckDBMetricStore
@@ -37,6 +38,10 @@ def get_metric_store() -> MetricStore:
     return metric_store
 
 
+def get_remoteworker_store() -> RemoteWorkerStore:
+    return InMemoryRemoteWorkerStore()
+
+
 class AppComponent:
     """
     Main component that ties together all of the DI magic into a single injectable element.
@@ -47,7 +52,11 @@ class AppComponent:
         db: Annotated[DataManager, Depends(get_db)],
         taskdb: Annotated[TaskStore, Depends(get_task_db)],
         metric_store: Annotated[MetricStore, Depends(get_metric_store)],
+        remoteworker_store: Annotated[
+            RemoteWorkerStore, Depends(get_remoteworker_store)
+        ],
     ) -> None:
         self.db = db
         self.taskdb = taskdb
         self.metrics = metric_store
+        self.remoteworker_store = remoteworker_store

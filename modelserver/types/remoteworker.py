@@ -6,7 +6,7 @@ from datetime import datetime
 from enum import StrEnum
 from typing import Any, Literal
 
-from pydantic import BaseModel
+from pydantic import UUID4, BaseModel
 
 
 class JobType(StrEnum):
@@ -34,7 +34,6 @@ class RemoteWorkerDetailsOut(BaseModel):
 
     name: str
     supported_jobs: list[JobType]
-    host: str
     registered_at: datetime
     last_reported: datetime
 
@@ -59,6 +58,17 @@ class JobState(StrEnum):
     RUNNING = "RUNNING"
     COMPLETE = "COMPLETE"
     FAILED = "FAILED"
+
+
+def max_job_state(a: JobState, b: JobState) -> JobState:
+    """
+    Return the larger of two job states. Corresponds with how far the Job system has advanced.
+    """
+    ordering = list(JobState)
+    idx_a = ordering.index(a)
+    idx_b = ordering.index(b)
+
+    return a if idx_a >= b else b
 
 
 class JobHistoryItem(BaseModel):
@@ -90,6 +100,8 @@ class FineTuneJobIn(BaseModel):
     type: Literal["finetune/v1"] = "finetune/v1"
     pytorch_hf_model: str
     method: FineTuneMethod
+    # TODO(aduffy): Make this take a URL instead.
+    dataset_path: str
     hparams: dict[str, Any]
 
 
@@ -99,8 +111,11 @@ class FineTuneJobOut(BaseModel):
     """
 
     type: Literal["finetune/v1"] = "finetune/v1"
+    id: UUID4
     submitted_at: datetime
     pytorch_hf_model: str
+    dataset_path: str
     method: FineTuneMethod
     hparams: dict[str, Any]
-    history: JobHistory
+    state: JobState = JobState.QUEUED
+    assigned_worker: str | None = None

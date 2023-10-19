@@ -1,13 +1,14 @@
 import logging
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Header
 from pydantic import UUID4
 
 from modelserver.db.remoteworker import RemoteWorkerStore
 from modelserver.dependencies import get_remoteworker_store
 from modelserver.types.remoteworker import (
     FineTuneJobIn,
+    FineTuneJobOut,
     JobState,
     RemoteWorkerDetailsIn,
     RemoteWorkerDetailsOut,
@@ -61,12 +62,23 @@ async def submit_finetune_job(
 
 @router.get("/jobs")
 async def get_jobs(
-    remoteworker_store: Annotated[RemoteWorkerStore, Depends(get_remoteworker_store)],
-) -> dict[UUID4, JobState]:
+    remoteworker_store: Annotated[RemoteWorkerStore, Depends(get_remoteworker_store)]
+) -> list[FineTuneJobOut]:
     """
     Post a new job to the cluster
     """
-    return remoteworker_store.job_states()
+    return remoteworker_store.jobs()
+
+
+@router.get("/assigned/{worker_id}")
+async def get_assigned_jobs(
+    worker_id: str,
+    remoteworker_store: Annotated[RemoteWorkerStore, Depends(get_remoteworker_store)],
+) -> list[FineTuneJobOut]:
+    """
+    Get assigned jobs for specified worker ID
+    """
+    return remoteworker_store.get_assigned_jobs(worker_id)
 
 
 @router.get("/jobs/{job_id}")
@@ -78,12 +90,3 @@ async def get_job_status(
     Get the status of a particular job
     """
     return remoteworker_store.job_state(job_id)
-
-
-# @router.delete("/jobs/{job_id}")
-# async def cancel_job(job_id: str) -> None:
-#     """
-#     Cancel a previously submitted job
-#     """
-#     # Do nothing for now
-#     return

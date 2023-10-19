@@ -24,6 +24,7 @@ metrics_path = pathlib.Path(".")
 persistent_db = PersistentDataManager(engine)
 task_store = PersistentTaskStore()
 metric_store = DuckDBMetricStore(metrics_path)
+remoteworker_store = InMemoryRemoteWorkerStore()
 
 
 def get_db() -> DataManager:
@@ -39,7 +40,7 @@ def get_metric_store() -> MetricStore:
 
 
 def get_remoteworker_store() -> RemoteWorkerStore:
-    return InMemoryRemoteWorkerStore()
+    return remoteworker_store
 
 
 class AppComponent:

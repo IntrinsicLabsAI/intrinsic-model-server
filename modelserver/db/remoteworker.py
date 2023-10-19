@@ -50,7 +50,7 @@ class RemoteWorkerStore(ABC):
         """
 
     @abstractmethod
-    def jobs(self) -> dict[UUID4, JobState]:
+    def get_jobs(self) -> list[FineTuneJobOut]:
         """
         Return the current status of all jobs tracked by the RemoteWorker system.
         """
@@ -133,8 +133,8 @@ class InMemoryRemoteWorkerStore(RemoteWorkerStore):
             )
         return job.state
 
-    def jobs(self) -> dict[UUID4, JobState]:
-        return self.jobs.copy()
+    def get_jobs(self) -> list[FineTuneJobOut]:
+        return list(self.jobs.values())
 
     def get_assigned_jobs(self, worker_id: str) -> list[FineTuneJobOut]:
         """

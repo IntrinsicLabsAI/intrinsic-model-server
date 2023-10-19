@@ -1,7 +1,7 @@
 import logging
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Header
+from fastapi import APIRouter, Depends
 from pydantic import UUID4
 
 from modelserver.db.remoteworker import RemoteWorkerStore
@@ -67,7 +67,7 @@ async def get_jobs(
     """
     Post a new job to the cluster
     """
-    return remoteworker_store.jobs()
+    return remoteworker_store.get_jobs()
 
 
 @router.get("/assigned/{worker_id}")

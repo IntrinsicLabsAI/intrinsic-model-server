@@ -68,7 +68,7 @@ def max_job_state(a: JobState, b: JobState) -> JobState:
     idx_a = ordering.index(a)
     idx_b = ordering.index(b)
 
-    return a if idx_a >= b else b
+    return a if idx_a >= idx_b else b
 
 
 class JobHistoryItem(BaseModel):

@@ -4,7 +4,7 @@ from fastapi.middleware.gzip import GZipMiddleware
 
 from modelserver.dependencies import persistent_db, task_store
 from modelserver.middleware import StaticReactRouterFiles
-from modelserver.routes import admin, health, hfbrowse, v1, remoteworker
+from modelserver.routes import admin, health, hfbrowse, remoteworker, v1
 from modelserver.tasks import TaskWorker
 
 app = FastAPI(openapi_url="/openapi.yml")

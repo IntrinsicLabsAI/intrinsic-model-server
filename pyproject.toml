@@ -16,6 +16,7 @@ uvicorn = "^0.23.2"
 colorlog = "^6.7.0"
 sqlalchemy = "^2.0.22"
 websockets = "^11.0.3"
+python-dotenv = "^1.0.0"
 
 
 [tool.poetry.group.dev.dependencies]
@@ -30,6 +31,8 @@ pytest = "^7.4.2"
 [tool.poetry.group.remoteworker.dependencies]
 trl = "^0.7.2"
 transformers = "^4.34.0"
+httpx = "^0.25.0"
+peft = "^0.5.0"
 
 [build-system]
 requires = ["poetry-core"]

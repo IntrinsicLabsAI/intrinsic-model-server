@@ -156,7 +156,7 @@ async def run_loop() -> None:
             time.sleep(10.0)
 
 
-def entrypoint():
+def entrypoint() -> None:
     asyncio.run(run_loop())
 
 

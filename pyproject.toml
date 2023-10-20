@@ -5,6 +5,10 @@ description = ""
 authors = ["Andrew Duffy <andrew@intrinsiclabs.ai>"]
 readme = "README.md"
 
+[tool.poetry.scripts]
+modelserver = "modelserver.app:entrypoint"
+workerserver = "workerserver.worker:entrypoint"
+
 [tool.poetry.dependencies]
 python = "^3.11"
 pydantic = "^2.4.2"

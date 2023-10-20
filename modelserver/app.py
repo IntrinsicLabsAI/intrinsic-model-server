@@ -44,3 +44,9 @@ def on_startup() -> None:
 def on_shutdown() -> None:
     # TODO(aduffy): gracefully kill worker
     pass
+
+
+def entrypoint():
+    import uvicorn
+
+    uvicorn.run(app=app, port=8000, host="0.0.0.0")

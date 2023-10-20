@@ -156,5 +156,9 @@ async def run_loop() -> None:
             time.sleep(10.0)
 
 
-if __name__ == "__main__":
+def entrypoint():
     asyncio.run(run_loop())
+
+
+if __name__ == "__main__":
+    entrypoint()

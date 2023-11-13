@@ -12,7 +12,7 @@ workerserver = "workerserver.worker:entrypoint"
 [tool.poetry.dependencies]
 python = "^3.11"
 pydantic = "^2.4.2"
-fastapi = "^0.103.2"
+fastapi = "^0.104.1"
 llama-cpp-python = "^0.2.11"
 huggingface-hub = "0.17.3"
 duckdb = "^0.9.1"

@@ -18,7 +18,7 @@ huggingface-hub = "0.17.3"
 duckdb = "^0.9.1"
 uvicorn = "^0.23.2"
 colorlog = "^6.7.0"
-sqlalchemy = "^2.0.22"
+sqlalchemy = "^2.0.23"
 websockets = "^11.0.3"
 python-dotenv = "^1.0.0"
 

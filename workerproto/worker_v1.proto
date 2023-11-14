@@ -1,0 +1,76 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+
+
+enum JobType {
+    FINETUNE = 0;
+}
+
+message HeartbeatRequest {
+    string worker_id = 1;
+    repeated JobType supported_jobs = 2;
+}
+
+message HeartbeatReply {
+    repeated AssignedTask assigned_tasks = 1;
+}
+
+message FineTuneTask {
+    string uuid = 1;
+
+    string pytorch_hf_model = 3;
+
+    oneof training_data {
+        // In-memory serialized training data
+        InMemoryFile training_data_file = 4;
+
+        // File data path
+        FileDataPath file_data_path = 5;
+    }
+
+    // Need to know where the output is going to be uploaded.
+    // We can probably just upload the output to somewhere on disk if we want to.
+}
+
+message InMemoryFile {
+    string filename = 1;
+    bytes data = 2;
+}
+
+message FileDataPath {
+    string path = 1;
+}
+
+// Azure blob store DataPath
+// See https://learn.microsoft.com/en-us/azure/storage/blobs/storage-blobs-introduction
+// message AzureBlobStoreDataPath {
+//     string container = 1;
+//     string blob = 2;
+// }
+
+message AssignedTask {
+    oneof task {
+        FineTuneTask finetune = 1;
+    }
+}
+
+enum JobState {
+    QUEUED = 0;
+    SCHEDULED = 1;
+    RUNNING = 2;
+    COMPLETE = 3;
+    FAILED = 4;
+}
+
+message OutputFile {
+    // Stream the file. It can be several MB which means it should
+    // be streamed via chunks elsewhere.
+}
+
+// FileManagerService
+// Get access to a streaming URL from which to upload
+
+service WorkerManagerService {
+    rpc Heartbeat(HeartbeatRequest) returns (HeartbeatReply) {}
+}

@@ -67,6 +67,8 @@ class RemoteWorkerStore(ABC):
         Update the job state. Called by RemoteWorker to report updated status.
         """
 
+    # Figure out how to get access to data from the file items here instead,
+
 
 @final
 class InMemoryRemoteWorkerStore(RemoteWorkerStore):

@@ -5,6 +5,7 @@ Main worker process.
 import asyncio
 import logging
 import time
+import grpc
 import httpx
 from dataclasses import dataclass
 from concurrent.futures import ThreadPoolExecutor
@@ -18,6 +19,11 @@ from modelserver.types.remoteworker import (
     RemoteWorkerDetailsIn,
 )
 from workerserver.finetune import FineTuneExecutionPlan, FineTuneJob
+from workerproto.worker_v1_pb2_grpc import (
+    WorkerManagerService,
+    WorkerManagerServiceStub,
+)
+from workerproto.worker_v1_pb2 import HeartbeatRequest, HeartbeatReply
 
 logger = logging.getLogger(__name__)
 
@@ -61,13 +67,14 @@ class RemoteWorkerClient(object):
         return [FineTuneJobOut.model_validate(job) for job in jobs]
 
     def update_job_state(self, job_id: UUID4, job_state: JobState) -> None:
+        # Do not send updates to the server. This is mostly broken here instead.
         pass
 
 
 @dataclass
 class WorkerConfig:
     worker_id: str
-    modelserver_url: str
+    modelserver_grpc_url: str
     hf_token: str
 
     @staticmethod
@@ -77,11 +84,13 @@ class WorkerConfig:
         load_dotenv()
 
         worker_id = envvar_check_nonnull("WORKER_ID")
-        modelserver_url = envvar_check_nonnull("MODELSERVER_URL")
+        modelserver_grpc_url = envvar_check_nonnull("MODELSERVER_GRPC_URL")
         hf_token = envvar_check_nonnull("HF_TOKEN")
 
         return WorkerConfig(
-            worker_id=worker_id, modelserver_url=modelserver_url, hf_token=hf_token
+            worker_id=worker_id,
+            modelserver_grpc_url=modelserver_grpc_url,
+            hf_token=hf_token,
         )
 
 
@@ -94,13 +103,17 @@ def envvar_check_nonnull(envvar: str) -> str:
     return value
 
 
-def heartbeat_loop(client: RemoteWorkerClient) -> None:
+def heartbeat_loop(client: WorkerManagerServiceStub) -> None:
     import time
 
     while True:
         try:
             logger.debug(f"heartbeating to {client.base_url}")
-            client.heartbeat()
+            # Construct against the base URL here instead
+            result: HeartbeatReply = client.Heartbeat(
+                HeartbeatRequest(message="healthy")
+            )
+            result.assigned_tasks
         except Exception as e:
             if isinstance(e, httpx.ConnectError):
                 logger.warning(f"ConnectError: {client.base_url} not yet available")
@@ -123,10 +136,14 @@ async def run_loop() -> None:
     client = RemoteWorkerClient.build(
         worker_id=worker_config.worker_id, base_url=worker_config.modelserver_url
     )
+    channel = grpc.secure_channel(
+        worker_config.modelserver_grpc_url, grpc.access_token_call_credentials
+    )
+    grpc_client = WorkerManagerServiceStub(channel)
 
     # Fork off a background task to heartbeat the job updates.
-    threadpool = ThreadPoolExecutor(thread_name_prefix="heartbeater")
-    threadpool.submit(heartbeat_loop, client)
+    threadpool = ThreadPoolExecutor(thread_name_prefix="heartbeater", max_workers=1)
+    threadpool.submit(heartbeat_loop, grpc_client)
 
     # Get the list of assigned jobs for our worker.
     while True:

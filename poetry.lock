@@ -891,12 +891,12 @@ i18n = ["Babel (>=2.7)"]
 
 [[package]]
 name = "llama-cpp-python"
-version = "0.2.18"
+version = "0.2.11"
 description = "Python bindings for the llama.cpp library"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "llama_cpp_python-0.2.18.tar.gz", hash = "sha256:faf270a861f114cc2dd1acdfff2a394023c30a9d8af58b8c1d492b31078b8cf9"},
+    {file = "llama_cpp_python-0.2.11.tar.gz", hash = "sha256:aae4820bb24aca61800bac771fb735dcc22b08c1374300782ab47eb65743723a"},
 ]
 
 [package.dependencies]
@@ -2818,4 +2818,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "7036de907fd7d692eb62e6f212b39b7d20a72913586f5eb49b2d82ecab88648d"
+content-hash = "db9486a2fa31513f50a51343f09e9dd620b9f683bdd7a3e05bd92061214b636c"

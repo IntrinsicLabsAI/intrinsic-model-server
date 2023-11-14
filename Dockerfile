@@ -9,7 +9,7 @@ WORKDIR /app
 RUN npm install && npm run build
 
 
-FROM python:3.11.4-slim-bullseye
+FROM python:3.11.5-slim-bullseye
 LABEL authors="intrinsiclabsai"
 
 # For cleanliness
@@ -33,7 +33,7 @@ COPY poetry.lock .
 COPY modelserver/ ./modelserver
 COPY --from=build-frontend /app/dist/ ./frontend/dist
 
-RUN pip install "poetry==1.6.1"
+RUN pip install poetry
 RUN poetry install --without=dev,remoteworker
 
 EXPOSE 8000

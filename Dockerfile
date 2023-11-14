@@ -33,7 +33,7 @@ COPY poetry.lock .
 COPY modelserver/ ./modelserver
 COPY --from=build-frontend /app/dist/ ./frontend/dist
 
-RUN pip install poetry
+RUN pip install "poetry==1.6.1"
 RUN poetry install --without=dev,remoteworker
 
 EXPOSE 8000

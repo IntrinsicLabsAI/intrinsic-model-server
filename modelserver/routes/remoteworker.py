@@ -2,7 +2,7 @@ import logging
 import os
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, File, UploadFile
+from fastapi import APIRouter, Depends, UploadFile
 from grpc import ServicerContext
 from pydantic import UUID4
 

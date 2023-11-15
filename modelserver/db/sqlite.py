@@ -5,7 +5,7 @@ from uuid import UUID, uuid4
 
 from fastapi import HTTPException, status
 from pydantic import UUID4
-from sqlalchemy import Engine, and_, delete, event, select, update
+from sqlalchemy import Engine, and_, delete, desc, event, select, update
 from sqlalchemy.dialects.sqlite import Insert
 from sqlalchemy.engine.interfaces import DBAPIConnection
 from sqlalchemy.exc import IntegrityError, NoResultFound
@@ -794,7 +794,9 @@ class PersistentDataManager(DataManager):
                     loras_table.c.file_path,
                     loras_table.c.job_uuid,
                     loras_table.c.source_model,
-                ).select_from(loras_table)
+                )
+                .select_from(loras_table)
+                .order_by(desc(loras_table.c.created_at))
             )
 
             loras = []

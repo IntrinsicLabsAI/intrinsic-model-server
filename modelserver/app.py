@@ -84,7 +84,7 @@ def entrypoint() -> None:
             require_client_auth=True,
         ),
     )
-    add_WorkerManagerServiceServicer_to_server(remoteworker_grpc, srv)
+    add_WorkerManagerServiceServicer_to_server(remoteworker_grpc, srv)  # type: ignore[no-untyped-call]
     srv.start()
     print("grpc server started on port 8001")
 

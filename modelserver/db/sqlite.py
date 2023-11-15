@@ -17,6 +17,7 @@ from modelserver.types.api import (
     CreateTaskRequest,
     GrammarDefinition,
     ImportMetadata,
+    Lora,
     ModelRuntime,
     ModelType,
     ModelVersion,
@@ -32,6 +33,7 @@ from modelserver.types.api import (
 from ._core import DataManager
 from ._tables import (
     import_metadata_table,
+    loras_table,
     metadata_obj,
     model_params_table,
     model_table,
@@ -761,3 +763,46 @@ class PersistentDataManager(DataManager):
                 task_params=json.loads(input_schema),
                 output_grammar=output_grammar,
             )
+
+    def register_lora(self, *, lora: Lora) -> None:
+        """
+        Register a new LoRA fine-tune output with the system.
+        """
+        row = {
+            "id": str(uuid4()),
+            "name": lora.name,
+            "created_at": lora.created_at,
+            "file_path": lora.file_path,
+            "job_uuid": lora.job_uuid,
+        }
+        with self.engine.connect() as conn:
+            conn.execute(Insert(loras_table).values(**row).on_conflict_do_nothing())
+
+    def get_loras(self) -> list[Lora]:
+        """
+        Get the set of registered LoRA models available in the system.
+        """
+        with self.engine.connect() as conn:
+            rows = conn.execute(
+                select(
+                    loras_table.c.name,
+                    loras_table.c.created_at,
+                    loras_table.c.file_path,
+                    loras_table.c.job_uuid,
+                    loras_table.c.source_model,
+                ).select_from(loras_table)
+            )
+
+            loras = []
+            for row in rows:
+                name, created_at, file_path, job_uuid, source_model = row
+                loras.append(
+                    Lora(
+                        name=name,
+                        created_at=created_at,
+                        file_path=file_path,
+                        job_uuid=job_uuid,
+                        source_model=source_model,
+                    )
+                )
+            return loras

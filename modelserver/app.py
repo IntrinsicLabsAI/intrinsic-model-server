@@ -38,7 +38,9 @@ app.mount(
 
 worker = TaskWorker(task_store, persistent_db)
 
-remoteworker_grpc = remoteworker.GrpcWorkerService(remoteworker_store)
+remoteworker_grpc = remoteworker.GrpcWorkerService(
+    remoteworker_store, persistent_db, "output_files"
+)
 
 
 @app.on_event("startup")

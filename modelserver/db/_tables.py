@@ -1,5 +1,3 @@
-from typing import TypedDict
-
 from sqlalchemy import (
     Column,
     DateTime,
@@ -9,6 +7,7 @@ from sqlalchemy import (
     MetaData,
     String,
     Table,
+    Uuid,
     and_,
 )
 from sqlalchemy.dialects.sqlite import JSON
@@ -18,17 +17,6 @@ Table definitions via SQLAlchemy
 """
 
 metadata_obj = MetaData()
-
-
-class ModelRow(TypedDict):
-    id: str
-    model_type: str
-    runtime: str
-
-
-class ModelVersionRow(TypedDict):
-    model_id: str
-    version: str
 
 
 model_table = Table(
@@ -109,6 +97,17 @@ task_def_table = Table(
         ["backing_model_id", "backing_model_version"],
         ["model_version.model_id", "model_version.version"],
     ),
+)
+
+loras_table = Table(
+    "lora_v1",
+    metadata_obj,
+    Column("id", String, primary_key=True),
+    Column("name", String, unique=True),
+    Column("created_at", DateTime, nullable=False),
+    Column("file_path", String, nullable=False),
+    Column("job_uuid", Uuid, nullable=False),
+    Column("source_model", String, nullable=False),
 )
 
 

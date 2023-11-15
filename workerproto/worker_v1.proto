@@ -64,13 +64,37 @@ enum JobState {
 }
 
 message OutputFile {
-    // Stream the file. It can be several MB which means it should
-    // be streamed via chunks elsewhere.
 }
 
-// FileManagerService
-// Get access to a streaming URL from which to upload
+message WriteOutputChunkRequest {
+    string task_uuid = 1;
+    string filename = 2;
+    bytes chunk = 3;
+}
+message WriteOutputChunkReply {
+    uint32 bytes_written = 1;
+}
+
+message CompleteJobRequest {
+    string uuid = 1;
+    JobState completion_state = 2;
+    
+    optional string failed_reason = 3;
+}
+
+message CompleteJobReply {
+    repeated string output_files = 1;
+}
+
+
 
 service WorkerManagerService {
     rpc Heartbeat(HeartbeatRequest) returns (HeartbeatReply) {}
+
+    // Stream a chunk of data as an output file to the server.
+    // If the named chunk does not exist, it gets created on the fly.
+    rpc WriteOutputChunk(WriteOutputChunkRequest) returns (WriteOutputChunkReply) {}
+
+    // Complete a job, either via the output system or otherwise.
+    rpc CompleteJob(CompleteJobRequest) returns (CompleteJobReply) {}
 }

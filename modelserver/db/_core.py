@@ -5,6 +5,7 @@ from pydantic import UUID4
 from modelserver.types.api import (
     CreateTaskRequest,
     GrammarDefinition,
+    Lora,
     ModelVersionInternal,
     RegisteredModel,
     RegisterModelRequest,
@@ -183,4 +184,16 @@ class DataManager(ABC):
 
         :param task_name: Unique name of the task to delete. Optional, must be set if `task_id` is not.
         :param task_id: UUID for the task. Optional, must be set if `task_name` is not.
+        """
+
+    @abstractmethod
+    def register_lora(self, *, lora: Lora) -> None:
+        """
+        Register a new LoRA fine-tune output with the system.
+        """
+
+    @abstractmethod
+    def get_loras(self) -> list[Lora]:
+        """
+        Get the set of registered LoRA models available in the system.
         """

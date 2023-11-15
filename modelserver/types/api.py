@@ -356,3 +356,12 @@ class TaskInvocation(BaseModel):
     task_name: str
     elapsed_seconds: float
     result: str
+
+
+class Lora(BaseModel):
+    name: str
+    file_path: str
+    # Original hf-hub source the fine-tune is based on
+    source_model: str
+    created_at: datetime
+    job_uuid: UUID4

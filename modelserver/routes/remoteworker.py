@@ -80,13 +80,6 @@ class GrpcWorkerService(WorkerManagerServiceServicer):
         )
 
 
-# Construct a worker server where people can ask for jobs.
-# being able to retrieve jobs and generate clients in Python for easy service-to-service connections
-# is going to be important, even if we're not using the most basic version of the service
-# We need to embed a healthcheck for self-signed certs.
-# Maybe we can make an API endpoint in the admin UI for doing this?
-
-
 @router.get("/")
 async def get_workers(
     remoteworker_store: Annotated[RemoteWorkerStore, Depends(get_remoteworker_store)],

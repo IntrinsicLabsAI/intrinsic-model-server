@@ -3,4 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 
-export type SemVer = string;
+export type Body_upload_output_file_workers_jobs__job_id__upload_post = {
+    file: Blob;
+};
+

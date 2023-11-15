@@ -12,6 +12,7 @@ import {
     SetTaskBackingModelRequest,
     GrammarDefinition,
     ImportRequest,
+    LoraOut,
 } from "..";
 import { isDevServer } from "./util";
 
@@ -187,6 +188,10 @@ export const v1API = createApi({
             query: () => `tasks`,
             providesTags: ["tasks"],
         }),
+
+        getLoras: builder.query<LoraOut[], void>({
+            query: () => `loras`,
+        }),
     }),
 });
 
@@ -204,6 +209,7 @@ export const {
     useImportModelMutation,
     useImportModelVersionMutation,
     useGetTasksQuery,
+    useGetLorasQuery,
     useCreateTaskMutation,
     useUpdateTaskPromptMutation,
     useUpdateTaskInputsMutation,

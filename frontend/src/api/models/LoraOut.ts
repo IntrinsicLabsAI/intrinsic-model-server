@@ -3,7 +3,12 @@
 /* tslint:disable */
 /* eslint-disable */
 
-export type CreateTaskRequest = {
+export type LoraOut = {
+    id: string;
     name: string;
+    file_path: string;
+    created_at: string;
+    job_uuid: string;
+    source_model: string;
 };
 

@@ -796,7 +796,7 @@ class PersistentDataManager(DataManager):
                     loras_table.c.source_model,
                 )
                 .select_from(loras_table)
-                .order_by(desc(loras_table.c.created_at))
+                .order_by(loras_table.c.source_model, desc(loras_table.c.created_at))
             )
 
             loras = []

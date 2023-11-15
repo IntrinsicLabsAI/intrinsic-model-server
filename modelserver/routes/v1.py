@@ -40,6 +40,7 @@ from ..types.api import (
     GetSavedExperimentsResponse,
     GrammarDefinition,
     ImportRequest,
+    Lora,
     RegisteredModel,
     SavedExperimentIn,
     SavedExperimentOut,
@@ -651,3 +652,11 @@ async def summarize_task_invocations(
 ) -> InvocationsSummary:
     task_id = component.db.get_task_by_name(task_name).task_id
     return component.metrics.summarize_invocations(task_id=task_id)
+
+
+@router.get("/loras")
+async def get_loras(
+    component: Annotated[AppComponent, Depends(AppComponent)],
+) -> list[Lora]:
+    # get back a bunch of LoRAs
+    return component.db.get_loras()

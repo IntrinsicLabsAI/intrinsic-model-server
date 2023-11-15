@@ -102,12 +102,13 @@ class GrpcWorkerService(WorkerManagerServiceServicer):
     def WriteOutputChunk(
         self, request: WriteOutputChunkRequest, context: ServicerContext
     ) -> WriteOutputChunkReply:
+        logger.info("Archiving output chunk")
         output_dir = os.path.join(
             self.output_files_dir,
             request.task_uuid,
         )
         outpath = os.path.join(output_dir, request.filename)
-        os.makedirs(outpath, exist_ok=True)
+        os.makedirs(output_dir, exist_ok=True)
 
         self.job_outputs[request.task_uuid].add(request.filename)
 
@@ -136,6 +137,9 @@ class GrpcWorkerService(WorkerManagerServiceServicer):
         )
 
         output_files = [fname for fname in self.job_outputs[request.uuid]]
+        logger.info(
+            "Committing {} output files: {}".format(len(output_files), output_files)
+        )
         # Clear local outputs cache to release memory
         del self.job_outputs[request.uuid]
 
@@ -154,7 +158,7 @@ class GrpcWorkerService(WorkerManagerServiceServicer):
                     name=output_file,
                     created_at=now,
                     file_path=output_file,
-                    job_uuid=UUID4(request.uuid),
+                    job_uuid=uuid.UUID(request.uuid),
                     source_model=source_model,
                 )
             )

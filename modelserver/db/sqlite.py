@@ -774,9 +774,11 @@ class PersistentDataManager(DataManager):
             "created_at": lora.created_at,
             "file_path": lora.file_path,
             "job_uuid": lora.job_uuid,
+            "source_model": lora.source_model,
         }
         with self.engine.connect() as conn:
             conn.execute(Insert(loras_table).values(**row).on_conflict_do_nothing())
+            conn.commit()
 
     def get_loras(self) -> list[Lora]:
         """

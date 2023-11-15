@@ -4,25 +4,25 @@ Main worker process.
 
 import asyncio
 import logging
+import os
 import time
+from dataclasses import dataclass
+
 import grpc
 import httpx
-from dataclasses import dataclass
-from concurrent.futures import ThreadPoolExecutor
+
 from modelserver.types.remoteworker import FineTuneMethod
-
-
-from workerserver.finetune import FineTuneExecutionPlan, FineTuneJob
-from workerproto.worker_v1_pb2_grpc import (
-    WorkerManagerServiceStub,
-)
 from workerproto.worker_v1_pb2 import (
     CompleteJobRequest,
-    HeartbeatRequest,
     HeartbeatReply,
-    JobType as GrpcJobType,
-    JobState as GrpcJobState,
+    HeartbeatRequest,
 )
+from workerproto.worker_v1_pb2 import JobState as GrpcJobState
+from workerproto.worker_v1_pb2 import JobType as GrpcJobType
+from workerproto.worker_v1_pb2 import WriteOutputChunkRequest
+from workerproto.worker_v1_pb2_grpc import WorkerManagerServiceStub
+from workerserver.finetune import FineTuneExecutionPlan, FineTuneJob
+from workerserver.gguf_conversions import convert_hf_to_gguf
 
 logger = logging.getLogger(__name__)
 
@@ -84,7 +84,7 @@ async def run_loop() -> None:
         worker_config.modelserver_grpc_url,
         grpc.ssl_channel_credentials(cacert, privatekey, cert),
     )
-    grpc_client = WorkerManagerServiceStub(channel)
+    grpc_client = WorkerManagerServiceStub(channel)  # type: ignore[no-untyped-call]
 
     # Get the list of assigned jobs for our worker.
     while True:
@@ -111,7 +111,30 @@ async def run_loop() -> None:
 
                 finetune_job = FineTuneJob(exec_plan)
                 try:
-                    finetune_job.execute()
+                    output_dir = finetune_job.execute()
+
+                    # Convert LoRA to GGUF
+                    lora_gguf_path = convert_hf_to_gguf(output_dir)
+                    lora_gguf_fname = os.path.basename(lora_gguf_path)
+                    # Upload the file in chunks
+                    with open(lora_gguf_path, "rb") as f:
+                        while True:
+                            chunk = f.read(1_000_000)
+                            if len(chunk) == 0:
+                                break
+                            logger.info(
+                                "Streaming chunk back: id={} file={} bytes={}".format(
+                                    next_job.finetune.uuid, lora_gguf_fname, len(chunk)
+                                )
+                            )
+                            grpc_client.WriteOutputChunk(
+                                WriteOutputChunkRequest(
+                                    filename=lora_gguf_fname,
+                                    task_uuid=next_job.finetune.uuid,
+                                    chunk=chunk,
+                                )
+                            )
+
                     grpc_client.CompleteJob(
                         CompleteJobRequest(
                             uuid=next_job.finetune.uuid,

@@ -1,5 +1,6 @@
 import logging
 import os
+import uuid
 from collections import defaultdict
 from datetime import datetime
 from typing import Annotated
@@ -131,7 +132,7 @@ class GrpcWorkerService(WorkerManagerServiceServicer):
             raise ValueError("Unknown JobState {}".format(request.completion_state))
 
         self.worker_store.update_job_state(
-            job_id=UUID4(request.uuid), job_state=db_job_state
+            job_id=uuid.UUID(request.uuid), job_state=db_job_state
         )
 
         output_files = [fname for fname in self.job_outputs[request.uuid]]
@@ -140,7 +141,7 @@ class GrpcWorkerService(WorkerManagerServiceServicer):
 
         source_model = None
         for job in self.worker_store.get_jobs():
-            if job.id == request.uuid:
+            if job.id == uuid.UUID(request.uuid):
                 source_model = job.pytorch_hf_model
         if source_model is None:
             raise ValueError("Could not lookup job in DB: {}".format(request.uuid))

@@ -20,7 +20,10 @@ class FineTuneExecutionPlan(BaseModel):
     # fsspec-compatible path/URL to the input dataset.
     # Dataset must be readable using HuggingFace datasets library,
     # and must have a field where the conversations are stored in "messages" field.
-    dataset_path: str
+    # dataset_path: str
+
+    # String representation of file data in-memory.
+    dataset: bytes
     output_dir: str
 
 
@@ -52,7 +55,12 @@ class FineTuneJob(object):
         from peft import LoraConfig
         from trl import SFTTrainer
 
-        dataset = Dataset.from_json(self.plan.dataset_path)
+        logger.info("Loading training data '%s'", self.plan.dataset)
+
+        # Write to a temp file, then load
+        with open("runfile.dat", "wb") as f:
+            f.write(self.plan.dataset)
+        dataset = Dataset.from_json("runfile.dat")
 
         # Download the model from HuggingFace Hub
         model = AutoModelForCausalLM.from_pretrained(

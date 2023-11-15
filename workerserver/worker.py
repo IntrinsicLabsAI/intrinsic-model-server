@@ -9,66 +9,22 @@ import grpc
 import httpx
 from dataclasses import dataclass
 from concurrent.futures import ThreadPoolExecutor
+from modelserver.types.remoteworker import FineTuneMethod
 
-from pydantic import UUID4
 
-from modelserver.types.remoteworker import (
-    FineTuneJobOut,
-    JobState,
-    JobType,
-    RemoteWorkerDetailsIn,
-)
 from workerserver.finetune import FineTuneExecutionPlan, FineTuneJob
 from workerproto.worker_v1_pb2_grpc import (
-    WorkerManagerService,
     WorkerManagerServiceStub,
 )
-from workerproto.worker_v1_pb2 import HeartbeatRequest, HeartbeatReply
+from workerproto.worker_v1_pb2 import (
+    CompleteJobRequest,
+    HeartbeatRequest,
+    HeartbeatReply,
+    JobType as GrpcJobType,
+    JobState as GrpcJobState,
+)
 
 logger = logging.getLogger(__name__)
-
-
-class RemoteWorkerClient(object):
-    """
-    Remote interaction client for hitting the RemoteWorker API endpoints defined in modelserver
-    """
-
-    def __init__(self, worker_id: str, base_url: str) -> None:
-        self.worker_id = worker_id
-        self.base_url = base_url.removesuffix("/")
-
-    @staticmethod
-    def build(*, worker_id: str, base_url: str) -> "RemoteWorkerClient":
-        return RemoteWorkerClient(worker_id, base_url)
-
-    def heartbeat(self):
-        heartbeat_payload = RemoteWorkerDetailsIn(
-            name=self.worker_id, supported_jobs=[JobType.FINETUNE]
-        )
-        res = httpx.post(
-            f"{self.base_url}/workers/", json=heartbeat_payload.model_dump()
-        )
-        if res.status_code > 204:
-            raise ValueError(
-                f"error: heartbeat failed: status={res.status_code} detail={res.text}"
-            )
-
-    def get_assigned_jobs(self) -> list[FineTuneJobOut]:
-        """
-        Get a list of jobs from the remote server
-        """
-        response = httpx.get(
-            f"{self.base_url}/workers/assigned/{self.worker_id}",
-            headers={"Worker-Id": self.worker_id},
-        )
-        if response.status_code != 200:
-            raise ValueError("Not jobs found")
-        jobs = response.json()
-        return [FineTuneJobOut.model_validate(job) for job in jobs]
-
-    def update_job_state(self, job_id: UUID4, job_state: JobState) -> None:
-        # Do not send updates to the server. This is mostly broken here instead.
-        pass
 
 
 @dataclass
@@ -103,26 +59,6 @@ def envvar_check_nonnull(envvar: str) -> str:
     return value
 
 
-def heartbeat_loop(client: WorkerManagerServiceStub) -> None:
-    import time
-
-    while True:
-        try:
-            logger.debug(f"heartbeating to {client.base_url}")
-            # Construct against the base URL here instead
-            result: HeartbeatReply = client.Heartbeat(
-                HeartbeatRequest(message="healthy")
-            )
-            result.assigned_tasks
-        except Exception as e:
-            if isinstance(e, httpx.ConnectError):
-                logger.warning(f"ConnectError: {client.base_url} not yet available")
-            else:
-                logger.error("error encountered while performing heartbeat", exc_info=e)
-        finally:
-            time.sleep(5.0)
-
-
 async def run_loop() -> None:
     """
     Main run loop for process
@@ -132,41 +68,71 @@ async def run_loop() -> None:
 
     logger.info("booting remoteworker with config %s", worker_config)
 
+    CACERT = "cacert.pem"
+    CERT = "cert.pem"
+    KEY = "key.pem"
+
+    with open(CACERT, "rb") as f:
+        cacert = f.read()
+    with open(CERT, "rb") as f:
+        cert = f.read()
+    with open(KEY, "rb") as f:
+        privatekey = f.read()
+
     # Get access to URL configs
-    client = RemoteWorkerClient.build(
-        worker_id=worker_config.worker_id, base_url=worker_config.modelserver_url
-    )
     channel = grpc.secure_channel(
-        worker_config.modelserver_grpc_url, grpc.access_token_call_credentials
+        worker_config.modelserver_grpc_url,
+        grpc.ssl_channel_credentials(cacert, privatekey, cert),
     )
     grpc_client = WorkerManagerServiceStub(channel)
-
-    # Fork off a background task to heartbeat the job updates.
-    threadpool = ThreadPoolExecutor(thread_name_prefix="heartbeater", max_workers=1)
-    threadpool.submit(heartbeat_loop, grpc_client)
 
     # Get the list of assigned jobs for our worker.
     while True:
         try:
-            jobs = client.get_assigned_jobs()
+            heartbeat_reply: HeartbeatReply = grpc_client.Heartbeat(
+                HeartbeatRequest(
+                    worker_id=worker_config.worker_id,
+                    supported_jobs=[GrpcJobType.FINETUNE],
+                )
+            )
+            jobs = heartbeat_reply.assigned_tasks
             logger.info("Worker has %d jobs in its queue", len(jobs))
             if len(jobs) > 0:
-                next_job = jobs[0]
+                next_job = jobs.pop(0)
 
                 exec_plan = FineTuneExecutionPlan(
-                    pytorch_hf_model=next_job.pytorch_hf_model,
+                    pytorch_hf_model=next_job.finetune.pytorch_hf_model,
                     hf_token=worker_config.hf_token,
-                    method=next_job.method,
-                    dataset_path=next_job.dataset_path,
+                    method=FineTuneMethod.LORA,
+                    # assume all of this is in-memory or otherwise local here instead.
+                    dataset=next_job.finetune.training_data_file.data,
                     output_dir="output",
                 )
 
                 finetune_job = FineTuneJob(exec_plan)
-                finetune_job.execute()
+                try:
+                    finetune_job.execute()
+                    grpc_client.CompleteJob(
+                        CompleteJobRequest(
+                            uuid=next_job.finetune.uuid,
+                            completion_state=GrpcJobState.COMPLETE,
+                        )
+                    )
+                except Exception as e:
+                    grpc_client.CompleteJob(
+                        CompleteJobRequest(
+                            uuid=next_job.finetune.uuid,
+                            completion_state=GrpcJobState.FAILED,
+                            failed_reason=str(e),
+                        )
+                    )
+                    raise e
 
         except Exception as e:
             if isinstance(e, httpx.ConnectError):
-                logger.warning(f"ConnectError: {client.base_url} not yet available")
+                logger.warning(
+                    f"ConnectError: {worker_config.modelserver_grpc_url} not yet available"
+                )
             else:
                 logger.error("error: get_assigned_jobs", exc_info=e)
         finally:

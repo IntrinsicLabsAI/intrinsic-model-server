@@ -140,7 +140,13 @@ class InMemoryRemoteWorkerStore(RemoteWorkerStore):
         """
         Returns a set of fine-tune jobs assigned to worker
         """
-        return [job for job in self.jobs.values() if job.assigned_worker == worker_id]
+        return [
+            job
+            for job in self.jobs.values()
+            if job.assigned_worker == worker_id
+            and job.state != JobState.COMPLETE
+            and job.state != JobState.FAILED
+        ]
 
     def update_job_state(self, job_id: UUID4, job_state: JobState) -> None:
         """

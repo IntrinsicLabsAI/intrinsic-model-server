@@ -47,7 +47,7 @@ def do_completion_llama(
     Execute completion, sending the results back over the completion task.
     """
     logger.info(f"Initializing model in subprocess {os.getpid()}")
-    llama = Llama(model_path=model_path)
+    llama = Llama(model_path=model_path, lora_path=lora_path)
     for next_chunk in llama.create_completion(
         prompt,
         max_tokens=tokens,

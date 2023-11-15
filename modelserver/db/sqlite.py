@@ -779,6 +779,7 @@ class PersistentDataManager(DataManager):
         }
         with self.engine.connect() as conn:
             conn.execute(Insert(loras_table).values(**row).on_conflict_do_nothing())
+            conn.commit()
 
     def get_loras(self) -> list[LoraOut]:
         """

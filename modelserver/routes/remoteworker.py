@@ -110,7 +110,7 @@ class GrpcWorkerService(WorkerManagerServiceServicer):
         outpath = os.path.join(output_dir, request.filename)
         os.makedirs(output_dir, exist_ok=True)
 
-        self.job_outputs[request.task_uuid].add(request.filename)
+        self.job_outputs[request.task_uuid].add(outpath)
 
         # Keep a local map of things tied to the current data store
         with open(outpath, "ab") as f:
@@ -136,7 +136,7 @@ class GrpcWorkerService(WorkerManagerServiceServicer):
             job_id=uuid.UUID(request.uuid), job_state=db_job_state
         )
 
-        output_files = [fname for fname in self.job_outputs[request.uuid]]
+        output_files = [path for path in self.job_outputs[request.uuid]]
         logger.info(
             "Committing {} output files: {}".format(len(output_files), output_files)
         )

@@ -17,7 +17,8 @@ from modelserver.types.api import (
     CreateTaskRequest,
     GrammarDefinition,
     ImportMetadata,
-    Lora,
+    LoraIn,
+    LoraOut,
     ModelRuntime,
     ModelType,
     ModelVersion,
@@ -764,7 +765,7 @@ class PersistentDataManager(DataManager):
                 output_grammar=output_grammar,
             )
 
-    def register_lora(self, *, lora: Lora) -> None:
+    def register_lora(self, *, lora: LoraIn) -> None:
         """
         Register a new LoRA fine-tune output with the system.
         """
@@ -778,15 +779,15 @@ class PersistentDataManager(DataManager):
         }
         with self.engine.connect() as conn:
             conn.execute(Insert(loras_table).values(**row).on_conflict_do_nothing())
-            conn.commit()
 
-    def get_loras(self) -> list[Lora]:
+    def get_loras(self) -> list[LoraOut]:
         """
         Get the set of registered LoRA models available in the system.
         """
         with self.engine.connect() as conn:
             rows = conn.execute(
                 select(
+                    loras_table.c.id,
                     loras_table.c.name,
                     loras_table.c.created_at,
                     loras_table.c.file_path,
@@ -797,9 +798,10 @@ class PersistentDataManager(DataManager):
 
             loras = []
             for row in rows:
-                name, created_at, file_path, job_uuid, source_model = row
+                id, name, created_at, file_path, job_uuid, source_model = row
                 loras.append(
-                    Lora(
+                    LoraOut(
+                        id=id,
                         name=name,
                         created_at=created_at,
                         file_path=file_path,
@@ -808,3 +810,38 @@ class PersistentDataManager(DataManager):
                     )
                 )
             return loras
+
+    def get_lora(self, lora_id: str) -> LoraOut:
+        """
+        Get a specific LoRA by its unique ID.
+        """
+
+        with self.engine.connect() as conn:
+            row = conn.execute(
+                select(
+                    loras_table.c.id,
+                    loras_table.c.name,
+                    loras_table.c.created_at,
+                    loras_table.c.file_path,
+                    loras_table.c.job_uuid,
+                    loras_table.c.source_model,
+                )
+                .select_from(loras_table)
+                .where(loras_table.c.id == lora_id)
+            ).one_or_none()
+
+            if row is None:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"No LoRA weights with id {lora_id}",
+                )
+
+            id, name, created_at, file_path, job_uuid, source_model = row
+            return LoraOut(
+                id=id,
+                name=name,
+                created_at=created_at,
+                file_path=file_path,
+                job_uuid=job_uuid,
+                source_model=source_model,
+            )

@@ -40,6 +40,7 @@ def do_completion_llama(
     prompt: str,
     tokens: int,
     temperature: float,
+    lora_path: str | None,
     channel: queue.Queue[str | None],
 ) -> None:
     """
@@ -61,6 +62,7 @@ def do_completion_llama(
 async def run_completion_async(
     completion_request: CompletionInferenceRequest,
     model_path: str,
+    lora_path: str | None,
 ) -> AsyncGenerator[str, str]:
     loop = asyncio.get_running_loop()
 
@@ -74,6 +76,7 @@ async def run_completion_async(
                 completion_request.prompt,
                 completion_request.tokens,
                 completion_request.temperature,
+                lora_path,
                 chan,
             )
             while True:

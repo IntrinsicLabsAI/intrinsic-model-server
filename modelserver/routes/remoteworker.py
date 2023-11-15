@@ -12,7 +12,7 @@ from pydantic import UUID4
 from modelserver.db._core import DataManager
 from modelserver.db.remoteworker import RemoteWorkerStore
 from modelserver.dependencies import get_remoteworker_store
-from modelserver.types.api import Lora
+from modelserver.types.api import LoraIn
 from modelserver.types.remoteworker import (
     FineTuneJobIn,
     FineTuneJobOut,
@@ -154,10 +154,10 @@ class GrpcWorkerService(WorkerManagerServiceServicer):
         now = datetime.utcnow()
         for output_file in output_files:
             self.data_manager.register_lora(
-                lora=Lora(
+                lora=LoraIn(
                     name=output_file,
-                    created_at=now,
                     file_path=output_file,
+                    created_at=now,
                     job_uuid=uuid.UUID(request.uuid),
                     source_model=source_model,
                 )

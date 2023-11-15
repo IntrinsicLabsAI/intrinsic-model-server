@@ -210,6 +210,7 @@ class CompletionInferenceRequest(BaseModel):
     prompt: str
     tokens: int = 128
     temperature: float = 0.0
+    lora: str | None = None
 
 
 # Union type to use for inferring the request type. Currently only one type.
@@ -358,7 +359,17 @@ class TaskInvocation(BaseModel):
     result: str
 
 
-class Lora(BaseModel):
+class LoraIn(BaseModel):
+    name: str
+    file_path: str
+    created_at: datetime
+    job_uuid: UUID4
+    # Original hf-hub source the fine-tune is based on
+    source_model: str
+
+
+class LoraOut(BaseModel):
+    id: str
     name: str
     file_path: str
     created_at: datetime

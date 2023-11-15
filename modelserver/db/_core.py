@@ -5,7 +5,8 @@ from pydantic import UUID4
 from modelserver.types.api import (
     CreateTaskRequest,
     GrammarDefinition,
-    Lora,
+    LoraIn,
+    LoraOut,
     ModelVersionInternal,
     RegisteredModel,
     RegisterModelRequest,
@@ -187,13 +188,19 @@ class DataManager(ABC):
         """
 
     @abstractmethod
-    def register_lora(self, *, lora: Lora) -> None:
+    def register_lora(self, *, lora: LoraIn) -> None:
         """
         Register a new LoRA fine-tune output with the system.
         """
 
     @abstractmethod
-    def get_loras(self) -> list[Lora]:
+    def get_loras(self) -> list[LoraOut]:
         """
         Get the set of registered LoRA models available in the system.
+        """
+
+    @abstractmethod
+    def get_lora(self, lora_id: str) -> LoraOut:
+        """
+        Get a specific LoRA by its unique ID.
         """

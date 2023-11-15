@@ -31,10 +31,15 @@ COPY pyproject.toml .
 COPY poetry.toml .
 COPY poetry.lock .
 COPY modelserver/ ./modelserver
+COPY workerproto/ ./workerproto
 COPY --from=build-frontend /app/dist/ ./frontend/dist
 
 RUN pip install poetry
 RUN poetry install --without=dev,remoteworker
 
+# Standard HTTP interface for API/asset traffic
 EXPOSE 8000
+
+# gRPC interface for workers
+EXPOSE 8001
 CMD ["./.venv/bin/modelserver"]

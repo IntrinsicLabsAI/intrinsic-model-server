@@ -40,6 +40,7 @@ from ..types.api import (
     GetSavedExperimentsResponse,
     GrammarDefinition,
     ImportRequest,
+    LoraOut,
     RegisteredModel,
     SavedExperimentIn,
     SavedExperimentOut,
@@ -91,11 +92,16 @@ async def run_inference_sync(
         model_name=model, version=version
     )
 
+    # find the uuid for the model that we want here
+    lora_path = None
+    if request.lora is not None:
+        lora_path = component.db.get_lora(lora_id=request.lora).file_path
+
     # Generate the Llama context
     starttime = time.time()
     completion = ""
     async for token in model_worker.run_completion_async(
-        request, found_model.internal_params.model_path
+        request, found_model.internal_params.model_path, lora_path
     ):
         completion += token
     elapsed = time.time() - starttime
@@ -260,14 +266,18 @@ async def completion_async(
     found_model = component.db.get_model_version_internal(
         model_name=model, version=version
     )
+
     try:
         msg = await websocket.receive_json()
         request: CompletionInferenceRequest = CompletionInferenceRequest.model_validate(
             msg
         )
+        lora_path = None
+        if request.lora is not None:
+            lora_path = component.db.get_lora(lora_id=request.lora).file_path
 
         async for item in model_worker.run_completion_async(
-            request, found_model.internal_params.model_path
+            request, found_model.internal_params.model_path, lora_path
         ):
             await websocket.send_text(str(item))
         await websocket.close(1000)
@@ -651,3 +661,11 @@ async def summarize_task_invocations(
 ) -> InvocationsSummary:
     task_id = component.db.get_task_by_name(task_name).task_id
     return component.metrics.summarize_invocations(task_id=task_id)
+
+
+@router.get("/loras")
+async def get_loras(
+    component: Annotated[AppComponent, Depends(AppComponent)],
+) -> list[LoraOut]:
+    # get back a bunch of LoRAs
+    return component.db.get_loras()

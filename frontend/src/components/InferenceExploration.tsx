@@ -26,6 +26,7 @@ import {
     useSaveExperimentMutation,
     useDeleteExperimentMutation,
     useGetSavedExperimentsQuery,
+    useGetLorasQuery,
 } from "../api/services/v1";
 
 const ExperimentInput = React.memo(
@@ -40,6 +41,28 @@ const ExperimentInput = React.memo(
     }) => {
         const [version, setVersion] = useState<string | undefined>();
         const [prompt, setPrompt] = useState<string | undefined>();
+        const [loraId, setLoraId] = useState<string | undefined>();
+
+        // Setup selectors
+        const { data: loras } = useGetLorasQuery();
+
+        const finetunes = useMemo(() => {
+            const items = [
+                {
+                    id: "__NONE",
+                    value: "NONE",
+                },
+            ];
+            if (loras) {
+                loras.forEach((lora) => {
+                    items.push({
+                        id: lora.id,
+                        value: `${lora.source_model} - ${lora.created_at}`,
+                    });
+                });
+            }
+            return items;
+        }, [loras]);
 
         const maxVersion = useMemo(() => {
             if (versions.length === 0) {
@@ -93,6 +116,25 @@ const ExperimentInput = React.memo(
                         </div>
                     </div>
 
+                    <div className="flex flex-row w-full gap-4 justify-start pt-2">
+                        <h3 className=" flex-grow font-semibold leading-none">
+                            Fine Tunings (Optional)
+                        </h3>
+                        <div className=" items-baseline w-[70%]">
+                            <Dropdown
+                                buttonText="Fine Tunings"
+                                items={finetunes}
+                                default={"__NONE" as string}
+                                onSelectionChange={(select: string) => {
+                                    if (select === "__NONE") {
+                                        return;
+                                    }
+                                    setLoraId(select);
+                                }}
+                            />
+                        </div>
+                    </div>
+
                     <div className="flex flex-row w-full gap-4 justify-start">
                         <h3 className=" font-semibold leading-none">Temperature</h3>
                         <input
@@ -127,6 +169,7 @@ const ExperimentInput = React.memo(
                                     temperature: temperature,
                                     tokenLimit: tokenLimit,
                                     prompt: prompt!, // eslint-disable-line @typescript-eslint/no-non-null-assertion
+                                    loraId: loraId,
                                 });
                             }}
                             disabled={!isValidExperimentConfig}

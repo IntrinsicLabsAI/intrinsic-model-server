@@ -8,6 +8,7 @@ export interface Experiment {
     id: ExperimentId;
     model: string;
     modelId: string;
+    loraId?: string;
     version: string;
     temperature: number;
     tokenLimit: number;
@@ -138,7 +139,7 @@ wsMiddleware.startListening({
     actionCreator: addActiveExperiment,
     effect: async (action, listenerApi) => {
         const experiment = action.payload;
-        const { id, model, modelId, version } = action.payload;
+        const { id, model, modelId, version, loraId } = action.payload;
         const client = createDefaultClient(model, version);
 
         async function startWebSocket() {
@@ -150,6 +151,7 @@ wsMiddleware.startListening({
                             prompt: experiment.prompt,
                             temperature: experiment.temperature,
                             tokens: experiment.tokenLimit,
+                            lora: loraId,
                         },
                         (token) => listenerApi.dispatch(addOutputToken({ modelId, id, token })),
                         () => {

@@ -4,7 +4,6 @@ from pydantic import BaseModel
 
 from modelserver.types.remoteworker import FineTuneMethod
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -20,7 +19,10 @@ class FineTuneExecutionPlan(BaseModel):
     # fsspec-compatible path/URL to the input dataset.
     # Dataset must be readable using HuggingFace datasets library,
     # and must have a field where the conversations are stored in "messages" field.
-    dataset_path: str
+    # dataset_path: str
+
+    # String representation of file data in-memory.
+    dataset: bytes
     output_dir: str
 
 
@@ -37,22 +39,24 @@ class FineTuneJob(object):
     # Execute the job using the provided set of data and all that.
     # Log the output as well to a file, a remote log server, whatever you want.
 
-    def execute(self):
+    def execute(self) -> str:
         """
-        The actual execution of the FineTune job
+        The actual execution of the FineTune job.
+
+        :returns: The path of the emitted LORA file
         """
         import torch
-
         from datasets import Dataset
-        from transformers import (
-            AutoModelForCausalLM,
-            AutoTokenizer,
-            TrainingArguments,
-        )
-        from peft import LoraConfig
+        from peft import LoraConfig  # type: ignore[attr-defined]
+        from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments
         from trl import SFTTrainer
 
-        dataset = Dataset.from_json(self.plan.dataset_path)
+        logger.info("Loading training data '%s'", self.plan.dataset)
+
+        # Write to a temp file, then load
+        with open("runfile.dat", "wb") as f:
+            f.write(self.plan.dataset)
+        dataset = Dataset.from_json("runfile.dat")
 
         # Download the model from HuggingFace Hub
         model = AutoModelForCausalLM.from_pretrained(
@@ -92,8 +96,11 @@ class FineTuneJob(object):
             report_to=["none"],
             optim="adamw_hf",
             logging_steps=1,
-            eval_steps=3,
+            # TODO(aduffy): make this configurable
             num_train_epochs=2,
+            evaluation_strategy="no",
+            save_strategy="no",
+            save_safetensors=False,
         )
         trainer = SFTTrainer(
             model=model,
@@ -111,4 +118,6 @@ class FineTuneJob(object):
         trainer.train()
 
         # Save the trained model to the provided directory.
-        trainer.save_model(self.plan.output_dir)
+        trainer.save_model()
+
+        return self.plan.output_dir

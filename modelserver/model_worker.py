@@ -40,13 +40,14 @@ def do_completion_llama(
     prompt: str,
     tokens: int,
     temperature: float,
+    lora_path: str | None,
     channel: queue.Queue[str | None],
 ) -> None:
     """
     Execute completion, sending the results back over the completion task.
     """
     logger.info(f"Initializing model in subprocess {os.getpid()}")
-    llama = Llama(model_path=model_path)
+    llama = Llama(model_path=model_path, lora_path=lora_path)
     for next_chunk in llama.create_completion(
         prompt,
         max_tokens=tokens,
@@ -61,6 +62,7 @@ def do_completion_llama(
 async def run_completion_async(
     completion_request: CompletionInferenceRequest,
     model_path: str,
+    lora_path: str | None,
 ) -> AsyncGenerator[str, str]:
     loop = asyncio.get_running_loop()
 
@@ -74,6 +76,7 @@ async def run_completion_async(
                 completion_request.prompt,
                 completion_request.tokens,
                 completion_request.temperature,
+                lora_path,
                 chan,
             )
             while True:

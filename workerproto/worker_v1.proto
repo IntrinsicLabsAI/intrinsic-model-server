@@ -1,0 +1,100 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+
+
+enum JobType {
+    FINETUNE = 0;
+}
+
+message HeartbeatRequest {
+    string worker_id = 1;
+    repeated JobType supported_jobs = 2;
+}
+
+message HeartbeatReply {
+    repeated AssignedTask assigned_tasks = 1;
+}
+
+message FineTuneTask {
+    string uuid = 1;
+
+    string pytorch_hf_model = 3;
+
+    oneof training_data {
+        // In-memory serialized training data
+        InMemoryFile training_data_file = 4;
+
+        // File data path
+        FileDataPath file_data_path = 5;
+    }
+
+    // Need to know where the output is going to be uploaded.
+    // We can probably just upload the output to somewhere on disk if we want to.
+}
+
+message InMemoryFile {
+    string filename = 1;
+    bytes data = 2;
+}
+
+message FileDataPath {
+    string path = 1;
+}
+
+// Azure blob store DataPath
+// See https://learn.microsoft.com/en-us/azure/storage/blobs/storage-blobs-introduction
+// message AzureBlobStoreDataPath {
+//     string container = 1;
+//     string blob = 2;
+// }
+
+message AssignedTask {
+    oneof task {
+        FineTuneTask finetune = 1;
+    }
+}
+
+enum JobState {
+    QUEUED = 0;
+    SCHEDULED = 1;
+    RUNNING = 2;
+    COMPLETE = 3;
+    FAILED = 4;
+}
+
+message OutputFile {
+}
+
+message WriteOutputChunkRequest {
+    string task_uuid = 1;
+    string filename = 2;
+    bytes chunk = 3;
+}
+message WriteOutputChunkReply {
+    uint32 bytes_written = 1;
+}
+
+message CompleteJobRequest {
+    string uuid = 1;
+    JobState completion_state = 2;
+    
+    optional string failed_reason = 3;
+}
+
+message CompleteJobReply {
+    repeated string output_files = 1;
+}
+
+
+
+service WorkerManagerService {
+    rpc Heartbeat(HeartbeatRequest) returns (HeartbeatReply) {}
+
+    // Stream a chunk of data as an output file to the server.
+    // If the named chunk does not exist, it gets created on the fly.
+    rpc WriteOutputChunk(WriteOutputChunkRequest) returns (WriteOutputChunkReply) {}
+
+    // Complete a job, either via the output system or otherwise.
+    rpc CompleteJob(CompleteJobRequest) returns (CompleteJobReply) {}
+}

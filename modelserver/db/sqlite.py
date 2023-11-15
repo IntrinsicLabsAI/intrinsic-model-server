@@ -5,7 +5,7 @@ from uuid import UUID, uuid4
 
 from fastapi import HTTPException, status
 from pydantic import UUID4
-from sqlalchemy import Engine, and_, delete, event, select, update
+from sqlalchemy import Engine, and_, delete, desc, event, select, update
 from sqlalchemy.dialects.sqlite import Insert
 from sqlalchemy.engine.interfaces import DBAPIConnection
 from sqlalchemy.exc import IntegrityError, NoResultFound
@@ -17,6 +17,8 @@ from modelserver.types.api import (
     CreateTaskRequest,
     GrammarDefinition,
     ImportMetadata,
+    LoraIn,
+    LoraOut,
     ModelRuntime,
     ModelType,
     ModelVersion,
@@ -32,6 +34,7 @@ from modelserver.types.api import (
 from ._core import DataManager
 from ._tables import (
     import_metadata_table,
+    loras_table,
     metadata_obj,
     model_params_table,
     model_table,
@@ -760,4 +763,88 @@ class PersistentDataManager(DataManager):
                 prompt_template=prompt_template,
                 task_params=json.loads(input_schema),
                 output_grammar=output_grammar,
+            )
+
+    def register_lora(self, *, lora: LoraIn) -> None:
+        """
+        Register a new LoRA fine-tune output with the system.
+        """
+        row = {
+            "id": str(uuid4()),
+            "name": lora.name,
+            "created_at": lora.created_at,
+            "file_path": lora.file_path,
+            "job_uuid": lora.job_uuid,
+            "source_model": lora.source_model,
+        }
+        with self.engine.connect() as conn:
+            conn.execute(Insert(loras_table).values(**row).on_conflict_do_nothing())
+            conn.commit()
+
+    def get_loras(self) -> list[LoraOut]:
+        """
+        Get the set of registered LoRA models available in the system.
+        """
+        with self.engine.connect() as conn:
+            rows = conn.execute(
+                select(
+                    loras_table.c.id,
+                    loras_table.c.name,
+                    loras_table.c.created_at,
+                    loras_table.c.file_path,
+                    loras_table.c.job_uuid,
+                    loras_table.c.source_model,
+                )
+                .select_from(loras_table)
+                .order_by(loras_table.c.source_model, desc(loras_table.c.created_at))
+            )
+
+            loras = []
+            for row in rows:
+                id, name, created_at, file_path, job_uuid, source_model = row
+                loras.append(
+                    LoraOut(
+                        id=id,
+                        name=name,
+                        created_at=created_at,
+                        file_path=file_path,
+                        job_uuid=job_uuid,
+                        source_model=source_model,
+                    )
+                )
+            return loras
+
+    def get_lora(self, lora_id: str) -> LoraOut:
+        """
+        Get a specific LoRA by its unique ID.
+        """
+
+        with self.engine.connect() as conn:
+            row = conn.execute(
+                select(
+                    loras_table.c.id,
+                    loras_table.c.name,
+                    loras_table.c.created_at,
+                    loras_table.c.file_path,
+                    loras_table.c.job_uuid,
+                    loras_table.c.source_model,
+                )
+                .select_from(loras_table)
+                .where(loras_table.c.id == lora_id)
+            ).one_or_none()
+
+            if row is None:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"No LoRA weights with id {lora_id}",
+                )
+
+            id, name, created_at, file_path, job_uuid, source_model = row
+            return LoraOut(
+                id=id,
+                name=name,
+                created_at=created_at,
+                file_path=file_path,
+                job_uuid=job_uuid,
+                source_model=source_model,
             )

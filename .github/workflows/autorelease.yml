@@ -13,6 +13,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
       - name: Autorelease Trigger
         id: autorelease
         uses: a10y/autorelease-action@0.5.0

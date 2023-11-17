@@ -15,4 +15,6 @@ jobs:
         uses: actions/checkout@v3
       - name: Autorelease Trigger
         id: autorelease
-        uses: a10y/autorelease-action@0.4.0
+        uses: a10y/autorelease-action@0.5.0
+        with:
+          token: "${{ secrets.GITHUB_TOKEN }}"

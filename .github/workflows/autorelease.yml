@@ -17,6 +17,6 @@ jobs:
           fetch-depth: 0
       - name: Autorelease Trigger
         id: autorelease
-        uses: a10y/autorelease-action@c15aebac4139fb31e278c7cb29703d7c75f0d8f4
+        uses: a10y/autorelease-action@7394619338a3f699e7e7e690ce464348efd2d3d3
         with:
           token: "${{ secrets.GITHUB_TOKEN }}"

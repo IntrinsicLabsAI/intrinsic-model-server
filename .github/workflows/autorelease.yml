@@ -1,22 +1,25 @@
-name: Autorelease main with minor version bumps
-on:
-  push:
-    branches: [main]
-
-permissions:
-  contents: write
-  pull-requests: write
-
-jobs:
-  autorelease:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-      - name: Autorelease Trigger
-        id: autorelease
-        uses: a10y/autorelease-action@59497a0b9cb31217ed85e2edb3b882bc9d5545b5
-        with:
-          token: "${{ secrets.GITHUB_TOKEN }}"
+## Turning this off for now as it works (releases get created) but release-triggered actions stop running
+#
+#name: Autorelease main with minor version bumps
+#on:
+#  push:
+#    branches: [main]
+#
+#permissions:
+#  contents: write
+#  pull-requests: write
+#
+#jobs:
+#  autorelease:
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: Checkout repository
+#        uses: actions/checkout@v3
+#        with:
+#          fetch-depth: 0
+#      - name: Autorelease Trigger
+#        id: autorelease
+#        uses: a10y/autorelease-action@59497a0b9cb31217ed85e2edb3b882bc9d5545b5
+#        with:
+#          token: "${{ secrets.GITHUB_TOKEN }}"
+#

@@ -1,5 +1,6 @@
 import logging
 
+import torch
 from pydantic import BaseModel
 
 from modelserver.types.remoteworker import FineTuneMethod
@@ -24,6 +25,13 @@ class FineTuneExecutionPlan(BaseModel):
     # String representation of file data in-memory.
     dataset: bytes
     output_dir: str
+
+
+def has_accelerators() -> bool:
+    """
+    Returns true iff there is either a CUDA or MPS accelerator hardware available to exploit.
+    """
+    return torch.backends.mps.is_available() or torch.cuda.is_available()
 
 
 class FineTuneJob(object):
@@ -58,12 +66,17 @@ class FineTuneJob(object):
             f.write(self.plan.dataset)
         dataset = Dataset.from_json("runfile.dat")
 
+        # NOTE: half-precision training only has HW support for CUDA and MPS (macOS). If you're not running on one of these platforms,
+        #  then you need to do full-precision training.
+
+        model_dtype = torch.float16 if has_accelerators() else torch.float32
+
         # Download the model from HuggingFace Hub
         model = AutoModelForCausalLM.from_pretrained(
             self.plan.pytorch_hf_model,
             token=self.plan.hf_token,
             device_map="auto",
-            torch_dtype=torch.float16,
+            torch_dtype=model_dtype,
         )
         tokenizer = AutoTokenizer.from_pretrained(
             self.plan.pytorch_hf_model,

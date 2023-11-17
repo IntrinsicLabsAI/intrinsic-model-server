@@ -11,7 +11,7 @@ import {
     useUpdateTaskModelMutation,
     useUpdateTaskPromptMutation,
 } from "../api/services/v1";
-import { compile, serializeGrammar } from "@intrinsicai/gbnfgen";
+import { compileSync, serializeGrammar } from "@intrinsicai/gbnfgen";
 import ts from "typescript";
 
 import Page from "../components/layout/Page";
@@ -200,7 +200,7 @@ function TaskValidation({ task }: { task: TaskInfo }) {
                     ifaces.push(child.name.getText(srcFile));
                 }
             });
-            const grammarArray = compile(taskGrammar, ifaces[0]);
+            const grammarArray = compileSync(taskGrammar, ifaces[0]);
             const grammarFile = serializeGrammar(grammarArray);
 
             updateGrammarModelAction({

@@ -42,7 +42,7 @@ pytest = "^7.4.3"
 trl = "^0.7.2"
 transformers = "^4.35.0"
 httpx = "^0.25.1"
-peft = "^0.5.0"
+peft = "^0.6.2"
 
 [build-system]
 requires = ["poetry-core"]

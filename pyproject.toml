@@ -29,7 +29,7 @@ protobuf = "^4.25.1"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.1.6"
-mypy = "^1.7.0"
+mypy = "^1.7.1"
 mypy-extensions = "^1.0.0"
 isort = "^5.12.0"
 black = "^23.11.0"

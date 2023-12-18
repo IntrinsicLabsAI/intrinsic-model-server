@@ -1715,17 +1715,18 @@ files = [
 
 [[package]]
 name = "peft"
-version = "0.6.2"
+version = "0.7.1"
 description = "Parameter-Efficient Fine-Tuning (PEFT)"
 optional = false
 python-versions = ">=3.8.0"
 files = [
-    {file = "peft-0.6.2-py3-none-any.whl", hash = "sha256:bbe58c63aa6c7cb7ebe868d71bc000b1e76c15d187f6fa6e997a327610fffa18"},
-    {file = "peft-0.6.2.tar.gz", hash = "sha256:244ea9768e7de49dc41b068d3f9a32ca508e31d4223640566616633b6ed1331e"},
+    {file = "peft-0.7.1-py3-none-any.whl", hash = "sha256:a1b7dc222254ce2161b32b88cc6f2bd7387712d20c478c98c586c59112112e46"},
+    {file = "peft-0.7.1.tar.gz", hash = "sha256:cd8fd190e1aacfdcb6c70df4e13c3e3b0006b1e9cc16ecf0a9804632edfcecd3"},
 ]
 
 [package.dependencies]
 accelerate = ">=0.21.0"
+huggingface-hub = ">=0.17.0"
 numpy = ">=1.17"
 packaging = ">=20.0"
 psutil = "*"
@@ -1739,7 +1740,7 @@ transformers = "*"
 dev = ["black (>=22.0,<23.0)", "hf-doc-builder", "ruff (>=0.0.241)", "urllib3 (<=2.0.0)"]
 docs-specific = ["hf-doc-builder"]
 quality = ["black (>=22.0,<23.0)", "ruff (>=0.0.241)", "urllib3 (<=2.0.0)"]
-test = ["black (>=22.0,<23.0)", "datasets", "diffusers (<0.21.0)", "hf-doc-builder", "parameterized", "pytest", "pytest-cov", "pytest-xdist", "ruff (>=0.0.241)", "urllib3 (<=2.0.0)"]
+test = ["black (>=22.0,<23.0)", "datasets", "diffusers (<0.21.0)", "hf-doc-builder", "parameterized", "pytest", "pytest-cov", "pytest-xdist", "ruff (>=0.0.241)", "scipy", "urllib3 (<=2.0.0)"]
 
 [[package]]
 name = "platformdirs"
@@ -3312,4 +3313,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "b62bd4395905261ce28f6182382ae6b1a4499f1a67cf2b7cda98902798d6c037"
+content-hash = "5032568ac4380fc1e8891643a05772a0bbec1e15662f2bfd051f485be30e9d73"

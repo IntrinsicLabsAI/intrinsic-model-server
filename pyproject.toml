@@ -41,7 +41,7 @@ pytest = "^7.4.3"
 [tool.poetry.group.remoteworker.dependencies]
 trl = "^0.7.2"
 transformers = "^4.36.2"
-httpx = "^0.25.2"
+httpx = "^0.26.0"
 peft = "^0.7.1"
 
 [build-system]

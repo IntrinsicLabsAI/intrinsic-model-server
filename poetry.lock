@@ -1110,12 +1110,12 @@ i18n = ["Babel (>=2.7)"]
 
 [[package]]
 name = "llama-cpp-python"
-version = "0.2.20"
+version = "0.2.27"
 description = "Python bindings for the llama.cpp library"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "llama_cpp_python-0.2.20.tar.gz", hash = "sha256:a0ada1cb800ba4da60ea6ac4f7264b687a35412374e5af2c92e5b22852cdbafb"},
+    {file = "llama_cpp_python-0.2.27.tar.gz", hash = "sha256:4f7228c38d0618ec80a76130ab4720693ea09efd5cd46920e075cadf00e6d060"},
 ]
 
 [package.dependencies]
@@ -1127,7 +1127,7 @@ typing-extensions = ">=4.5.0"
 all = ["llama_cpp_python[dev,server,test]"]
 dev = ["black (>=23.3.0)", "httpx (>=0.24.1)", "mkdocs (>=1.4.3)", "mkdocs-material (>=9.1.18)", "mkdocstrings[python] (>=0.22.0)", "pytest (>=7.4.0)", "twine (>=4.0.2)"]
 server = ["fastapi (>=0.100.0)", "pydantic-settings (>=2.0.1)", "sse-starlette (>=1.6.1)", "starlette-context (>=0.3.6,<0.4)", "uvicorn (>=0.22.0)"]
-test = ["httpx (>=0.24.1)", "pytest (>=7.4.0)"]
+test = ["httpx (>=0.24.1)", "pytest (>=7.4.0)", "scipy (>=1.10)"]
 
 [[package]]
 name = "markdown-it-py"
@@ -3311,4 +3311,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "fdb595fd2bdde5b8029eb828d070faa654225addc7010286706e2ac510c166c0"
+content-hash = "bc12518d756e361e08f3274967fd48a8a4dd579f7730a846beb0d4196de337a2"

@@ -13,7 +13,7 @@ selfsign = "scripts.gen_certs:entrypoint"
 [tool.poetry.dependencies]
 python = "^3.11"
 pydantic = "^2.5.3"
-fastapi = "^0.108.0"
+fastapi = "^0.109.0"
 llama-cpp-python = "^0.2.27"
 huggingface-hub = "0.20.1"
 duckdb = "^0.9.1"

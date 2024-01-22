@@ -2924,13 +2924,13 @@ tutorials = ["matplotlib", "pandas", "tabulate"]
 
 [[package]]
 name = "trl"
-version = "0.7.4"
-description = "A Pytorch implementation of Proximal Policy Optimization for transfomer language models."
+version = "0.7.10"
+description = "Train transformer language models with reinforcement learning."
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "trl-0.7.4-py3-none-any.whl", hash = "sha256:ebd1677a39cd5c97140245b7c63516ab122872537af7aa535d1473fb852afd38"},
-    {file = "trl-0.7.4.tar.gz", hash = "sha256:95ec953788dc392c37868d306d41ca0c6f1546db14d9926b7e8b49851871c437"},
+    {file = "trl-0.7.10-py3-none-any.whl", hash = "sha256:2ad418c8db76ee3e712218ecee1ab1e6bf625b8722c3beb228365aaa595cb249"},
+    {file = "trl-0.7.10.tar.gz", hash = "sha256:5e3815521fdbbe0939fcfa6c57561317081700c62d386c4e08a2e04dcce4a9f7"},
 ]
 
 [package.dependencies]
@@ -2938,17 +2938,17 @@ accelerate = "*"
 datasets = "*"
 numpy = ">=1.18.2"
 torch = ">=1.4.0"
-transformers = ">=4.18.0"
+transformers = ">=4.31.0"
 tyro = ">=0.5.11"
 
 [package.extras]
 benchmark = ["deepspeed", "ghapi", "openrlbenchmark (==0.2.1a5)", "requests", "wandb"]
 deepspeed = ["deepspeed (>=0.9.5)"]
-dev = ["accelerate", "bitsandbytes (<=0.41.1)", "deepspeed", "deepspeed (>=0.9.5)", "diffusers (>=0.18.0)", "ghapi", "openrlbenchmark (==0.2.1a5)", "parameterized", "peft (>=0.4.0)", "pytest", "pytest-xdist", "requests", "wandb"]
+dev = ["accelerate", "bitsandbytes (<=0.41.1)", "deepspeed", "deepspeed (>=0.9.5)", "diffusers (>=0.18.0)", "ghapi", "openrlbenchmark (==0.2.1a5)", "parameterized", "peft (>=0.4.0)", "pytest", "pytest-cov", "pytest-xdist", "requests", "wandb"]
 diffusers = ["diffusers (>=0.18.0)"]
 peft = ["peft (>=0.4.0)"]
 quantization = ["bitsandbytes (<=0.41.1)"]
-test = ["accelerate", "diffusers (>=0.18.0)", "parameterized", "peft (>=0.4.0)", "pytest", "pytest-xdist"]
+test = ["accelerate", "parameterized", "pytest", "pytest-cov", "pytest-xdist"]
 
 [[package]]
 name = "typing-extensions"
@@ -3313,4 +3313,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "f5925c7d9c7065f6161a168de5d62786f4271b20433f73e5658ca243f981504d"
+content-hash = "0aca6ecf9f255562b71a2b71c76b18361050fbeec7b5202fa3cd6d976cf5e766"

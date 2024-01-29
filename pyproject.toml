@@ -24,7 +24,7 @@ websockets = "^11.0.3"
 python-dotenv = "^1.0.0"
 grpcio = "^1.60.0"
 python-multipart = "^0.0.6"
-protobuf = "^4.25.1"
+protobuf = "^4.25.2"
 
 
 [tool.poetry.group.dev.dependencies]
